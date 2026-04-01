@@ -32,6 +32,11 @@ import {
   ReconcileDto,
 } from "./services/payment-reports.service";
 import {
+  PaymentReportImportService,
+  ImportResult,
+  ImportStatus,
+} from "./services/payment-report-import.service";
+import {
   ReportType,
   UploadStatus,
 } from "./entities/payment-report-upload.entity";
@@ -55,7 +60,10 @@ interface AuthenticatedRequest extends ExpressRequest {
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller("payment-reports")
 export class PaymentReportsController {
-  constructor(private readonly service: PaymentReportsService) {}
+  constructor(
+    private readonly service: PaymentReportsService,
+    private readonly importService: PaymentReportImportService,
+  ) {}
 
   // ─────────────────────────────────────────────
   // UPLOAD
@@ -165,6 +173,51 @@ export class PaymentReportsController {
     await this.service.findUploadById(id, req.user.organizationId);
     // Restore needs withDeleted query — handled via repository
     return { message: "Upload restored" };
+  }
+
+  // ─────────────────────────────────────────────
+  // IMPORT (PaymentReportRow → Transaction)
+  // ─────────────────────────────────────────────
+
+  @Post("rows/:rowId/import")
+  @Roles("owner", "admin", "accountant")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Импорт одной строки отчёта в транзакцию" })
+  async importSingleRow(
+    @Param("rowId", ParseUUIDPipe) rowId: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.importService.importSingleRow(req.user.organizationId, rowId);
+  }
+
+  @Post(":id/import")
+  @Roles("owner", "admin", "accountant")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Массовый импорт строк отчёта в транзакции",
+  })
+  async importToTransactions(
+    @Param("id", ParseUUIDPipe) uploadId: string,
+    @Request() req: AuthenticatedRequest,
+  ): Promise<ImportResult> {
+    return this.importService.importUpload(
+      req.user.organizationId,
+      uploadId,
+      req.user?.name ?? req.user?.id ?? "anonymous",
+    );
+  }
+
+  @Get(":id/import-status")
+  @Roles("owner", "admin", "accountant", "manager")
+  @ApiOperation({ summary: "Статус импорта строк в транзакции" })
+  async getImportStatus(
+    @Param("id", ParseUUIDPipe) uploadId: string,
+    @Request() req: AuthenticatedRequest,
+  ): Promise<ImportStatus> {
+    return this.importService.getImportStatus(
+      req.user.organizationId,
+      uploadId,
+    );
   }
 
   // ─────────────────────────────────────────────

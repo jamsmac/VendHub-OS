@@ -34,6 +34,11 @@ export interface ReportUpload {
   uploadedBy?: string;
   createdAt: string;
   updatedAt: string;
+  // Import tracking (Phase 1)
+  importedRows?: number;
+  importErrors?: number;
+  importedAt?: string;
+  importedBy?: string;
 }
 
 export interface ReportRow {

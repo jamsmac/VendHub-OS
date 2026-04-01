@@ -106,4 +106,20 @@ export class PaymentReportRow extends BaseEntity {
   /** ID дублирующей строки */
   @Column({ name: "duplicate_of", nullable: true })
   duplicateOf: string;
+
+  // ─────────────────────────────────────────────
+  // IMPORT TRACKING (Phase 1: Reports → Transactions)
+  // ─────────────────────────────────────────────
+
+  /** Была ли строка импортирована как Transaction */
+  @Column({ name: "is_imported", type: "boolean", default: false })
+  isImported: boolean;
+
+  /** ID созданной Transaction (после успешного импорта) */
+  @Column({ name: "imported_transaction_id", type: "uuid", nullable: true })
+  importedTransactionId: string | null;
+
+  /** Ошибка при попытке импорта (machine_not_found, duplicate_transaction и т.д.) */
+  @Column({ name: "import_error", type: "text", nullable: true })
+  importError: string | null;
 }

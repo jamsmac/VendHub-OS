@@ -126,4 +126,24 @@ export class PaymentReportUpload extends BaseEntity {
   @OneToMany("PaymentReportRow", "upload", { cascade: true })
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rows: any[];
+
+  // ─────────────────────────────────────────────
+  // IMPORT TRACKING (Phase 1: Reports → Transactions)
+  // ─────────────────────────────────────────────
+
+  /** Количество успешно импортированных строк */
+  @Column({ name: "imported_rows", type: "int", default: 0 })
+  importedRows: number;
+
+  /** Количество ошибок при импорте */
+  @Column({ name: "import_errors", type: "int", default: 0 })
+  importErrors: number;
+
+  /** Дата/время импорта */
+  @Column({ name: "imported_at", type: "timestamptz", nullable: true })
+  importedAt: Date | null;
+
+  /** Кто инициировал импорт */
+  @Column({ name: "imported_by", type: "varchar", length: 255, nullable: true })
+  importedBy: string | null;
 }

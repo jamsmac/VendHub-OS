@@ -48,6 +48,8 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -233,6 +235,37 @@ function UploadZone({
 // ─────────────────────────────────────────────────────────
 // Компонент: таблица данных отчёта
 // ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
+// Типы для импорта
+// ─────────────────────────────────────────────────────────
+
+interface ImportResult {
+  uploadId: string;
+  batchId: string | null;
+  totalRows: number;
+  imported: number;
+  skipped: number;
+  machineNotFound: number;
+  duplicateTransactions: number;
+  errors: {
+    rowId: string;
+    rowIndex: number;
+    machineCode: string | null;
+    reason: string;
+    details?: string;
+  }[];
+}
+
+interface ImportStatusData {
+  uploadId: string;
+  totalRows: number;
+  importedRows: number;
+  pendingRows: number;
+  errorRows: number;
+  importedAt: string | null;
+  importedBy: string | null;
+}
+
 function ReportDataTable({ upload }: { upload: ReportUpload }) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -241,6 +274,8 @@ function ReportDataTable({ upload }: { upload: ReportUpload }) {
   const [sortDir, setSortDir] = useState<"ASC" | "DESC">("ASC");
   const [filterMethod, setFilterMethod] = useState<string>("");
   const [filterStatus, setFilterStatus] = useState<string>("");
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const queryClient = useQueryClient();
 
   // Debounce search
   useEffect(() => {
@@ -282,6 +317,43 @@ function ReportDataTable({ upload }: { upload: ReportUpload }) {
     enabled: upload.status === "COMPLETED",
   });
 
+  // Import status
+  const { data: importStatus } = useQuery<ImportStatusData>({
+    queryKey: ["import-status", upload.id],
+    queryFn: () =>
+      apiGet<ImportStatusData>(`/payment-reports/${upload.id}/import-status`),
+    enabled: upload.status === "COMPLETED",
+  });
+
+  // Import mutation
+  const importMutation = useMutation({
+    mutationFn: () =>
+      apiPost<ImportResult>(`/payment-reports/${upload.id}/import`),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["import-status", upload.id] });
+      queryClient.invalidateQueries({ queryKey: ["report-rows", upload.id] });
+      queryClient.invalidateQueries({ queryKey: ["payment-reports"] });
+      setShowImportDialog(false);
+      if (result.imported > 0) {
+        toast.success(
+          `Импортировано ${result.imported} из ${result.totalRows} строк` +
+            (result.machineNotFound > 0
+              ? ` (${result.machineNotFound} - машина не найдена)`
+              : ""),
+        );
+      } else if (result.totalRows === 0) {
+        toast.info("Все строки уже импортированы");
+      } else {
+        toast.warning(
+          `Не удалось импортировать: ${result.machineNotFound} строк - машина не найдена`,
+        );
+      }
+    },
+    onError: (err: Error) => {
+      toast.error(`Ошибка импорта: ${err.message}`);
+    },
+  });
+
   const columns = REPORT_COLUMNS[upload.reportType] ?? REPORT_COLUMNS.UNKNOWN;
 
   const handleSort = (key: string) => {
@@ -320,6 +392,104 @@ function ReportDataTable({ upload }: { upload: ReportUpload }) {
 
   return (
     <div className="space-y-3">
+      {/* Import button + status */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {importStatus && importStatus.totalRows > 0 && (
+            <Badge
+              variant="outline"
+              className={cn(
+                "text-xs",
+                importStatus.importedRows === importStatus.totalRows
+                  ? "text-green-600 border-green-300"
+                  : importStatus.importedRows > 0
+                    ? "text-orange-600 border-orange-300"
+                    : "text-muted-foreground",
+              )}
+            >
+              {importStatus.importedRows === importStatus.totalRows
+                ? `Импортировано ${importStatus.importedRows}/${importStatus.totalRows}`
+                : importStatus.importedRows > 0
+                  ? `${importStatus.importedRows}/${importStatus.totalRows} импортировано`
+                  : `${importStatus.totalRows} строк к импорту`}
+            </Badge>
+          )}
+        </div>
+
+        {importStatus && importStatus.pendingRows > 0 && (
+          <Button
+            size="sm"
+            onClick={() => setShowImportDialog(true)}
+            disabled={importMutation.isPending}
+          >
+            {importMutation.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Upload className="h-4 w-4 mr-2" />
+            )}
+            Импорт в транзакции
+          </Button>
+        )}
+      </div>
+
+      {/* Import confirmation dialog */}
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Импорт в транзакции</DialogTitle>
+            <DialogDescription>
+              Строки отчёта будут преобразованы в записи транзакций
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <span className="text-muted-foreground">Файл:</span>
+              <span className="font-medium">{upload.fileName}</span>
+              <span className="text-muted-foreground">Тип:</span>
+              <span className="font-medium">
+                {REPORT_TYPE_CONFIG[upload.reportType]?.label}
+              </span>
+              <span className="text-muted-foreground">Строк к импорту:</span>
+              <span className="font-medium">
+                {importStatus?.pendingRows ?? upload.newRows}
+              </span>
+              {upload.totalAmount != null && (
+                <>
+                  <span className="text-muted-foreground">Сумма:</span>
+                  <span className="font-medium">
+                    {formatAmount(upload.totalAmount, upload.currency)}
+                  </span>
+                </>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Строки с неизвестным кодом машины будут пропущены. Дубликаты
+              транзакций автоматически исключаются.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowImportDialog(false)}
+              disabled={importMutation.isPending}
+            >
+              Отмена
+            </Button>
+            <Button
+              onClick={() => importMutation.mutate()}
+              disabled={importMutation.isPending}
+            >
+              {importMutation.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4 mr-2" />
+              )}
+              Импортировать
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Фильтры */}
       <div className="flex gap-2 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
@@ -617,6 +787,23 @@ function UploadHistoryCard({
           {upload.totalAmount !== undefined && upload.totalAmount !== null && (
             <span className="font-medium text-foreground">
               {formatAmount(upload.totalAmount, upload.currency)}
+            </span>
+          )}
+          {upload.status === "COMPLETED" && upload.importedRows != null && (
+            <span
+              className={cn(
+                "font-medium",
+                upload.importedRows > 0 &&
+                  upload.importedRows >= (upload.newRows || upload.totalRows)
+                  ? "text-green-600"
+                  : upload.importedRows > 0
+                    ? "text-orange-600"
+                    : "text-muted-foreground",
+              )}
+            >
+              {upload.importedRows > 0
+                ? `${upload.importedRows}/${upload.newRows || upload.totalRows} импорт`
+                : "не импортирован"}
             </span>
           )}
           {upload.periodFrom && (
