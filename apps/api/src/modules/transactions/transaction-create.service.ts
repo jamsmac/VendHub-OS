@@ -11,7 +11,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { DataSource, Repository } from "typeorm";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   Transaction,
@@ -64,6 +64,7 @@ export class TransactionCreateService {
     private ingredientBatchRepo: Repository<IngredientBatch>,
     private eventEmitter: EventEmitter2,
     private readonly queryService: TransactionQueryService,
+    private dataSource: DataSource,
   ) {}
 
   /**
@@ -160,37 +161,41 @@ export class TransactionCreateService {
     success: boolean,
     providerData?: Record<string, unknown>,
   ): Promise<Transaction> {
-    const transaction = await this.transactionRepo.findOne({
-      where: { paymentId: providerTransactionId },
-    });
+    return this.dataSource.transaction(async (manager) => {
+      const txRepo = manager.getRepository(Transaction);
+      const transaction = await txRepo.findOne({
+        where: { paymentId: providerTransactionId },
+        lock: { mode: "pessimistic_write" },
+      });
 
-    if (!transaction) {
-      throw new NotFoundException("Транзакция не найдена");
-    }
+      if (!transaction) {
+        throw new NotFoundException("Транзакция не найдена");
+      }
 
-    transaction.metadata = {
-      ...transaction.metadata,
-      paymentProvider: provider,
-      paymentConfirmedAt: new Date().toISOString(),
-      ...providerData,
-    };
-
-    if (success) {
-      transaction.status = TransactionStatus.COMPLETED;
-      await this.transactionRepo.save(transaction);
-      this.eventEmitter.emit("transaction.paid", transaction);
-    } else {
-      // Payment failed
-      transaction.status = TransactionStatus.FAILED;
       transaction.metadata = {
         ...transaction.metadata,
-        failureReason: "Платёж отклонён",
+        paymentProvider: provider,
+        paymentConfirmedAt: new Date().toISOString(),
+        ...providerData,
       };
-      await this.transactionRepo.save(transaction);
-      this.eventEmitter.emit("transaction.failed", transaction);
-    }
 
-    return this.queryService.findById(transaction.id);
+      if (success) {
+        transaction.status = TransactionStatus.COMPLETED;
+        await txRepo.save(transaction);
+        this.eventEmitter.emit("transaction.paid", transaction);
+      } else {
+        // Payment failed
+        transaction.status = TransactionStatus.FAILED;
+        transaction.metadata = {
+          ...transaction.metadata,
+          failureReason: "Платёж отклонён",
+        };
+        await txRepo.save(transaction);
+        this.eventEmitter.emit("transaction.failed", transaction);
+      }
+
+      return this.queryService.findById(transaction.id);
+    });
   }
 
   /**
@@ -263,30 +268,40 @@ export class TransactionCreateService {
    * Cancel transaction
    */
   async cancel(id: string, reason: string): Promise<Transaction> {
-    const transaction = await this.queryService.findById(id);
+    return this.dataSource.transaction(async (manager) => {
+      const txRepo = manager.getRepository(Transaction);
+      const transaction = await txRepo.findOne({
+        where: { id },
+        lock: { mode: "pessimistic_write" },
+      });
 
-    if (
-      [TransactionStatus.COMPLETED, TransactionStatus.REFUNDED].includes(
-        transaction.status,
-      )
-    ) {
-      throw new BadRequestException(
-        "Невозможно отменить завершённую транзакцию",
-      );
-    }
+      if (!transaction) {
+        throw new NotFoundException("Транзакция не найдена");
+      }
 
-    transaction.status = TransactionStatus.CANCELLED;
-    transaction.metadata = {
-      ...transaction.metadata,
-      cancellationReason: reason,
-      cancelledAt: new Date().toISOString(),
-    };
+      if (
+        [TransactionStatus.COMPLETED, TransactionStatus.REFUNDED].includes(
+          transaction.status,
+        )
+      ) {
+        throw new BadRequestException(
+          "Невозможно отменить завершённую транзакцию",
+        );
+      }
 
-    await this.transactionRepo.save(transaction);
+      transaction.status = TransactionStatus.CANCELLED;
+      transaction.metadata = {
+        ...transaction.metadata,
+        cancellationReason: reason,
+        cancelledAt: new Date().toISOString(),
+      };
 
-    this.eventEmitter.emit("transaction.cancelled", transaction);
+      await txRepo.save(transaction);
 
-    return this.queryService.findById(id);
+      this.eventEmitter.emit("transaction.cancelled", transaction);
+
+      return this.queryService.findById(id);
+    });
   }
 
   /**
@@ -297,40 +312,52 @@ export class TransactionCreateService {
     amount: number,
     reason: string,
   ): Promise<Transaction> {
-    const transaction = await this.queryService.findById(transactionId);
+    return this.dataSource.transaction(async (manager) => {
+      const txRepo = manager.getRepository(Transaction);
 
-    // Create refund transaction
-    const refundTransaction = this.transactionRepo.create({
-      organizationId: transaction.organizationId,
-      machineId: transaction.machineId,
-      type: TransactionType.REFUND,
-      status: TransactionStatus.PENDING,
-      amount,
-      totalAmount: amount,
-      currency: transaction.currency,
-      originalTransactionId: transactionId,
-      refundReason: reason,
-      transactionDate: new Date(),
+      // Lock original transaction to prevent concurrent refunds
+      const transaction = await txRepo.findOne({
+        where: { id: transactionId },
+        lock: { mode: "pessimistic_write" },
+      });
+
+      if (!transaction) {
+        throw new NotFoundException("Транзакция не найдена");
+      }
+
+      // Create refund transaction
+      const refundTransaction = txRepo.create({
+        organizationId: transaction.organizationId,
+        machineId: transaction.machineId,
+        type: TransactionType.REFUND,
+        status: TransactionStatus.PENDING,
+        amount,
+        totalAmount: amount,
+        currency: transaction.currency,
+        originalTransactionId: transactionId,
+        refundReason: reason,
+        transactionDate: new Date(),
+      });
+
+      const saved = await txRepo.save(refundTransaction);
+
+      // Update original transaction
+      transaction.refundedAmount = (transaction.refundedAmount || 0) + amount;
+      transaction.refundedAt = new Date();
+      if (transaction.refundedAmount >= transaction.totalAmount) {
+        transaction.status = TransactionStatus.REFUNDED;
+      } else {
+        transaction.status = TransactionStatus.PARTIALLY_REFUNDED;
+      }
+      await txRepo.save(transaction);
+
+      this.eventEmitter.emit("transaction.refund.requested", {
+        transaction,
+        refund: saved,
+      });
+
+      return saved;
     });
-
-    const saved = await this.transactionRepo.save(refundTransaction);
-
-    // Update original transaction
-    transaction.refundedAmount = (transaction.refundedAmount || 0) + amount;
-    transaction.refundedAt = new Date();
-    if (transaction.refundedAmount >= transaction.totalAmount) {
-      transaction.status = TransactionStatus.REFUNDED;
-    } else {
-      transaction.status = TransactionStatus.PARTIALLY_REFUNDED;
-    }
-    await this.transactionRepo.save(transaction);
-
-    this.eventEmitter.emit("transaction.refund.requested", {
-      transaction,
-      refund: saved,
-    });
-
-    return saved;
   }
 
   /**

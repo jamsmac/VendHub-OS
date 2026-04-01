@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, DataSource } from "typeorm";
 import { NotFoundException, BadRequestException } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 
@@ -102,6 +102,17 @@ describe("TransactionsService", () => {
   };
 
   beforeEach(async () => {
+    const mockTransactionRepoValue = {
+      findOne: jest.fn(),
+      find: jest.fn(),
+      findAndCount: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+      softDelete: jest.fn(),
+      count: jest.fn(),
+      createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TransactionQueryService,
@@ -110,16 +121,7 @@ describe("TransactionsService", () => {
         TransactionsService,
         {
           provide: getRepositoryToken(Transaction),
-          useValue: {
-            findOne: jest.fn(),
-            find: jest.fn(),
-            findAndCount: jest.fn(),
-            create: jest.fn(),
-            save: jest.fn(),
-            softDelete: jest.fn(),
-            count: jest.fn(),
-            createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
-          },
+          useValue: mockTransactionRepoValue,
         },
         {
           provide: getRepositoryToken(TransactionItem),
@@ -195,6 +197,18 @@ describe("TransactionsService", () => {
           provide: EventEmitter2,
           useValue: {
             emit: jest.fn(),
+          },
+        },
+        {
+          provide: DataSource,
+          useValue: {
+            transaction: jest.fn((cb) =>
+              cb({
+                getRepository: jest
+                  .fn()
+                  .mockReturnValue(mockTransactionRepoValue),
+              }),
+            ),
           },
         },
       ],

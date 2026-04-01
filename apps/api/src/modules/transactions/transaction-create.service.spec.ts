@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, DataSource } from "typeorm";
 import { NotFoundException, BadRequestException } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 
@@ -81,6 +81,14 @@ describe("TransactionCreateService", () => {
       findById: jest.fn().mockResolvedValue(mockTransaction),
     };
 
+    const mockTransactionRepoValue = {
+      findOne: jest.fn(),
+      find: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+      softDelete: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TransactionCreateService,
@@ -90,13 +98,7 @@ describe("TransactionCreateService", () => {
         },
         {
           provide: getRepositoryToken(Transaction),
-          useValue: {
-            findOne: jest.fn(),
-            find: jest.fn(),
-            create: jest.fn(),
-            save: jest.fn(),
-            softDelete: jest.fn(),
-          },
+          useValue: mockTransactionRepoValue,
         },
         {
           provide: getRepositoryToken(TransactionItem),
@@ -130,6 +132,21 @@ describe("TransactionCreateService", () => {
           provide: EventEmitter2,
           useValue: {
             emit: jest.fn(),
+          },
+        },
+        {
+          provide: DataSource,
+          useValue: {
+            transaction: jest.fn((cb) => {
+              // Return the same transactionRepo mock so tests can set up
+              // expectations on transactionRepo and have them work inside transactions
+              const mockManager = {
+                getRepository: jest
+                  .fn()
+                  .mockReturnValue(mockTransactionRepoValue),
+              };
+              return cb(mockManager);
+            }),
           },
         },
       ],
@@ -522,12 +539,11 @@ describe("TransactionCreateService", () => {
         status: TransactionStatus.PENDING,
         metadata: {},
       } as any;
-      queryService.findById
-        .mockResolvedValueOnce(pendingTxn)
-        .mockResolvedValueOnce({
-          ...pendingTxn,
-          status: TransactionStatus.CANCELLED,
-        });
+      transactionRepo.findOne.mockResolvedValueOnce(pendingTxn);
+      queryService.findById.mockResolvedValueOnce({
+        ...pendingTxn,
+        status: TransactionStatus.CANCELLED,
+      });
       transactionRepo.save.mockResolvedValue({
         ...pendingTxn,
         status: TransactionStatus.CANCELLED,
@@ -550,7 +566,7 @@ describe("TransactionCreateService", () => {
     });
 
     it("should throw BadRequestException when cancelling completed transaction", async () => {
-      queryService.findById.mockResolvedValueOnce({
+      transactionRepo.findOne.mockResolvedValueOnce({
         ...mockTransaction,
         status: TransactionStatus.COMPLETED,
       } as any);
@@ -561,7 +577,7 @@ describe("TransactionCreateService", () => {
     });
 
     it("should throw BadRequestException when cancelling refunded transaction", async () => {
-      queryService.findById.mockResolvedValueOnce({
+      transactionRepo.findOne.mockResolvedValueOnce({
         ...mockTransaction,
         status: TransactionStatus.REFUNDED,
       } as any);
@@ -585,7 +601,7 @@ describe("TransactionCreateService", () => {
         refundedAmount: 0,
         currency: "UZS",
       } as any;
-      queryService.findById.mockResolvedValueOnce(completedTxn);
+      transactionRepo.findOne.mockResolvedValueOnce(completedTxn);
       transactionRepo.create.mockImplementation((data) => data as any);
       transactionRepo.save
         .mockResolvedValueOnce({
@@ -623,7 +639,7 @@ describe("TransactionCreateService", () => {
         totalAmount: 12000,
         refundedAmount: 0,
       } as any;
-      queryService.findById.mockResolvedValueOnce(completedTxn);
+      transactionRepo.findOne.mockResolvedValueOnce(completedTxn);
       transactionRepo.create.mockImplementation((data) => data as any);
       transactionRepo.save.mockImplementation((data) =>
         Promise.resolve(data as any),
@@ -646,7 +662,7 @@ describe("TransactionCreateService", () => {
         totalAmount: 12000,
         refundedAmount: 0,
       } as any;
-      queryService.findById.mockResolvedValueOnce(completedTxn);
+      transactionRepo.findOne.mockResolvedValueOnce(completedTxn);
       transactionRepo.create.mockImplementation((data) => data as any);
       transactionRepo.save.mockImplementation((data) =>
         Promise.resolve(data as any),
