@@ -282,6 +282,13 @@ export class MaintenanceService {
     const request = await this.findOne(organizationId, id);
     this.validateTransition(request.status, MaintenanceStatus.APPROVED);
 
+    // SECURITY: Prevent self-approval of maintenance requests
+    if (request.createdById === userId) {
+      throw new BadRequestException(
+        "Cannot approve your own maintenance request. Another authorized user must approve.",
+      );
+    }
+
     request.status = MaintenanceStatus.APPROVED;
     request.approvedByUserId = userId;
     request.approvedAt = new Date();

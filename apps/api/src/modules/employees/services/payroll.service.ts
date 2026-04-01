@@ -167,6 +167,13 @@ export class PayrollService {
       );
     }
 
+    // SECURITY: Prevent self-approval of payroll
+    if (payroll.createdById === approvedById) {
+      throw new BadRequestException(
+        "Cannot approve payroll you created. Another authorized user must approve.",
+      );
+    }
+
     payroll.status = PayrollStatus.APPROVED;
     payroll.approvedById = approvedById;
     payroll.approvedAt = new Date();

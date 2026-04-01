@@ -265,6 +265,13 @@ export class MaterialRequestsService {
 
     this.validateTransition(request.status, MaterialRequestStatus.APPROVED);
 
+    // SECURITY: Prevent self-approval of material requests
+    if (request.createdById === userId) {
+      throw new BadRequestException(
+        "Cannot approve your own material request. Another authorized user must approve.",
+      );
+    }
+
     const fromStatus = request.status;
     request.status = MaterialRequestStatus.APPROVED;
     request.approvedBy = userId;

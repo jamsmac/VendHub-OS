@@ -344,22 +344,38 @@ export class PaymentsService {
     const saved = await this.refundRepo.save(refund);
 
     // Initiate provider-specific refund (async, non-blocking)
-    this.processProviderRefund(saved, transaction).catch(async (err) => {
-      this.logger.error(
-        `Failed to process provider refund: ${err.message}`,
-        err.stack,
-      );
-      // Safety net: ensure refund doesn't stay stuck in PROCESSING
-      try {
-        await this.refundRepo.update(saved.id, {
-          status: PaymentRefundStatus.FAILED,
+    this.dataSource
+      .transaction(async (manager) => {
+        const rRepo = manager.getRepository(PaymentRefund);
+        const tRepo = manager.getRepository(PaymentTransaction);
+        const lockedRefund = await rRepo.findOne({
+          where: { id: saved.id },
+          lock: { mode: "pessimistic_write" },
         });
-      } catch (updateErr) {
-        this.logger.error(
-          `Failed to mark refund ${saved.id} as FAILED: ${(updateErr as Error).message}`,
+        if (!lockedRefund) return;
+        return this.processProviderRefundInTx(
+          lockedRefund,
+          transaction,
+          rRepo,
+          tRepo,
         );
-      }
-    });
+      })
+      .catch(async (err) => {
+        this.logger.error(
+          `Failed to process provider refund: ${err.message}`,
+          err.stack,
+        );
+        // Safety net: ensure refund doesn't stay stuck in PROCESSING
+        try {
+          await this.refundRepo.update(saved.id, {
+            status: PaymentRefundStatus.FAILED,
+          });
+        } catch (updateErr) {
+          this.logger.error(
+            `Failed to mark refund ${saved.id} as FAILED: ${(updateErr as Error).message}`,
+          );
+        }
+      });
 
     return saved;
   }
@@ -371,24 +387,37 @@ export class PaymentsService {
     refundId: string,
     organizationId: string,
   ): Promise<PaymentRefund> {
-    const refund = await this.refundRepo.findOne({
-      where: { id: refundId, organizationId },
-      relations: ["paymentTransaction"],
+    return this.dataSource.transaction(async (manager) => {
+      const refundRepo = manager.getRepository(PaymentRefund);
+      const transactionRepo = manager.getRepository(PaymentTransaction);
+
+      const refund = await refundRepo.findOne({
+        where: { id: refundId, organizationId },
+        relations: ["paymentTransaction"],
+        lock: { mode: "pessimistic_write" },
+      });
+
+      if (!refund) {
+        throw new NotFoundException("Refund not found");
+      }
+
+      return this.processProviderRefundInTx(
+        refund,
+        refund.paymentTransaction,
+        refundRepo,
+        transactionRepo,
+      );
     });
-
-    if (!refund) {
-      throw new NotFoundException("Refund not found");
-    }
-
-    return this.processProviderRefund(refund, refund.paymentTransaction);
   }
 
-  private async processProviderRefund(
+  private async processProviderRefundInTx(
     refund: PaymentRefund,
     transaction: PaymentTransaction,
+    refundRepo: Repository<PaymentRefund>,
+    transactionRepo: Repository<PaymentTransaction>,
   ): Promise<PaymentRefund> {
     refund.status = PaymentRefundStatus.PROCESSING;
-    await this.refundRepo.save(refund);
+    await refundRepo.save(refund);
 
     try {
       switch (transaction.provider) {
@@ -419,7 +448,7 @@ export class PaymentsService {
       }
 
       // Update transaction status if fully refunded
-      const allRefunds = await this.refundRepo.find({
+      const allRefunds = await refundRepo.find({
         where: {
           paymentTransactionId: transaction.id,
           organizationId: transaction.organizationId,
@@ -434,7 +463,7 @@ export class PaymentsService {
 
       if (totalRefunded >= Number(transaction.amount)) {
         transaction.status = PaymentTransactionStatus.REFUNDED;
-        await this.transactionRepo.save(transaction);
+        await transactionRepo.save(transaction);
       }
     } catch (error) {
       refund.status = PaymentRefundStatus.FAILED;
@@ -442,11 +471,11 @@ export class PaymentsService {
         `Refund processing failed: ${(error as Error).message}`,
         (error as Error).stack,
       );
-      await this.refundRepo.save(refund);
+      await refundRepo.save(refund);
       throw error;
     }
 
-    return this.refundRepo.save(refund);
+    return refundRepo.save(refund);
   }
 
   // ============================================

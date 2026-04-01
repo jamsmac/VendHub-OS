@@ -287,6 +287,13 @@ export class ContractorsService {
       throw new BadRequestException("Can only approve pending invoices");
     }
 
+    // SECURITY: Prevent self-approval of invoices
+    if (invoice.createdById === userId) {
+      throw new BadRequestException(
+        "Cannot approve your own invoice. Another authorized user must approve.",
+      );
+    }
+
     invoice.status = InvoiceStatus.APPROVED;
     invoice.approvedBy = userId;
     invoice.approvedAt = new Date();
