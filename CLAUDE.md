@@ -36,7 +36,7 @@ Unified vending machine management platform for Uzbekistan. Turborepo monorepo m
 ```text
 ./
 ├── apps/
-│   ├── api/              # NestJS backend (84 modules)
+│   ├── api/              # NestJS backend (82 modules)
 │   ├── web/              # Next.js admin panel
 │   ├── client/           # Vite React PWA (customer-facing)
 │   ├── bot/              # Telegram bot (Telegraf)
@@ -660,6 +660,47 @@ New backend endpoint storing complaint settings in Organization's `settings` JSO
 - Roles: GET (owner/admin/manager), PUT (owner/admin)
 - Files: `dto/complaint-settings.dto.ts`, `complaints.service.ts`, `complaints.controller.ts`, `complaints.module.ts`
 
+### Routes + Trips Merge (2026-04-01)
+
+Unified Routes module — merged 3 modules (routes, trips, trip-analytics) into 1. Single lifecycle: `DRAFT → PLANNED → ACTIVE → COMPLETED/CANCELLED/AUTO_CLOSED`. Commit `a5153bc`.
+
+**Backend (6 sprints, 50 files changed, -6872 / +3523 lines):**
+
+- **Route entity extended**: +17 columns from Trip (vehicleId, transportType, startOdometer, endOdometer, calculatedDistanceMeters, start/endLatitude, start/endLongitude, liveLocationActive, lastLocationUpdate, telegramMessageId, totalPoints, totalStopsVisited, totalAnomalies, visitedMachinesCount, taxiTotalAmount)
+- **RouteStop extended**: +6 columns from TripStop (machineName, machineAddress, distanceToMachineMeters, actualDurationSeconds, isVerified, isAnomaly)
+- **3 new entities created**: RoutePoint (GPS track), RouteAnomaly (deviations), RouteTaskLink (task binding with GPS verification)
+- **3 new enums**: `RouteStatus` (+draft, active, auto_closed), `TransportType`, `AnomalyType`/`AnomalySeverity`/`RouteTaskLinkStatus`
+- **4 new services**: RouteTrackingService (GPS, stop detection, geofencing), RouteAnalyticsService (7 dashboards), GpsProcessingService (Haversine), RoutesCronService (auto-close, long stop detection)
+- **18 new endpoints**: /start, /end, /cancel, /points, /points/batch, /track, /live-location, /tasks, /tasks/:taskId/complete, /anomalies, /anomalies/:id/resolve, /anomalies/unresolved, /active, /analytics/\* (main, activity, employees, vehicles, anomalies, taxi)
+- **Migration**: `1775700000000-MergeTripsIntoRoutes.ts` — extends routes/route_stops tables, creates route_points/route_anomalies/route_task_links
+- **vhm24-integration updated**: imports from routes instead of trips, TripReconciliation entity kept for backward compat
+
+**Frontend:**
+
+- **New page**: `routes/analytics/page.tsx` — KPI cards with period comparison, employee/vehicle/anomaly tabs
+- **Sidebar**: removed "Рейсы" (Trips), removed "Trip Analytics", added "Route Analytics" → `/dashboard/routes/analytics`
+- **API lib**: `tripsApi` redirected to `/routes/*`, `tripAnalyticsApi` renamed to `routeAnalyticsApi`
+- **Deleted**: 5 trip frontend pages (trips/, trips/[id], trips/analytics, trips/tracker, trip-analytics/)
+
+**Deleted modules:**
+
+- `trips/` (18 files) — kept only `trip-reconciliation.entity.ts` for vhm24-integration
+- `trip-analytics/` (5 files) — merged into `routes/services/route-analytics.service.ts`
+- `app.module.ts` — removed `TripsModule` and `TripAnalyticsModule`
+
+**Verification**: `tsc --noEmit` = 0 errors on API, Web, Client, Bot
+
+**Unified Route Lifecycle:**
+
+| Status        | Description                         | Transition                          |
+| ------------- | ----------------------------------- | ----------------------------------- |
+| `draft`       | Template/incomplete route           | → planned                           |
+| `planned`     | Ready with stops, operator assigned | → active, cancelled                 |
+| `active`      | Operator on the road, GPS tracking  | → completed, cancelled, auto_closed |
+| `completed`   | All stops visited, route ended      | terminal                            |
+| `cancelled`   | Manually cancelled                  | terminal                            |
+| `auto_closed` | No GPS updates for 8h (cron)        | terminal                            |
+
 ## Skills (AI Agent Tools)
 
 21 specialized skills in `.claude/commands/` directory for domain-specific code generation:
@@ -703,7 +744,7 @@ New backend endpoint storing complaint settings in Organization's `settings` JSO
 
 ## Migration Context
 
-Migrating from VHM24-repo (56 modules, 120 entities, 89 migrations) into VendHub OS (84 modules, 122 entities, 15 migrations).
+Migrating from VHM24-repo (56 modules, 120 entities, 89 migrations) into VendHub OS (82 modules, 125 entities, 16 migrations).
 
 Strategies per module:
 
