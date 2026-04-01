@@ -1,5 +1,15 @@
+# Railway configuration for VendHub Web (Admin Panel)
+#
+# IMPORTANT: In Railway Dashboard → Web service → Settings:
+#   Root Directory: /  (repo root, NOT apps/web — Dockerfile needs monorepo context)
+
+[build]
+dockerfilePath = "apps/web/Dockerfile"
+watchPatterns = ["apps/web/**", "packages/shared/**", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml"]
+
 [deploy]
-startCommand = "npx next start -p ${PORT:-3000}"
+# Standalone Next.js build — server.js is in the Docker image
+# CMD is defined in Dockerfile, no startCommand override needed
 healthcheckPath = "/"
 healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
