@@ -1,21 +1,20 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { TripTaskLink } from "../trips/entities/trip-task-link.entity";
-import { TripStop } from "../trips/entities/trip-stop.entity";
-import { Trip } from "../trips/entities/trip.entity";
+import { RouteTaskLink } from "../routes/entities/route-task-link.entity";
+import { Route, RouteStop } from "../routes/entities/route.entity";
 import { MachineLocationSync } from "./entities/machine-location-sync.entity";
 import { TripReconciliation } from "../trips/entities/trip-reconciliation.entity";
 import { Vhm24IntegrationService } from "./vhm24-integration.service";
 import { Vhm24IntegrationController } from "./vhm24-integration.controller";
 import { TripReconciliationService } from "./services/trip-reconciliation.service";
-import { GpsProcessingService } from "../trips/services/gps-processing.service";
+import { GpsProcessingService } from "../routes/services/gps-processing.service";
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      TripTaskLink,
-      TripStop,
-      Trip,
+      RouteTaskLink,
+      RouteStop,
+      Route,
       MachineLocationSync,
       TripReconciliation,
     ]),

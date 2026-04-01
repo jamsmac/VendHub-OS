@@ -96,7 +96,7 @@ import { MonitoringModule } from "./modules/monitoring/monitoring.module";
 import { BullBoardModule } from "./modules/bull-board/bull-board.module";
 import { DirectoriesModule } from "./modules/directories/directories.module";
 import { VehiclesModule } from "./modules/vehicles/vehicles.module";
-import { TripsModule } from "./modules/trips/trips.module";
+// TripsModule removed — merged into RoutesModule
 import { AchievementsModule } from "./modules/achievements/achievements.module";
 import { SmsModule } from "./modules/sms/sms.module";
 import { EmailModule } from "./modules/email/email.module";
@@ -112,7 +112,7 @@ import { CashFinanceModule } from "./modules/cash-finance/cash-finance.module";
 import { PayoutRequestsModule } from "./modules/payout-requests/payout-requests.module";
 import { CollectionsModule } from "./modules/collections/collections.module";
 import { InvestorModule } from "./modules/investor/investor.module";
-import { TripAnalyticsModule } from "./modules/trip-analytics/trip-analytics.module";
+// TripAnalyticsModule removed — merged into RoutesModule
 import { Vhm24IntegrationModule } from "./modules/vhm24-integration/vhm24-integration.module";
 import { EntityEventsModule } from "./modules/entity-events/entity-events.module";
 import { BatchMovementsModule } from "./modules/batch-movements/batch-movements.module";
@@ -683,9 +683,8 @@ const defaultedNumber = (value: number) =>
     // Directories / EAV Reference Data (справочники)
     DirectoriesModule,
 
-    // Trip tracking & GPS (VendtripBot integration)
+    // Vehicles & Route tracking (GPS, analytics, cron — merged from Trips)
     VehiclesModule,
-    TripsModule,
 
     // Achievements & Badges System
     AchievementsModule,
@@ -734,8 +733,7 @@ const defaultedNumber = (value: number) =>
     // Collections & Payment Recovery
     CollectionsModule,
 
-    // Trip Analytics & Performance Metrics
-    TripAnalyticsModule,
+    // Route Analytics merged into RoutesModule
 
     // VHM24 System Integration
     Vhm24IntegrationModule,

@@ -8,36 +8,35 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, IsNull } from "typeorm";
-import { Trip, TripStatus } from "../entities/trip.entity";
-import { TripPoint } from "../entities/trip-point.entity";
-import { TripStop } from "../entities/trip-stop.entity";
-import { AnomalyType, AnomalySeverity } from "../entities/trip-anomaly.entity";
+import { Route, RouteStatus, RouteStop } from "../entities/route.entity";
+import { RoutePoint } from "../entities/route-point.entity";
+import { AnomalyType, AnomalySeverity } from "../entities/route-anomaly.entity";
 import {
-  TripTaskLink,
-  TripTaskLinkStatus,
-} from "../entities/trip-task-link.entity";
-import { TRIP_SETTINGS } from "../constants/trip-settings";
-import { TripsService } from "../trips.service";
+  RouteTaskLink,
+  RouteTaskLinkStatus,
+} from "../entities/route-task-link.entity";
+import { ROUTE_SETTINGS } from "../constants/route-settings";
+import { RoutesService } from "../routes.service";
 
 @Injectable()
-export class TripRouteService {
-  private readonly logger = new Logger(TripRouteService.name);
+export class RouteTrackingService {
+  private readonly logger = new Logger(RouteTrackingService.name);
 
   constructor(
-    @InjectRepository(Trip)
-    private readonly tripRepository: Repository<Trip>,
+    @InjectRepository(Route)
+    private readonly routeRepository: Repository<Route>,
 
-    @InjectRepository(TripPoint)
-    private readonly pointRepository: Repository<TripPoint>,
+    @InjectRepository(RoutePoint)
+    private readonly pointRepository: Repository<RoutePoint>,
 
-    @InjectRepository(TripStop)
-    private readonly stopRepository: Repository<TripStop>,
+    @InjectRepository(RouteStop)
+    private readonly stopRepository: Repository<RouteStop>,
 
-    @InjectRepository(TripTaskLink)
-    private readonly taskLinkRepository: Repository<TripTaskLink>,
+    @InjectRepository(RouteTaskLink)
+    private readonly taskLinkRepository: Repository<RouteTaskLink>,
 
-    @Inject(forwardRef(() => TripsService))
-    private readonly tripsService: TripsService,
+    @Inject(forwardRef(() => RoutesService))
+    private readonly routesService: RoutesService,
   ) {}
 
   // ============================================================================
@@ -45,7 +44,7 @@ export class TripRouteService {
   // ============================================================================
 
   async addPoint(
-    tripId: string,
+    routeId: string,
     input: {
       latitude: number;
       longitude: number;
@@ -56,11 +55,12 @@ export class TripRouteService {
       recordedAt?: string;
     },
   ): Promise<{ id: string; isFiltered: boolean; filterReason: string | null }> {
-    // Fetch and validate trip once at the start
-    const trip = await this.tripRepository.findOne({ where: { id: tripId } });
-    if (!trip) throw new NotFoundException(`Trip ${tripId} not found`);
-    if (trip.status !== TripStatus.ACTIVE) {
-      throw new BadRequestException("Cannot add points to a non-active trip");
+    const route = await this.routeRepository.findOne({
+      where: { id: routeId },
+    });
+    if (!route) throw new NotFoundException(`Route ${routeId} not found`);
+    if (route.status !== RouteStatus.ACTIVE) {
+      throw new BadRequestException("Cannot add points to a non-active route");
     }
 
     let isFiltered = false;
@@ -69,7 +69,7 @@ export class TripRouteService {
     // Check GPS accuracy
     if (
       input.accuracy &&
-      input.accuracy > TRIP_SETTINGS.MIN_GPS_ACCURACY_METERS
+      input.accuracy > ROUTE_SETTINGS.MIN_GPS_ACCURACY_METERS
     ) {
       isFiltered = true;
       filterReason = "LOW_ACCURACY";
@@ -77,7 +77,7 @@ export class TripRouteService {
 
     // Get previous valid point
     const prevPoint = await this.pointRepository.findOne({
-      where: { tripId, isFiltered: false },
+      where: { routeId, isFiltered: false },
       order: { recordedAt: "DESC" },
     });
 
@@ -102,48 +102,56 @@ export class TripRouteService {
         const speedKmh =
           timeDiff > 0 ? (distanceFromPrev / timeDiff) * 3.6 : 999;
 
-        if (speedKmh > TRIP_SETTINGS.MAX_SPEED_KMH * 1.5) {
+        if (speedKmh > ROUTE_SETTINGS.MAX_SPEED_KMH * 1.5) {
           isFiltered = true;
           filterReason = "GPS_JUMP";
 
-          await this.tripsService.createAnomaly(tripId, trip.organizationId, {
-            type: AnomalyType.GPS_JUMP,
-            severity: AnomalySeverity.INFO,
-            latitude: input.latitude,
-            longitude: input.longitude,
-            details: {
-              previousPoint: {
-                lat: Number(prevPoint.latitude),
-                lng: Number(prevPoint.longitude),
+          await this.routesService.createAnomaly(
+            routeId,
+            route.organizationId,
+            {
+              type: AnomalyType.GPS_JUMP,
+              severity: AnomalySeverity.INFO,
+              latitude: input.latitude,
+              longitude: input.longitude,
+              details: {
+                previousPoint: {
+                  lat: Number(prevPoint.latitude),
+                  lng: Number(prevPoint.longitude),
+                },
+                distanceMeters: distanceFromPrev,
+                timeSeconds: timeDiff,
               },
-              distanceMeters: distanceFromPrev,
-              timeSeconds: timeDiff,
             },
-          });
+          );
         }
       }
 
-      // Speed violation check (non-jump, valid movement)
+      // Speed violation check
       if (!isFiltered && input.speed) {
         const speedKmh = input.speed * 3.6;
-        if (speedKmh > TRIP_SETTINGS.MAX_SPEED_KMH) {
-          await this.tripsService.createAnomaly(tripId, trip.organizationId, {
-            type: AnomalyType.SPEED_VIOLATION,
-            severity: AnomalySeverity.WARNING,
-            latitude: input.latitude,
-            longitude: input.longitude,
-            details: {
-              speedKmh: Math.round(speedKmh),
-              maxAllowedKmh: TRIP_SETTINGS.MAX_SPEED_KMH,
+        if (speedKmh > ROUTE_SETTINGS.MAX_SPEED_KMH) {
+          await this.routesService.createAnomaly(
+            routeId,
+            route.organizationId,
+            {
+              type: AnomalyType.SPEED_VIOLATION,
+              severity: AnomalySeverity.WARNING,
+              latitude: input.latitude,
+              longitude: input.longitude,
+              details: {
+                speedKmh: Math.round(speedKmh),
+                maxAllowedKmh: ROUTE_SETTINGS.MAX_SPEED_KMH,
+              },
             },
-          });
+          );
         }
       }
     }
 
     // Save point
     const point = this.pointRepository.create({
-      tripId,
+      routeId,
       latitude: input.latitude,
       longitude: input.longitude,
       accuracyMeters: input.accuracy ?? null,
@@ -158,20 +166,20 @@ export class TripRouteService {
 
     const savedPoint = await this.pointRepository.save(point);
 
-    // Update trip counters
-    await this.tripRepository
+    // Update route counters
+    await this.routeRepository
       .createQueryBuilder()
-      .update(Trip)
+      .update(Route)
       .set({
         totalPoints: () => '"total_points" + 1',
         lastLocationUpdate: new Date(),
       })
-      .where("id = :tripId", { tripId })
+      .where("id = :routeId", { routeId })
       .execute();
 
     // If this is the first point, set start coordinates
     if (!prevPoint && !isFiltered) {
-      await this.tripRepository.update(tripId, {
+      await this.routeRepository.update(routeId, {
         startLatitude: input.latitude,
         startLongitude: input.longitude,
       });
@@ -180,8 +188,8 @@ export class TripRouteService {
     // Check for stops
     if (!isFiltered) {
       await this.checkForStop(
-        tripId,
-        trip.organizationId,
+        routeId,
+        route.organizationId,
         input.latitude,
         input.longitude,
       );
@@ -191,7 +199,7 @@ export class TripRouteService {
   }
 
   async addPointsBatch(
-    tripId: string,
+    routeId: string,
     points: Array<{
       latitude: number;
       longitude: number;
@@ -204,18 +212,18 @@ export class TripRouteService {
   ) {
     const results = [];
     for (const point of points) {
-      const result = await this.addPoint(tripId, point);
+      const result = await this.addPoint(routeId, point);
       results.push(result);
     }
     return results;
   }
 
   async updateLiveLocationStatus(
-    tripId: string,
+    routeId: string,
     isActive: boolean,
     telegramMessageId?: number,
   ): Promise<void> {
-    await this.tripRepository.update(tripId, {
+    await this.routeRepository.update(routeId, {
       liveLocationActive: isActive,
       telegramMessageId: telegramMessageId ?? undefined,
       lastLocationUpdate: new Date(),
@@ -226,17 +234,10 @@ export class TripRouteService {
   // ROUTE & STOPS
   // ============================================================================
 
-  async getTripRoute(tripId: string): Promise<TripPoint[]> {
+  async getRouteTrack(routeId: string): Promise<RoutePoint[]> {
     return this.pointRepository.find({
-      where: { tripId, isFiltered: false },
+      where: { routeId, isFiltered: false },
       order: { recordedAt: "ASC" },
-    });
-  }
-
-  async getTripStops(tripId: string): Promise<TripStop[]> {
-    return this.stopRepository.find({
-      where: { tripId },
-      order: { startedAt: "ASC" },
     });
   }
 
@@ -245,18 +246,18 @@ export class TripRouteService {
   // ============================================================================
 
   private async checkForStop(
-    tripId: string,
+    routeId: string,
     organizationId: string,
     lat: number,
     lng: number,
   ): Promise<void> {
     const thresholdTime = new Date(
-      Date.now() - TRIP_SETTINGS.STOP_MIN_DURATION_SECONDS * 1000,
+      Date.now() - ROUTE_SETTINGS.STOP_MIN_DURATION_SECONDS * 1000,
     );
 
     const recentPoints = await this.pointRepository.find({
       where: {
-        tripId,
+        routeId,
         isFiltered: false,
       },
       order: { recordedAt: "DESC" },
@@ -278,75 +279,135 @@ export class TripRouteService {
         lat,
         lng,
       );
-      return dist <= TRIP_SETTINGS.STOP_DETECTION_RADIUS_METERS;
+      return dist <= ROUTE_SETTINGS.STOP_DETECTION_RADIUS_METERS;
     });
 
     if (!allInRadius) {
-      // Close any open stop (employee started moving)
-      await this.closeOpenStop(tripId);
+      // Close any open stop (operator started moving)
+      await this.closeOpenStop(routeId);
       return;
     }
 
     // Check for existing open stop
     const existingStop = await this.stopRepository.findOne({
-      where: { tripId, endedAt: IsNull() },
+      where: { routeId, departedAt: IsNull(), status: "arrived" as never },
     });
 
     if (existingStop) return; // Stop already tracked
 
-    // Create new stop
-    const firstPoint = pointsInWindow[pointsInWindow.length - 1]!;
-    const centerLat = Number(firstPoint.latitude);
-    const centerLng = Number(firstPoint.longitude);
+    // Find the nearest planned stop that hasn't been visited
+    const nearestPlannedStop = await this.findNearestPlannedStop(
+      routeId,
+      lat,
+      lng,
+    );
 
-    // Find nearest machine within this organization
+    // Also find nearest machine for unplanned stops
     const nearestMachine = await this.findNearestMachine(
-      centerLat,
-      centerLng,
+      lat,
+      lng,
       organizationId,
     );
 
-    const stop = this.stopRepository.create({
-      tripId,
-      latitude: centerLat,
-      longitude: centerLng,
-      machineId: nearestMachine?.machineId ?? null,
-      machineName: nearestMachine?.machineName ?? null,
-      machineAddress: nearestMachine?.machineAddress ?? null,
-      distanceToMachineMeters: nearestMachine?.distance ?? null,
-      startedAt: new Date(firstPoint.recordedAt),
-      isVerified: nearestMachine?.isWithinRadius ?? false,
-    });
+    if (
+      nearestPlannedStop &&
+      nearestPlannedStop.distance <= ROUTE_SETTINGS.GEOFENCE_RADIUS_METERS
+    ) {
+      // Mark planned stop as arrived
+      nearestPlannedStop.stop.status = "arrived" as never;
+      nearestPlannedStop.stop.actualArrival = new Date();
+      nearestPlannedStop.stop.distanceToMachineMeters =
+        nearestPlannedStop.distance;
+      nearestPlannedStop.stop.isVerified = true;
+      nearestPlannedStop.stop.machineName = nearestMachine?.machineName ?? null;
+      nearestPlannedStop.stop.machineAddress =
+        nearestMachine?.machineAddress ?? null;
+      await this.stopRepository.save(nearestPlannedStop.stop);
 
-    await this.stopRepository.save(stop);
+      // Update route stats
+      await this.routeRepository
+        .createQueryBuilder()
+        .update(Route)
+        .set({ totalStopsVisited: () => '"total_stops_visited" + 1' })
+        .where("id = :routeId", { routeId })
+        .execute();
 
-    // Update trip stop counter
-    await this.tripRepository
-      .createQueryBuilder()
-      .update(Trip)
-      .set({ totalStops: () => '"total_stops" + 1' })
-      .where("id = :tripId", { tripId })
-      .execute();
+      // Verify tasks at this machine
+      if (nearestPlannedStop.stop.machineId) {
+        await this.verifyTaskAtMachine(
+          routeId,
+          nearestPlannedStop.stop.machineId,
+        );
+      }
+    } else if (nearestMachine) {
+      // Unplanned stop near a machine — update route stats
+      await this.routeRepository
+        .createQueryBuilder()
+        .update(Route)
+        .set({ totalStopsVisited: () => '"total_stops_visited" + 1' })
+        .where("id = :routeId", { routeId })
+        .execute();
 
-    // Verify tasks at this machine
-    if (nearestMachine?.isWithinRadius && nearestMachine.machineId) {
-      await this.verifyTaskAtMachine(tripId, nearestMachine.machineId);
+      if (nearestMachine.isWithinRadius && nearestMachine.machineId) {
+        await this.verifyTaskAtMachine(routeId, nearestMachine.machineId);
+      }
     }
   }
 
-  private async closeOpenStop(tripId: string): Promise<void> {
-    const openStop = await this.stopRepository.findOne({
-      where: { tripId, endedAt: IsNull() },
+  private async closeOpenStop(routeId: string): Promise<void> {
+    // Close any planned stops that were arrived but not completed/departed
+    const arrivedStops = await this.stopRepository.find({
+      where: { routeId, departedAt: IsNull() },
     });
 
-    if (openStop) {
-      openStop.endedAt = new Date();
-      openStop.durationSeconds = Math.round(
-        (openStop.endedAt.getTime() - new Date(openStop.startedAt).getTime()) /
-          1000,
-      );
-      await this.stopRepository.save(openStop);
+    for (const stop of arrivedStops) {
+      if (
+        stop.status === ("arrived" as never) ||
+        stop.status === ("in_progress" as never)
+      ) {
+        stop.departedAt = new Date();
+        stop.actualDurationSeconds = Math.round(
+          (stop.departedAt.getTime() -
+            new Date(stop.actualArrival ?? stop.createdAt).getTime()) /
+            1000,
+        );
+        await this.stopRepository.save(stop);
+      }
     }
+  }
+
+  // ============================================================================
+  // PLANNED STOP MATCHING
+  // ============================================================================
+
+  private async findNearestPlannedStop(
+    routeId: string,
+    lat: number,
+    lng: number,
+  ): Promise<{ stop: RouteStop; distance: number } | null> {
+    const pendingStops = await this.stopRepository.find({
+      where: { routeId, status: "pending" as never },
+      order: { sequence: "ASC" },
+    });
+
+    let nearest: { stop: RouteStop; distance: number } | null = null;
+
+    for (const stop of pendingStops) {
+      if (stop.latitude == null || stop.longitude == null) continue;
+
+      const dist = this.calculateHaversineDistance(
+        lat,
+        lng,
+        Number(stop.latitude),
+        Number(stop.longitude),
+      );
+
+      if (!nearest || dist < nearest.distance) {
+        nearest = { stop, distance: Math.round(dist) };
+      }
+    }
+
+    return nearest;
   }
 
   // ============================================================================
@@ -368,8 +429,7 @@ export class TripRouteService {
     const latDelta = 2 / 111.32;
     const lngDelta = 2 / (111.32 * Math.cos((lat * Math.PI) / 180));
 
-    // Query machines within bounding box, filtered by organization
-    const machines = await this.tripRepository.manager
+    const machines = await this.routeRepository.manager
       .createQueryBuilder()
       .select([
         "id",
@@ -384,7 +444,7 @@ export class TripRouteService {
       .andWhere("m.status = :status", { status: "active" })
       .andWhere("m.latitude IS NOT NULL")
       .andWhere("m.longitude IS NOT NULL")
-      .andWhere("m.deletedAt IS NULL")
+      .andWhere("m.deleted_at IS NULL")
       .andWhere("m.latitude BETWEEN :latMin AND :latMax", {
         latMin: lat - latDelta,
         latMax: lat + latDelta,
@@ -417,7 +477,7 @@ export class TripRouteService {
           machineName: machine.name || machine.machine_number || "",
           machineAddress: machine.address || "",
           distance: Math.round(dist),
-          isWithinRadius: dist <= TRIP_SETTINGS.GEOFENCE_RADIUS_METERS,
+          isWithinRadius: dist <= ROUTE_SETTINGS.GEOFENCE_RADIUS_METERS,
         };
       }
     }
@@ -426,30 +486,26 @@ export class TripRouteService {
   }
 
   private async verifyTaskAtMachine(
-    tripId: string,
+    routeId: string,
     machineId: string,
   ): Promise<void> {
-    // Find tasks linked to this trip that are for this machine
     const taskLinks = await this.taskLinkRepository.find({
-      where: { tripId, status: TripTaskLinkStatus.PENDING },
+      where: { routeId, status: RouteTaskLinkStatus.PENDING },
     });
 
     if (taskLinks.length === 0) return;
 
-    // Batch query: find which of these tasks belong to this machine
     const taskIds = taskLinks.map((link) => link.taskId);
-    const matchingTasks = await this.tripRepository.manager
+    const matchingTasks = await this.routeRepository.manager
       .createQueryBuilder()
       .select(["id"])
       .from("tasks", "t")
       .where("t.id IN (:...taskIds)", { taskIds })
       .andWhere("t.machine_id = :machineId", { machineId })
-      .andWhere("t.deletedAt IS NULL")
+      .andWhere("t.deleted_at IS NULL")
       .getRawMany();
 
     const matchingTaskIds = new Set(matchingTasks.map((t) => t.id));
-
-    // Update matching links in batch
     const linksToUpdate = taskLinks.filter((link) =>
       matchingTaskIds.has(link.taskId),
     );
@@ -458,7 +514,7 @@ export class TripRouteService {
 
     const now = new Date();
     for (const link of linksToUpdate) {
-      link.status = TripTaskLinkStatus.IN_PROGRESS;
+      link.status = RouteTaskLinkStatus.IN_PROGRESS;
       link.verifiedByGps = true;
       link.verifiedAt = now;
       link.startedAt = now;
@@ -471,10 +527,6 @@ export class TripRouteService {
   // HELPERS
   // ============================================================================
 
-  /**
-   * Calculate distance between two GPS coordinates using Haversine formula
-   * @returns Distance in meters
-   */
   calculateHaversineDistance(
     lat1: number,
     lon1: number,
@@ -482,19 +534,16 @@ export class TripRouteService {
     lon2: number,
   ): number {
     const R = 6371000; // Earth radius in meters
-    const dLat = this.toRad(lat2 - lat1);
-    const dLon = this.toRad(lon2 - lon1);
+    const toRad = (deg: number) => (deg * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.toRad(lat1)) *
-        Math.cos(this.toRad(lat2)) *
+      Math.cos(toRad(lat1)) *
+        Math.cos(toRad(lat2)) *
         Math.sin(dLon / 2) *
         Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
-  }
-
-  private toRad(deg: number): number {
-    return deg * (Math.PI / 180);
   }
 }

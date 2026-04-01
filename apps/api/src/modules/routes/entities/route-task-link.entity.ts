@@ -1,12 +1,12 @@
 import { Entity, Column, Index, ManyToOne, JoinColumn } from "typeorm";
 import { BaseEntity } from "../../../common/entities/base.entity";
-import { Trip } from "./trip.entity";
+import { Route } from "./route.entity";
 
 // ============================================================================
 // ENUMS
 // ============================================================================
 
-export enum TripTaskLinkStatus {
+export enum RouteTaskLinkStatus {
   PENDING = "pending",
   IN_PROGRESS = "in_progress",
   COMPLETED = "completed",
@@ -14,28 +14,28 @@ export enum TripTaskLinkStatus {
 }
 
 // ============================================================================
-// TRIP-TASK LINK ENTITY (Many-to-many between trips and tasks)
+// ROUTE-TASK LINK ENTITY (Many-to-many between routes and tasks)
 // ============================================================================
 
-@Entity("trip_task_links")
-@Index(["tripId", "taskId"], { unique: true, where: '"deleted_at" IS NULL' })
-export class TripTaskLink extends BaseEntity {
+@Entity("route_task_links")
+@Index(["routeId", "taskId"], { unique: true, where: '"deleted_at" IS NULL' })
+export class RouteTaskLink extends BaseEntity {
   @Column({ type: "uuid" })
-  tripId: string;
+  routeId: string;
 
-  @ManyToOne(() => Trip, (trip) => trip.taskLinks, { onDelete: "CASCADE" })
-  @JoinColumn({ name: "trip_id" })
-  trip: Trip;
+  @ManyToOne(() => Route, (route) => route.taskLinks, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "route_id" })
+  route: Route;
 
   @Column({ type: "uuid" })
   taskId: string;
 
   @Column({
     type: "enum",
-    enum: TripTaskLinkStatus,
-    default: TripTaskLinkStatus.PENDING,
+    enum: RouteTaskLinkStatus,
+    default: RouteTaskLinkStatus.PENDING,
   })
-  status: TripTaskLinkStatus;
+  status: RouteTaskLinkStatus;
 
   // GPS verification
   @Column({ type: "boolean", default: false })
@@ -53,19 +53,6 @@ export class TripTaskLink extends BaseEntity {
 
   @Column({ type: "text", nullable: true })
   notes: string | null;
-
-  // VHM24 integration fields
-  @Column({ type: "varchar", length: 50, nullable: true })
-  verificationStatus: string | null;
-
-  @Column({ type: "varchar", nullable: true })
-  vhm24TaskId: string | null;
-
-  @Column({ type: "varchar", nullable: true })
-  vhm24TaskType: string | null;
-
-  @Column({ type: "varchar", nullable: true })
-  vhm24MachineId: string | null;
 
   // GPS verification coordinates
   @Column({ type: "decimal", precision: 10, scale: 7, nullable: true })
@@ -90,8 +77,21 @@ export class TripTaskLink extends BaseEntity {
   stopDurationSeconds: number | null;
 
   @Column({ type: "uuid", nullable: true })
-  tripStopId: string | null;
+  routeStopId: string | null;
 
   @Column({ type: "uuid", nullable: true })
   overriddenById: string | null;
+
+  // VHM24 integration fields
+  @Column({ type: "varchar", length: 50, nullable: true })
+  verificationStatus: string | null;
+
+  @Column({ type: "varchar", nullable: true })
+  vhm24TaskId: string | null;
+
+  @Column({ type: "varchar", nullable: true })
+  vhm24TaskType: string | null;
+
+  @Column({ type: "varchar", nullable: true })
+  vhm24MachineId: string | null;
 }

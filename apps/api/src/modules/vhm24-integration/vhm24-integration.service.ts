@@ -12,13 +12,13 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { TripTaskLink } from "../trips/entities/trip-task-link.entity";
-import { TripStop } from "../trips/entities/trip-stop.entity";
+import { RouteTaskLink as TripTaskLink } from "../routes/entities/route-task-link.entity";
+import { RouteStop as TripStop } from "../routes/entities/route.entity";
 import {
   MachineLocationSync,
   SyncStatus,
 } from "./entities/machine-location-sync.entity";
-import { GpsProcessingService } from "../trips/services/gps-processing.service";
+import { GpsProcessingService } from "../routes/services/gps-processing.service";
 
 /** Default radius for task GPS verification (meters) */
 const DEFAULT_VERIFICATION_RADIUS = 100;
@@ -71,7 +71,7 @@ export class Vhm24IntegrationService {
   ): Promise<TripTaskLink[]> {
     const links = tasks.map((t) =>
       this.taskLinkRepo.create({
-        tripId,
+        routeId: tripId,
         vhm24TaskId: t.vhm24TaskId,
         vhm24TaskType: t.vhm24TaskType,
         vhm24MachineId: t.vhm24MachineId,
@@ -104,7 +104,7 @@ export class Vhm24IntegrationService {
   ): Promise<TripTaskLink[]> {
     const pendingLinks = await this.taskLinkRepo.find({
       where: {
-        tripId,
+        routeId: tripId,
         verificationStatus: "pending",
       },
     });
@@ -117,8 +117,8 @@ export class Vhm24IntegrationService {
       }
 
       const distance = this.gpsService.haversineDistance(
-        stop.latitude,
-        stop.longitude,
+        Number(stop.latitude),
+        Number(stop.longitude),
         link.expectedLatitude,
         link.expectedLongitude,
       );
@@ -127,11 +127,11 @@ export class Vhm24IntegrationService {
 
       if (distance <= radiusM) {
         link.verificationStatus = "verified";
-        link.actualLatitude = stop.latitude;
-        link.actualLongitude = stop.longitude;
+        link.actualLatitude = stop.latitude ? Number(stop.latitude) : null;
+        link.actualLongitude = stop.longitude ? Number(stop.longitude) : null;
         link.distanceFromExpectedM = Math.round(distance);
-        link.stopDurationSeconds = stop.durationSeconds ?? 0;
-        link.tripStopId = stop.id;
+        link.stopDurationSeconds = stop.actualDurationSeconds ?? 0;
+        link.routeStopId = stop.id;
 
         verified.push(link);
 
@@ -153,13 +153,13 @@ export class Vhm24IntegrationService {
    */
   async verifyAllTasksOnTripEnd(tripId: string): Promise<void> {
     const stops = await this.stopRepo.find({
-      where: { tripId },
-      order: { startedAt: "ASC" },
+      where: { routeId: tripId },
+      order: { sequence: "ASC" },
     });
 
     const pendingLinks = await this.taskLinkRepo.find({
       where: {
-        tripId,
+        routeId: tripId,
         verificationStatus: "pending",
       },
     });
@@ -176,10 +176,10 @@ export class Vhm24IntegrationService {
 
       for (const stop of stops) {
         const dist = this.gpsService.haversineDistance(
-          stop.latitude,
-          stop.longitude,
-          link.expectedLatitude,
-          link.expectedLongitude,
+          Number(stop.latitude),
+          Number(stop.longitude),
+          link.expectedLatitude!,
+          link.expectedLongitude!,
         );
         if (dist < minDistance) {
           minDistance = dist;
@@ -191,14 +191,22 @@ export class Vhm24IntegrationService {
 
       if (closestStop && minDistance <= radiusM) {
         link.verificationStatus = "verified";
-        link.actualLatitude = closestStop.latitude;
-        link.actualLongitude = closestStop.longitude;
+        link.actualLatitude = closestStop.latitude
+          ? Number(closestStop.latitude)
+          : null;
+        link.actualLongitude = closestStop.longitude
+          ? Number(closestStop.longitude)
+          : null;
         link.distanceFromExpectedM = Math.round(minDistance);
-        link.tripStopId = closestStop.id;
+        link.routeStopId = closestStop.id;
       } else if (closestStop) {
         link.verificationStatus = "mismatch";
-        link.actualLatitude = closestStop.latitude;
-        link.actualLongitude = closestStop.longitude;
+        link.actualLatitude = closestStop.latitude
+          ? Number(closestStop.latitude)
+          : null;
+        link.actualLongitude = closestStop.longitude
+          ? Number(closestStop.longitude)
+          : null;
         link.distanceFromExpectedM = Math.round(minDistance);
       } else {
         link.verificationStatus = "skipped";

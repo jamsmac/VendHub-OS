@@ -20,10 +20,10 @@ import {
   ReconciliationStatus,
   MismatchSeverity,
 } from "../../trips/entities/trip-reconciliation.entity";
-import { Trip } from "../../trips/entities/trip.entity";
-import { TripStop } from "../../trips/entities/trip-stop.entity";
-import { TripTaskLink } from "../../trips/entities/trip-task-link.entity";
-import { GpsProcessingService } from "../../trips/services/gps-processing.service";
+import { Route as Trip } from "../../routes/entities/route.entity";
+import { RouteStop as TripStop } from "../../routes/entities/route.entity";
+import { RouteTaskLink as TripTaskLink } from "../../routes/entities/route-task-link.entity";
+import { GpsProcessingService } from "../../routes/services/gps-processing.service";
 
 export { ReconciliationStatus, MismatchSeverity };
 
@@ -55,7 +55,7 @@ export class TripReconciliationService {
     @InjectRepository(TripReconciliation)
     private readonly reconRepo: Repository<TripReconciliation>,
     @InjectRepository(Trip)
-    private readonly tripRepo: Repository<Trip>,
+    private readonly routeRepo: Repository<Trip>,
     @InjectRepository(TripStop)
     private readonly stopRepo: Repository<TripStop>,
     @InjectRepository(TripTaskLink)
@@ -70,16 +70,16 @@ export class TripReconciliationService {
     tripId: string,
     organizationId: string,
   ): Promise<TripReconciliation> {
-    const trip = await this.tripRepo.findOne({ where: { id: tripId } });
+    const trip = await this.routeRepo.findOne({ where: { id: tripId } });
     if (!trip) throw new NotFoundException(`Trip ${tripId} not found`);
 
     const stops = await this.stopRepo.find({
-      where: { tripId },
-      order: { startedAt: "ASC" },
+      where: { routeId: tripId },
+      order: { sequence: "ASC" },
     });
 
     const taskLinks = await this.taskLinkRepo.find({
-      where: { tripId },
+      where: { routeId: tripId },
     });
 
     const mismatches: TripMismatch[] = [];
@@ -249,17 +249,17 @@ export class TripReconciliationService {
     // Check for short stops
     for (const stop of stops) {
       if (
-        stop.durationSeconds != null &&
-        stop.durationSeconds < MIN_STOP_DURATION_SECONDS &&
+        stop.actualDurationSeconds != null &&
+        stop.actualDurationSeconds < MIN_STOP_DURATION_SECONDS &&
         stop.machineId != null // only flag if it's at a known location
       ) {
         mismatches.push({
           type: "stop_too_short",
           severity: MismatchSeverity.LOW,
-          description: `Остановка слишком короткая: ${stop.durationSeconds}с (минимум ${MIN_STOP_DURATION_SECONDS}с)`,
+          description: `Остановка слишком короткая: ${stop.actualDurationSeconds}с (минимум ${MIN_STOP_DURATION_SECONDS}с)`,
           details: {
             stopId: stop.id,
-            duration: stop.durationSeconds,
+            duration: stop.actualDurationSeconds,
             machineId: stop.machineId,
           },
         });

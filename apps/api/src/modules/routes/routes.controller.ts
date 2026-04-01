@@ -23,6 +23,7 @@ import {
 } from "@nestjs/swagger";
 import { RoutesService } from "./routes.service";
 import { RouteOptimizationService } from "./route-optimization.service";
+import { RouteAnalyticsService } from "./services/route-analytics.service";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
 import { Roles } from "../../common/decorators";
@@ -34,6 +35,19 @@ import {
   UpdateRouteStopDto,
   ReorderStopsDto,
 } from "./dto/create-route-stop.dto";
+import {
+  StartRouteDto,
+  EndRouteDto,
+  CancelRouteDto,
+  RecordPointDto,
+  RecordPointsBatchDto,
+  UpdateLiveLocationDto,
+  LinkTaskDto,
+  CompleteLinkedTaskDto,
+  ResolveAnomalyDto,
+  ListAnomaliesQueryDto,
+  RouteAnalyticsQueryDto,
+} from "./dto/start-route.dto";
 import { RouteType, RouteStatus } from "./entities/route.entity";
 import { resolveOrganizationId } from "../../common/utils";
 
@@ -45,7 +59,136 @@ export class RoutesController {
   constructor(
     private readonly routesService: RoutesService,
     private readonly routeOptimizationService: RouteOptimizationService,
+    private readonly routeAnalyticsService: RouteAnalyticsService,
   ) {}
+
+  // ============================================================================
+  // STATIC/MULTI-SEGMENT ROUTES (must be before :id)
+  // ============================================================================
+
+  @Get("active")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.VIEWER)
+  @ApiOperation({ summary: "Get all currently active routes (live tracking)" })
+  @ApiResponse({ status: 200, description: "Active routes list" })
+  getActiveRoutes(@CurrentUser() user: User) {
+    return this.routesService.getActiveRoutes(user.organizationId);
+  }
+
+  @Get("analytics")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @ApiOperation({ summary: "Get route analytics summary" })
+  @ApiResponse({ status: 200, description: "Analytics data" })
+  getAnalytics(
+    @CurrentUser() user: User,
+    @Query() query: RouteAnalyticsQueryDto,
+  ) {
+    return this.routesService.getRoutesSummary({
+      organizationId: user.organizationId,
+      dateFrom: query.dateFrom,
+      dateTo: query.dateTo,
+    });
+  }
+
+  @Get("analytics/main")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @ApiOperation({ summary: "Main analytics dashboard with period comparison" })
+  getMainDashboard(
+    @CurrentUser() user: User,
+    @Query() query: RouteAnalyticsQueryDto,
+  ) {
+    return this.routeAnalyticsService.getMainDashboard(
+      user.organizationId,
+      new Date(query.dateFrom),
+      new Date(query.dateTo),
+    );
+  }
+
+  @Get("analytics/activity")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @ApiOperation({
+    summary: "Activity dashboard: distance by day, routes by hour",
+  })
+  getActivityDashboard(
+    @CurrentUser() user: User,
+    @Query() query: RouteAnalyticsQueryDto,
+  ) {
+    return this.routeAnalyticsService.getActivityDashboard(
+      user.organizationId,
+      new Date(query.dateFrom),
+      new Date(query.dateTo),
+    );
+  }
+
+  @Get("analytics/employees")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @ApiOperation({
+    summary: "Employee dashboard: ranking by distance, anomalies",
+  })
+  getEmployeeDashboard(
+    @CurrentUser() user: User,
+    @Query() query: RouteAnalyticsQueryDto,
+  ) {
+    return this.routeAnalyticsService.getEmployeeDashboard(
+      user.organizationId,
+      new Date(query.dateFrom),
+      new Date(query.dateTo),
+    );
+  }
+
+  @Get("analytics/vehicles")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @ApiOperation({ summary: "Vehicles dashboard: stats per vehicle" })
+  getVehiclesDashboard(
+    @CurrentUser() user: User,
+    @Query() query: RouteAnalyticsQueryDto,
+  ) {
+    return this.routeAnalyticsService.getVehiclesDashboard(
+      user.organizationId,
+      new Date(query.dateFrom),
+      new Date(query.dateTo),
+    );
+  }
+
+  @Get("analytics/anomalies")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @ApiOperation({ summary: "Anomalies dashboard: breakdown by type, severity" })
+  getAnomaliesDashboard(
+    @CurrentUser() user: User,
+    @Query() query: RouteAnalyticsQueryDto,
+  ) {
+    return this.routeAnalyticsService.getAnomaliesDashboard(
+      user.organizationId,
+      new Date(query.dateFrom),
+      new Date(query.dateTo),
+    );
+  }
+
+  @Get("analytics/taxi")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @ApiOperation({ summary: "Taxi expense dashboard" })
+  getTaxiDashboard(
+    @CurrentUser() user: User,
+    @Query() query: RouteAnalyticsQueryDto,
+  ) {
+    return this.routeAnalyticsService.getTaxiDashboard(
+      user.organizationId,
+      new Date(query.dateFrom),
+      new Date(query.dateTo),
+    );
+  }
+
+  @Get("anomalies/unresolved")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @ApiOperation({ summary: "List unresolved anomalies across all routes" })
+  listUnresolvedAnomalies(
+    @CurrentUser() user: User,
+    @Query() query: ListAnomaliesQueryDto,
+  ) {
+    return this.routesService.listUnresolvedAnomalies(
+      user.organizationId,
+      query,
+    );
+  }
 
   // ============================================================================
   // ROUTE CRUD
@@ -55,8 +198,6 @@ export class RoutesController {
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
   @ApiOperation({ summary: "Create a new route" })
   @ApiResponse({ status: 201, description: "Route created successfully" })
-  @ApiResponse({ status: 400, description: "Validation error" })
-  @ApiResponse({ status: 403, description: "Forbidden" })
   create(@Body() dto: CreateRouteDto, @CurrentUser() user: User) {
     const organizationId = resolveOrganizationId(user, dto.organizationId);
     return this.routesService.create({ ...dto, organizationId }, user.id);
@@ -69,18 +210,8 @@ export class RoutesController {
   @ApiQuery({ name: "operatorId", required: false, type: String })
   @ApiQuery({ name: "type", required: false, enum: RouteType })
   @ApiQuery({ name: "status", required: false, enum: RouteStatus })
-  @ApiQuery({
-    name: "plannedDateFrom",
-    required: false,
-    type: String,
-    description: "ISO 8601 date",
-  })
-  @ApiQuery({
-    name: "plannedDateTo",
-    required: false,
-    type: String,
-    description: "ISO 8601 date",
-  })
+  @ApiQuery({ name: "plannedDateFrom", required: false, type: String })
+  @ApiQuery({ name: "plannedDateTo", required: false, type: String })
   @ApiQuery({ name: "search", required: false, type: String })
   @ApiQuery({ name: "page", required: false, type: Number })
   @ApiQuery({ name: "limit", required: false, type: Number })
@@ -109,15 +240,8 @@ export class RoutesController {
 
   @Get(":id")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.VIEWER)
-  @ApiOperation({ summary: "Get route by ID with stops" })
-  @ApiParam({
-    name: "id",
-    description: "Route UUID",
-    type: "string",
-    format: "uuid",
-  })
-  @ApiResponse({ status: 200, description: "Route found" })
-  @ApiResponse({ status: 404, description: "Route not found" })
+  @ApiOperation({ summary: "Get route by ID with stops, tasks, anomalies" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
   async findOne(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
@@ -128,18 +252,7 @@ export class RoutesController {
   @Patch(":id")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
   @ApiOperation({ summary: "Update route" })
-  @ApiParam({
-    name: "id",
-    description: "Route UUID",
-    type: "string",
-    format: "uuid",
-  })
-  @ApiResponse({ status: 200, description: "Route updated" })
-  @ApiResponse({
-    status: 400,
-    description: "Cannot update completed/cancelled route",
-  })
-  @ApiResponse({ status: 404, description: "Route not found" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
   async update(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateRouteDto,
@@ -153,18 +266,7 @@ export class RoutesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: "Delete route (soft delete)" })
-  @ApiParam({
-    name: "id",
-    description: "Route UUID",
-    type: "string",
-    format: "uuid",
-  })
-  @ApiResponse({ status: 200, description: "Route deleted" })
-  @ApiResponse({
-    status: 400,
-    description: "Cannot delete an in-progress route",
-  })
-  @ApiResponse({ status: 404, description: "Route not found" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
   async remove(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
@@ -179,52 +281,104 @@ export class RoutesController {
 
   @Post(":id/start")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
-  @ApiOperation({ summary: "Start a planned route" })
-  @ApiParam({
-    name: "id",
-    description: "Route UUID",
-    type: "string",
-    format: "uuid",
-  })
-  @ApiResponse({ status: 200, description: "Route started" })
-  @ApiResponse({ status: 400, description: "Route is not in planned status" })
-  @ApiResponse({ status: 404, description: "Route not found" })
+  @ApiOperation({ summary: "Start a planned route (PLANNED → ACTIVE)" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
   async startRoute(
     @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: StartRouteDto,
     @CurrentUser() user: User,
   ) {
     await this.verifyRouteAccess(id, user);
-    return this.routesService.startRoute(id, user.id, user.organizationId);
+    return this.routesService.startRoute(id, user.id, user.organizationId, dto);
   }
 
-  @Post(":id/complete")
+  @Post(":id/end")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
-  @ApiOperation({ summary: "Complete an in-progress route" })
-  @ApiParam({
-    name: "id",
-    description: "Route UUID",
-    type: "string",
-    format: "uuid",
-  })
-  @ApiResponse({ status: 200, description: "Route completed" })
-  @ApiResponse({ status: 400, description: "Route is not in progress" })
-  @ApiResponse({ status: 404, description: "Route not found" })
-  async completeRoute(
+  @ApiOperation({ summary: "End an active route (ACTIVE → COMPLETED)" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
+  async endRoute(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body()
-    body: {
-      actualDurationMinutes?: number;
-      actualDistanceKm?: number;
-      notes?: string;
-    },
+    @Body() dto: EndRouteDto,
     @CurrentUser() user: User,
   ) {
     await this.verifyRouteAccess(id, user);
-    return this.routesService.completeRoute(
+    return this.routesService.endRoute(id, user.id, user.organizationId, dto);
+  }
+
+  @Post(":id/cancel")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @ApiOperation({ summary: "Cancel a route" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
+  async cancelRoute(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: CancelRouteDto,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyRouteAccess(id, user);
+    return this.routesService.cancelRoute(
       id,
       user.id,
       user.organizationId,
-      body,
+      dto.reason,
+    );
+  }
+
+  // ============================================================================
+  // GPS TRACKING
+  // ============================================================================
+
+  @Post(":id/points")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @ApiOperation({ summary: "Record a GPS point on active route" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
+  async recordPoint(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: RecordPointDto,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyRouteAccess(id, user);
+    return this.routesService.addPoint(id, dto);
+  }
+
+  @Post(":id/points/batch")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @ApiOperation({ summary: "Record multiple GPS points in batch" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
+  async recordPointsBatch(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: RecordPointsBatchDto,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyRouteAccess(id, user);
+    return this.routesService.addPointsBatch(id, dto.points);
+  }
+
+  @Get(":id/track")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.VIEWER)
+  @ApiOperation({ summary: "Get GPS track for a route" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
+  async getRouteTrack(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyRouteAccess(id, user);
+    return this.routesService.getRouteTrack(id);
+  }
+
+  @Patch(":id/live-location")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @ApiOperation({ summary: "Update live location tracking status" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
+  async updateLiveLocation(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: UpdateLiveLocationDto,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyRouteAccess(id, user);
+    return this.routesService.updateLiveLocationStatus(
+      id,
+      dto.isActive,
+      dto.telegramMessageId,
     );
   }
 
@@ -234,17 +388,8 @@ export class RoutesController {
 
   @Post(":id/optimize")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
-  @ApiOperation({
-    summary: "Optimize route stop order (stub - future algorithm)",
-  })
-  @ApiParam({
-    name: "id",
-    description: "Route UUID",
-    type: "string",
-    format: "uuid",
-  })
-  @ApiResponse({ status: 200, description: "Optimization result" })
-  @ApiResponse({ status: 404, description: "Route not found" })
+  @ApiOperation({ summary: "Optimize route stop order" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
   async optimizeRoute(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
@@ -260,14 +405,7 @@ export class RoutesController {
   @Get(":id/stops")
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Get all stops for a route (ordered by sequence)" })
-  @ApiParam({
-    name: "id",
-    description: "Route UUID",
-    type: "string",
-    format: "uuid",
-  })
-  @ApiResponse({ status: 200, description: "List of route stops" })
-  @ApiResponse({ status: 404, description: "Route not found" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
   async getStops(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
@@ -279,18 +417,7 @@ export class RoutesController {
   @Post(":id/stops")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
   @ApiOperation({ summary: "Add a stop to a route" })
-  @ApiParam({
-    name: "id",
-    description: "Route UUID",
-    type: "string",
-    format: "uuid",
-  })
-  @ApiResponse({ status: 201, description: "Stop added successfully" })
-  @ApiResponse({
-    status: 400,
-    description: "Validation error or duplicate sequence",
-  })
-  @ApiResponse({ status: 404, description: "Route not found" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
   async addStop(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: CreateRouteStopDto,
@@ -303,20 +430,8 @@ export class RoutesController {
   @Patch(":id/stops/:stopId")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
   @ApiOperation({ summary: "Update a route stop" })
-  @ApiParam({
-    name: "id",
-    description: "Route UUID",
-    type: "string",
-    format: "uuid",
-  })
-  @ApiParam({
-    name: "stopId",
-    description: "Stop UUID",
-    type: "string",
-    format: "uuid",
-  })
-  @ApiResponse({ status: 200, description: "Stop updated" })
-  @ApiResponse({ status: 404, description: "Stop not found" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
+  @ApiParam({ name: "stopId", type: "string", format: "uuid" })
   async updateStop(
     @Param("id", ParseUUIDPipe) id: string,
     @Param("stopId", ParseUUIDPipe) stopId: string,
@@ -331,20 +446,8 @@ export class RoutesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
   @ApiOperation({ summary: "Remove a stop from a route (soft delete)" })
-  @ApiParam({
-    name: "id",
-    description: "Route UUID",
-    type: "string",
-    format: "uuid",
-  })
-  @ApiParam({
-    name: "stopId",
-    description: "Stop UUID",
-    type: "string",
-    format: "uuid",
-  })
-  @ApiResponse({ status: 200, description: "Stop removed" })
-  @ApiResponse({ status: 404, description: "Stop not found" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
+  @ApiParam({ name: "stopId", type: "string", format: "uuid" })
   async removeStop(
     @Param("id", ParseUUIDPipe) id: string,
     @Param("stopId", ParseUUIDPipe) stopId: string,
@@ -357,15 +460,7 @@ export class RoutesController {
   @Post(":id/stops/reorder")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
   @ApiOperation({ summary: "Reorder stops on a route" })
-  @ApiParam({
-    name: "id",
-    description: "Route UUID",
-    type: "string",
-    format: "uuid",
-  })
-  @ApiResponse({ status: 200, description: "Stops reordered successfully" })
-  @ApiResponse({ status: 400, description: "Invalid stop IDs or route status" })
-  @ApiResponse({ status: 404, description: "Route not found" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
   async reorderStops(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: ReorderStopsDto,
@@ -373,6 +468,88 @@ export class RoutesController {
   ) {
     await this.verifyRouteAccess(id, user);
     return this.routesService.reorderStops(id, dto.stopIds, user.id);
+  }
+
+  // ============================================================================
+  // TASK LINKS
+  // ============================================================================
+
+  @Get(":id/tasks")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @ApiOperation({ summary: "Get tasks linked to this route" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
+  async getRouteTasks(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyRouteAccess(id, user);
+    return this.routesService.getRouteTasks(id);
+  }
+
+  @Post(":id/tasks")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @ApiOperation({ summary: "Link a task to this route" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
+  async linkTask(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: LinkTaskDto,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyRouteAccess(id, user);
+    return this.routesService.linkTask(id, dto.taskId, user.id);
+  }
+
+  @Post(":id/tasks/:taskId/complete")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @ApiOperation({ summary: "Mark a linked task as completed" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
+  @ApiParam({ name: "taskId", type: "string", format: "uuid" })
+  async completeLinkedTask(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("taskId", ParseUUIDPipe) taskId: string,
+    @Body() dto: CompleteLinkedTaskDto,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyRouteAccess(id, user);
+    return this.routesService.completeLinkedTask(
+      id,
+      taskId,
+      dto.notes,
+      user.id,
+    );
+  }
+
+  // ============================================================================
+  // ANOMALIES
+  // ============================================================================
+
+  @Get(":id/anomalies")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR, UserRole.OWNER)
+  @ApiOperation({ summary: "Get anomalies for a route" })
+  @ApiParam({ name: "id", type: "string", format: "uuid" })
+  async getRouteAnomalies(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ) {
+    await this.verifyRouteAccess(id, user);
+    return this.routesService.getRouteAnomalies(id);
+  }
+
+  @Post("anomalies/:anomalyId/resolve")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @ApiOperation({ summary: "Resolve an anomaly" })
+  @ApiParam({ name: "anomalyId", type: "string", format: "uuid" })
+  async resolveAnomaly(
+    @Param("anomalyId", ParseUUIDPipe) anomalyId: string,
+    @Body() dto: ResolveAnomalyDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.routesService.resolveAnomaly(
+      anomalyId,
+      user.id,
+      user.organizationId,
+      dto.notes,
+    );
   }
 
   // ============================================================================

@@ -1,7 +1,12 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Inject,
+  forwardRef,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -12,20 +17,54 @@ import {
   RouteStop,
   RouteStopStatus,
 } from "./entities/route.entity";
+import { RoutePoint } from "./entities/route-point.entity";
+import {
+  RouteAnomaly,
+  AnomalyType,
+  AnomalySeverity,
+  AnomalyDetails,
+} from "./entities/route-anomaly.entity";
+import {
+  RouteTaskLink,
+  RouteTaskLinkStatus,
+} from "./entities/route-task-link.entity";
+import { Vehicle } from "../vehicles/entities/vehicle.entity";
 import { CreateRouteDto, UpdateRouteDto } from "./dto/create-route.dto";
 import {
   CreateRouteStopDto,
   UpdateRouteStopDto,
 } from "./dto/create-route-stop.dto";
+import { RouteTrackingService } from "./services/route-tracking.service";
+import { RouteAnalyticsService } from "./services/route-analytics.service";
+import { ROUTE_SETTINGS } from "./constants/route-settings";
 
 @Injectable()
 export class RoutesService {
+  private readonly logger = new Logger(RoutesService.name);
+
   constructor(
     @InjectRepository(Route)
     private readonly routeRepository: Repository<Route>,
 
     @InjectRepository(RouteStop)
     private readonly routeStopRepository: Repository<RouteStop>,
+
+    @InjectRepository(RoutePoint)
+    private readonly pointRepository: Repository<RoutePoint>,
+
+    @InjectRepository(RouteAnomaly)
+    private readonly anomalyRepository: Repository<RouteAnomaly>,
+
+    @InjectRepository(RouteTaskLink)
+    private readonly taskLinkRepository: Repository<RouteTaskLink>,
+
+    @InjectRepository(Vehicle)
+    private readonly vehicleRepository: Repository<Vehicle>,
+
+    @Inject(forwardRef(() => RouteTrackingService))
+    private readonly routeTrackingService: RouteTrackingService,
+
+    private readonly routeAnalyticsService: RouteAnalyticsService,
   ) {}
 
   // ============================================================================
@@ -42,6 +81,8 @@ export class RoutesService {
       plannedDate: new Date(dto.plannedDate),
       estimatedDurationMinutes: dto.estimatedDurationMinutes,
       estimatedDistanceKm: dto.estimatedDistanceKm,
+      vehicleId: dto.vehicleId ?? null,
+      transportType: dto.transportType ?? null,
       notes: dto.notes,
       metadata: dto.metadata ?? {},
       createdById: userId,
@@ -77,6 +118,7 @@ export class RoutesService {
     const query = this.routeRepository.createQueryBuilder("route");
 
     query.where("route.organizationId = :organizationId", { organizationId });
+    query.leftJoinAndSelect("route.vehicle", "vehicle");
 
     if (operatorId) {
       query.andWhere("route.operatorId = :operatorId", { operatorId });
@@ -129,7 +171,7 @@ export class RoutesService {
     }
     return this.routeRepository.findOne({
       where,
-      relations: ["stops"],
+      relations: ["stops", "vehicle", "taskLinks", "anomalies"],
       order: { stops: { sequence: "ASC" } },
     });
   }
@@ -153,7 +195,6 @@ export class RoutesService {
       throw new BadRequestException("Cannot update a cancelled route");
     }
 
-    // Map DTO fields to entity, handling date conversion
     if (dto.plannedDate !== undefined) {
       route.plannedDate = new Date(dto.plannedDate);
     }
@@ -168,6 +209,9 @@ export class RoutesService {
       route.actualDurationMinutes = dto.actualDurationMinutes;
     if (dto.actualDistanceKm !== undefined)
       route.actualDistanceKm = dto.actualDistanceKm;
+    if (dto.vehicleId !== undefined) route.vehicleId = dto.vehicleId ?? null;
+    if (dto.transportType !== undefined)
+      route.transportType = dto.transportType ?? null;
     if (dto.notes !== undefined) route.notes = dto.notes;
     if (dto.metadata !== undefined) route.metadata = dto.metadata;
 
@@ -182,10 +226,8 @@ export class RoutesService {
       throw new NotFoundException(`Route with ID ${id} not found`);
     }
 
-    if (route.status === RouteStatus.IN_PROGRESS) {
-      throw new BadRequestException(
-        "Cannot delete a route that is in progress",
-      );
+    if (route.status === RouteStatus.ACTIVE) {
+      throw new BadRequestException("Cannot delete a route that is active");
     }
 
     await this.routeRepository.softDelete(id);
@@ -199,32 +241,10 @@ export class RoutesService {
     id: string,
     userId: string,
     organizationId: string,
-  ): Promise<Route> {
-    const route = await this.findById(id, organizationId);
-    if (!route) {
-      throw new NotFoundException(`Route with ID ${id} not found`);
-    }
-
-    if (route.status !== RouteStatus.PLANNED) {
-      throw new BadRequestException(
-        `Cannot start route. Current status: ${route.status}. Only planned routes can be started.`,
-      );
-    }
-
-    route.status = RouteStatus.IN_PROGRESS;
-    route.startedAt = new Date();
-    route.updatedById = userId;
-
-    return this.routeRepository.save(route);
-  }
-
-  async completeRoute(
-    id: string,
-    userId: string,
-    organizationId: string,
-    completionData?: {
-      actualDurationMinutes?: number;
-      actualDistanceKm?: number;
+    input?: {
+      vehicleId?: string;
+      startOdometer?: number;
+      taskIds?: string[];
       notes?: string;
     },
   ): Promise<Route> {
@@ -233,33 +253,457 @@ export class RoutesService {
       throw new NotFoundException(`Route with ID ${id} not found`);
     }
 
-    if (route.status !== RouteStatus.IN_PROGRESS) {
+    if (
+      route.status !== RouteStatus.PLANNED &&
+      route.status !== RouteStatus.DRAFT
+    ) {
       throw new BadRequestException(
-        `Cannot complete route. Current status: ${route.status}. Only in-progress routes can be completed.`,
+        `Cannot start route. Current status: ${route.status}. Only planned/draft routes can be started.`,
       );
     }
 
-    route.status = RouteStatus.COMPLETED;
-    route.completedAt = new Date();
+    // Check no other active route for this operator
+    const activeRoute = await this.routeRepository.findOne({
+      where: { operatorId: route.operatorId, status: RouteStatus.ACTIVE },
+    });
+    if (activeRoute) {
+      throw new ConflictException(
+        "Operator already has an active route. Complete it before starting a new one.",
+      );
+    }
+
+    // Validate vehicle if provided
+    if (input?.vehicleId) {
+      const vehicle = await this.vehicleRepository.findOne({
+        where: { id: input.vehicleId, organizationId },
+      });
+      if (!vehicle) {
+        throw new BadRequestException(
+          "Vehicle not found or does not belong to this organization",
+        );
+      }
+      route.vehicleId = input.vehicleId;
+    }
+
+    route.status = RouteStatus.ACTIVE;
+    route.startedAt = new Date();
+    route.startOdometer = input?.startOdometer ?? null;
     route.updatedById = userId;
 
-    // Calculate actual duration if not provided and route was started
-    if (completionData?.actualDurationMinutes !== undefined) {
-      route.actualDurationMinutes = completionData.actualDurationMinutes;
-    } else if (route.startedAt) {
+    if (input?.notes) {
+      route.notes = route.notes
+        ? `${route.notes}\n${input.notes}`
+        : input.notes;
+    }
+
+    const savedRoute = await this.routeRepository.save(route);
+
+    // Link tasks if provided
+    if (input?.taskIds?.length) {
+      const links = input.taskIds.map((taskId) =>
+        this.taskLinkRepository.create({
+          routeId: savedRoute.id,
+          taskId,
+          status: RouteTaskLinkStatus.PENDING,
+          createdById: userId,
+        }),
+      );
+      await this.taskLinkRepository.save(links);
+    }
+
+    return this.findById(savedRoute.id, organizationId) as Promise<Route>;
+  }
+
+  async endRoute(
+    id: string,
+    userId: string,
+    organizationId: string,
+    input?: {
+      endOdometer?: number;
+      notes?: string;
+    },
+  ): Promise<Route> {
+    const route = await this.findById(id, organizationId);
+    if (!route) throw new NotFoundException("Route not found");
+
+    if (route.status !== RouteStatus.ACTIVE) {
+      throw new BadRequestException("Route is not active");
+    }
+
+    const lastPoint = await this.pointRepository.findOne({
+      where: { routeId: id, isFiltered: false },
+      order: { recordedAt: "DESC" },
+    });
+
+    const distanceResult = await this.pointRepository
+      .createQueryBuilder("p")
+      .select("SUM(p.distanceFromPrevMeters)", "total")
+      .where("p.routeId = :routeId", { routeId: id })
+      .andWhere("p.isFiltered = false")
+      .getRawOne();
+
+    const totalDistance = Math.round(Number(distanceResult?.total) || 0);
+
+    // Count visited machines
+    const visitedStops = await this.routeStopRepository.find({
+      where: { routeId: id },
+    });
+    const uniqueMachines = new Set(
+      visitedStops
+        .filter((s) => s.isVerified && s.machineId)
+        .map((s) => s.machineId),
+    ).size;
+
+    route.status = RouteStatus.COMPLETED;
+    route.completedAt = new Date();
+    route.endOdometer = input?.endOdometer ?? null;
+    route.endLatitude = lastPoint ? Number(lastPoint.latitude) : null;
+    route.endLongitude = lastPoint ? Number(lastPoint.longitude) : null;
+    route.calculatedDistanceMeters = totalDistance;
+    route.visitedMachinesCount = uniqueMachines;
+    route.liveLocationActive = false;
+    route.updatedById = userId;
+
+    // Calculate actual duration
+    if (route.startedAt) {
       const durationMs = new Date().getTime() - route.startedAt.getTime();
       route.actualDurationMinutes = Math.round(durationMs / 60000);
     }
 
-    if (completionData?.actualDistanceKm !== undefined) {
-      route.actualDistanceKm = completionData.actualDistanceKm;
+    route.actualDistanceKm = totalDistance
+      ? Math.round((totalDistance / 1000) * 100) / 100
+      : null;
+
+    if (input?.notes) {
+      route.notes = route.notes
+        ? `${route.notes}\n${input.notes}`
+        : input.notes;
     }
 
-    if (completionData?.notes !== undefined) {
-      route.notes = completionData.notes;
+    await this.routeRepository.save(route);
+
+    // Update vehicle odometer
+    if (route.vehicleId && input?.endOdometer) {
+      await this.vehicleRepository.update(route.vehicleId, {
+        currentOdometer: input.endOdometer,
+        lastOdometerUpdate: new Date(),
+      });
+    }
+
+    // Check mileage discrepancy
+    if (route.vehicleId && route.startOdometer && input?.endOdometer) {
+      const reportedKm = input.endOdometer - route.startOdometer;
+      const calculatedKm = Math.round(totalDistance / 1000);
+      const difference = Math.abs(reportedKm - calculatedKm);
+
+      if (difference > ROUTE_SETTINGS.MILEAGE_THRESHOLD_KM) {
+        await this.createAnomaly(id, route.organizationId, {
+          type: AnomalyType.MILEAGE_DISCREPANCY,
+          severity: AnomalySeverity.WARNING,
+          details: {
+            expectedKm: calculatedKm,
+            actualKm: reportedKm,
+            differenceKm: difference,
+          },
+        });
+      }
+    }
+
+    return this.findById(id, organizationId) as Promise<Route>;
+  }
+
+  async cancelRoute(
+    id: string,
+    userId: string,
+    organizationId: string,
+    reason?: string,
+  ): Promise<Route> {
+    const route = await this.findById(id, organizationId);
+    if (!route) throw new NotFoundException("Route not found");
+
+    if (
+      route.status !== RouteStatus.ACTIVE &&
+      route.status !== RouteStatus.PLANNED &&
+      route.status !== RouteStatus.DRAFT
+    ) {
+      throw new BadRequestException(
+        "Only active/planned/draft routes can be cancelled",
+      );
+    }
+
+    route.status = RouteStatus.CANCELLED;
+    route.completedAt = new Date();
+    route.liveLocationActive = false;
+    route.updatedById = userId;
+
+    if (reason) {
+      route.notes = route.notes
+        ? `${route.notes}\n[Cancelled: ${reason}]`
+        : `[Cancelled: ${reason}]`;
     }
 
     return this.routeRepository.save(route);
+  }
+
+  async getActiveRoute(
+    operatorId: string,
+    organizationId?: string,
+  ): Promise<Route | null> {
+    const where: Record<string, unknown> = {
+      operatorId,
+      status: RouteStatus.ACTIVE,
+    };
+    if (organizationId) where.organizationId = organizationId;
+    return this.routeRepository.findOne({
+      where,
+      relations: ["vehicle", "taskLinks", "stops"],
+    });
+  }
+
+  async getActiveRoutes(organizationId: string): Promise<Route[]> {
+    return this.routeRepository.find({
+      where: { organizationId, status: RouteStatus.ACTIVE },
+      relations: ["vehicle"],
+      order: { startedAt: "DESC" },
+    });
+  }
+
+  // ============================================================================
+  // GPS TRACKING (delegates to RouteTrackingService)
+  // ============================================================================
+
+  async addPoint(
+    routeId: string,
+    input: {
+      latitude: number;
+      longitude: number;
+      accuracy?: number;
+      speed?: number;
+      heading?: number;
+      altitude?: number;
+      recordedAt?: string;
+    },
+  ) {
+    return this.routeTrackingService.addPoint(routeId, input);
+  }
+
+  async addPointsBatch(
+    routeId: string,
+    points: Array<{
+      latitude: number;
+      longitude: number;
+      accuracy?: number;
+      speed?: number;
+      heading?: number;
+      altitude?: number;
+      recordedAt?: string;
+    }>,
+  ) {
+    return this.routeTrackingService.addPointsBatch(routeId, points);
+  }
+
+  async updateLiveLocationStatus(
+    routeId: string,
+    isActive: boolean,
+    telegramMessageId?: number,
+  ): Promise<void> {
+    return this.routeTrackingService.updateLiveLocationStatus(
+      routeId,
+      isActive,
+      telegramMessageId,
+    );
+  }
+
+  async getRouteTrack(routeId: string): Promise<RoutePoint[]> {
+    return this.routeTrackingService.getRouteTrack(routeId);
+  }
+
+  // ============================================================================
+  // TASK LINKS
+  // ============================================================================
+
+  async linkTask(
+    routeId: string,
+    taskId: string,
+    userId?: string,
+  ): Promise<RouteTaskLink> {
+    const existing = await this.taskLinkRepository.findOne({
+      where: { routeId, taskId },
+    });
+    if (existing) {
+      throw new ConflictException("Task is already linked to this route");
+    }
+
+    const link = this.taskLinkRepository.create({
+      routeId,
+      taskId,
+      status: RouteTaskLinkStatus.PENDING,
+      createdById: userId,
+    });
+
+    return this.taskLinkRepository.save(link);
+  }
+
+  async completeLinkedTask(
+    routeId: string,
+    taskId: string,
+    notes?: string,
+    userId?: string,
+  ): Promise<RouteTaskLink> {
+    const link = await this.taskLinkRepository.findOne({
+      where: { routeId, taskId },
+    });
+    if (!link) throw new NotFoundException("Task link not found");
+
+    link.status = RouteTaskLinkStatus.COMPLETED;
+    link.completedAt = new Date();
+    link.notes = notes ?? null;
+    link.updatedById = userId ?? null;
+
+    return this.taskLinkRepository.save(link);
+  }
+
+  async getRouteTasks(routeId: string): Promise<RouteTaskLink[]> {
+    return this.taskLinkRepository.find({
+      where: { routeId },
+      order: { createdAt: "ASC" },
+    });
+  }
+
+  // ============================================================================
+  // ANOMALIES
+  // ============================================================================
+
+  async createAnomaly(
+    routeId: string,
+    organizationId: string,
+    data: {
+      type: AnomalyType;
+      severity: AnomalySeverity;
+      latitude?: number;
+      longitude?: number;
+      details?: AnomalyDetails;
+    },
+  ): Promise<RouteAnomaly> {
+    const anomaly = this.anomalyRepository.create({
+      routeId,
+      type: data.type,
+      severity: data.severity,
+      latitude: data.latitude ?? null,
+      longitude: data.longitude ?? null,
+      details: data.details ?? {},
+      detectedAt: new Date(),
+    });
+
+    const saved = await this.anomalyRepository.save(anomaly);
+
+    await this.routeRepository
+      .createQueryBuilder()
+      .update(Route)
+      .set({ totalAnomalies: () => '"total_anomalies" + 1' })
+      .where("id = :routeId", { routeId })
+      .execute();
+
+    return saved;
+  }
+
+  async getRouteAnomalies(routeId: string): Promise<RouteAnomaly[]> {
+    return this.anomalyRepository.find({
+      where: { routeId },
+      order: { detectedAt: "DESC" },
+    });
+  }
+
+  async resolveAnomaly(
+    anomalyId: string,
+    userId: string,
+    organizationId: string,
+    notes?: string,
+  ): Promise<RouteAnomaly> {
+    const anomaly = await this.anomalyRepository.findOne({
+      where: { id: anomalyId },
+    });
+    if (!anomaly) throw new NotFoundException("Anomaly not found");
+
+    const route = await this.routeRepository.findOne({
+      where: { id: anomaly.routeId },
+    });
+    if (route && route.organizationId !== organizationId) {
+      throw new ForbiddenException("Access denied to this anomaly");
+    }
+
+    anomaly.resolved = true;
+    anomaly.resolvedById = userId;
+    anomaly.resolvedAt = new Date();
+    anomaly.resolutionNotes = notes ?? null;
+    anomaly.updatedById = userId;
+
+    return this.anomalyRepository.save(anomaly);
+  }
+
+  async listUnresolvedAnomalies(
+    organizationId: string,
+    filters?: {
+      operatorId?: string;
+      severity?: AnomalySeverity;
+      type?: AnomalyType;
+      limit?: number;
+    },
+  ): Promise<RouteAnomaly[]> {
+    const query = this.anomalyRepository
+      .createQueryBuilder("anomaly")
+      .leftJoinAndSelect("anomaly.route", "route")
+      .where("route.organizationId = :organizationId", { organizationId })
+      .andWhere("anomaly.resolved = false");
+
+    if (filters?.operatorId) {
+      query.andWhere("route.operatorId = :operatorId", {
+        operatorId: filters.operatorId,
+      });
+    }
+    if (filters?.severity) {
+      query.andWhere("anomaly.severity = :severity", {
+        severity: filters.severity,
+      });
+    }
+    if (filters?.type) {
+      query.andWhere("anomaly.type = :type", { type: filters.type });
+    }
+
+    query.orderBy("anomaly.detectedAt", "DESC");
+    query.take(filters?.limit ?? 50);
+
+    return query.getMany();
+  }
+
+  // ============================================================================
+  // ANALYTICS (delegates to RouteAnalyticsService)
+  // ============================================================================
+
+  async getEmployeeStats(input: {
+    organizationId: string;
+    employeeId: string;
+    dateFrom: string;
+    dateTo: string;
+  }) {
+    return this.routeAnalyticsService.getEmployeeStats(input);
+  }
+
+  async getMachineVisitStats(input: {
+    organizationId: string;
+    machineId?: string;
+    dateFrom: string;
+    dateTo: string;
+  }) {
+    return this.routeAnalyticsService.getMachineVisitStats(input);
+  }
+
+  async getRoutesSummary(input: {
+    organizationId: string;
+    dateFrom: string;
+    dateTo: string;
+  }) {
+    return this.routeAnalyticsService.getRoutesSummary(input);
   }
 
   // ============================================================================
@@ -287,7 +731,6 @@ export class RoutesService {
       );
     }
 
-    // Check for duplicate sequence
     const existingStop = await this.routeStopRepository.findOne({
       where: { routeId, sequence: dto.sequence },
     });
@@ -352,10 +795,6 @@ export class RoutesService {
     return this.routeStopRepository.save(stop);
   }
 
-  /**
-   * Reorder stops by setting new sequence values.
-   * Accepts an ordered array of stop IDs.
-   */
   async reorderStops(
     routeId: string,
     stopIds: string[],
@@ -377,7 +816,6 @@ export class RoutesService {
       );
     }
 
-    // Verify all stop IDs belong to this route
     const existingStops = await this.routeStopRepository.find({
       where: { routeId },
     });
@@ -391,7 +829,6 @@ export class RoutesService {
       }
     }
 
-    // Update sequences
     const updatedStops: RouteStop[] = [];
     for (let i = 0; i < stopIds.length; i++) {
       const stop = existingStops.find((s) => s.id === stopIds[i]);
@@ -421,5 +858,23 @@ export class RoutesService {
       throw new NotFoundException(`Route stop with ID ${stopId} not found`);
     }
     await this.routeStopRepository.softDelete(stopId);
+  }
+
+  // ============================================================================
+  // HELPERS
+  // ============================================================================
+
+  calculateHaversineDistance(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number,
+  ): number {
+    return this.routeTrackingService.calculateHaversineDistance(
+      lat1,
+      lon1,
+      lat2,
+      lon2,
+    );
   }
 }

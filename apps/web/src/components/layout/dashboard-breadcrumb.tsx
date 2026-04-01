@@ -35,7 +35,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   referrals: "referrals",
   "promo-codes": "promoCodes",
   "payment-reports": "paymentReports",
-  "trip-analytics": "tripAnalytics",
+  "route-analytics": "routeAnalytics",
   reconciliation: "reconciliation",
   organizations: "organizations",
   "operator-ratings": "operatorRatings",

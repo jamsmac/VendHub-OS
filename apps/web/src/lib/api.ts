@@ -467,32 +467,34 @@ export const warehouseApi = {
     api.post(`/warehouses/${id}/batches`, data),
 };
 
+/** @deprecated Use routesApi — trips merged into routes */
 export const tripsApi = {
-  getAll: (params?: QueryParams) => api.get("/trips", { params }),
-  getById: (id: string) => api.get(`/trips/${id}`),
-  getActive: () => api.get("/trips/active"),
-  start: (data: RequestBody) => api.post("/trips/start", data),
-  end: (id: string, data?: RequestBody) => api.post(`/trips/${id}/end`, data),
+  getAll: (params?: QueryParams) => api.get("/routes", { params }),
+  getById: (id: string) => api.get(`/routes/${id}`),
+  getActive: () => api.get("/routes/active"),
+  start: (id: string, data?: RequestBody) =>
+    api.post(`/routes/${id}/start`, data),
+  end: (id: string, data?: RequestBody) => api.post(`/routes/${id}/end`, data),
   cancel: (id: string, data?: RequestBody) =>
-    api.post(`/trips/${id}/cancel`, data),
-  getRoute: (id: string) => api.get(`/trips/${id}/route`),
-  getStops: (id: string) => api.get(`/trips/${id}/stops`),
-  getAnomalies: (id: string) => api.get(`/trips/${id}/anomalies`),
-  getTasks: (id: string) => api.get(`/trips/${id}/tasks`),
+    api.post(`/routes/${id}/cancel`, data),
+  getRoute: (id: string) => api.get(`/routes/${id}/track`),
+  getStops: (id: string) => api.get(`/routes/${id}/stops`),
+  getAnomalies: (id: string) => api.get(`/routes/${id}/anomalies`),
+  getTasks: (id: string) => api.get(`/routes/${id}/tasks`),
   linkTask: (id: string, data: RequestBody) =>
-    api.post(`/trips/${id}/tasks`, data),
-  completeTask: (tripId: string, taskId: string, data?: RequestBody) =>
-    api.post(`/trips/${tripId}/tasks/${taskId}/complete`, data),
+    api.post(`/routes/${id}/tasks`, data),
+  completeTask: (routeId: string, taskId: string, data?: RequestBody) =>
+    api.post(`/routes/${routeId}/tasks/${taskId}/complete`, data),
   getUnresolvedAnomalies: (params?: QueryParams) =>
-    api.get("/trips/anomalies/unresolved", { params }),
+    api.get("/routes/anomalies/unresolved", { params }),
   resolveAnomaly: (id: string, data: RequestBody) =>
-    api.post(`/trips/anomalies/${id}/resolve`, data),
+    api.post(`/routes/anomalies/${id}/resolve`, data),
   getEmployeeAnalytics: (params?: QueryParams) =>
-    api.get("/trips/analytics/employee", { params }),
+    api.get("/routes/analytics/employees", { params }),
   getMachineAnalytics: (params?: QueryParams) =>
-    api.get("/trips/analytics/machines", { params }),
+    api.get("/routes/analytics", { params }),
   getSummaryAnalytics: (params?: QueryParams) =>
-    api.get("/trips/analytics/summary", { params }),
+    api.get("/routes/analytics", { params }),
 };
 
 export const routesApi = {
@@ -1435,19 +1437,19 @@ export const machineTemplatesApi = {
     api.post("/machine-templates/create-machine", data).then((r) => r.data),
 };
 
-// === Trip Analytics ===
+// === Route Analytics (was Trip Analytics) ===
 
-export const tripAnalyticsApi = {
+export const routeAnalyticsApi = {
   getMain: (params?: QueryParams) =>
-    api.get("/analytics/trips/dashboard/main", { params }),
+    api.get("/routes/analytics/main", { params }),
   getActivity: (params?: QueryParams) =>
-    api.get("/analytics/trips/dashboard/activity", { params }),
+    api.get("/routes/analytics/activity", { params }),
   getEmployees: (params?: QueryParams) =>
-    api.get("/analytics/trips/dashboard/employees", { params }),
+    api.get("/routes/analytics/employees", { params }),
   getVehicles: (params?: QueryParams) =>
-    api.get("/analytics/trips/dashboard/vehicles", { params }),
+    api.get("/routes/analytics/vehicles", { params }),
   getAnomalies: (params?: QueryParams) =>
-    api.get("/analytics/trips/dashboard/anomalies", { params }),
+    api.get("/routes/analytics/anomalies", { params }),
   getTaxi: (params?: QueryParams) =>
-    api.get("/analytics/trips/dashboard/taxi", { params }),
+    api.get("/routes/analytics/taxi", { params }),
 };

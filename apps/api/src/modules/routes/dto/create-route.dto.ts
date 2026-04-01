@@ -11,7 +11,7 @@ import {
   Min,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { RouteType } from "../entities/route.entity";
+import { RouteType, TransportType } from "../entities/route.entity";
 
 export class CreateRouteDto {
   @ApiProperty({ description: "Organization ID", format: "uuid" })
@@ -69,6 +69,16 @@ export class CreateRouteDto {
   @Min(0)
   estimatedDistanceKm?: number;
 
+  @ApiPropertyOptional({ description: "Vehicle ID", format: "uuid" })
+  @IsOptional()
+  @IsUUID()
+  vehicleId?: string;
+
+  @ApiPropertyOptional({ description: "Transport type", enum: TransportType })
+  @IsOptional()
+  @IsEnum(TransportType)
+  transportType?: TransportType;
+
   @ApiPropertyOptional({ description: "Additional notes" })
   @IsOptional()
   @IsString()
@@ -125,6 +135,16 @@ export class UpdateRouteDto {
   @IsNumber()
   @Min(0)
   actualDistanceKm?: number;
+
+  @ApiPropertyOptional({ description: "Vehicle ID", format: "uuid" })
+  @IsOptional()
+  @IsUUID()
+  vehicleId?: string | null;
+
+  @ApiPropertyOptional({ description: "Transport type", enum: TransportType })
+  @IsOptional()
+  @IsEnum(TransportType)
+  transportType?: TransportType | null;
 
   @ApiPropertyOptional({ description: "Additional notes" })
   @IsOptional()

@@ -5,13 +5,13 @@ import {
   Vhm24IntegrationService,
   WebhookPayload,
 } from "./vhm24-integration.service";
-import { TripTaskLink } from "../trips/entities/trip-task-link.entity";
-import { TripStop } from "../trips/entities/trip-stop.entity";
+import { RouteTaskLink as TripTaskLink } from "../routes/entities/route-task-link.entity";
+import { RouteStop as TripStop } from "../routes/entities/route.entity";
 import {
   MachineLocationSync,
   SyncStatus,
 } from "./entities/machine-location-sync.entity";
-import { GpsProcessingService } from "../trips/services/gps-processing.service";
+import { GpsProcessingService } from "../routes/services/gps-processing.service";
 
 describe("Vhm24IntegrationService", () => {
   let service: Vhm24IntegrationService;

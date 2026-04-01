@@ -1,4 +1,4 @@
-export const TRIP_SETTINGS = {
+export const ROUTE_SETTINGS = {
   /** Geofence radius for machine visit verification (meters) */
   GEOFENCE_RADIUS_METERS: 100,
 
@@ -8,7 +8,7 @@ export const TRIP_SETTINGS = {
   /** Radius for stop clustering (meters) */
   STOP_DETECTION_RADIUS_METERS: 40,
 
-  /** Auto-close trips without GPS updates after N hours */
+  /** Auto-close routes without GPS updates after N hours */
   AUTO_CLOSE_AFTER_HOURS: 8,
 
   /** Mileage discrepancy threshold (km) */

@@ -7,6 +7,10 @@ import {
   JoinColumn,
 } from "typeorm";
 import { BaseEntity } from "../../../common/entities/base.entity";
+import { Vehicle } from "../../vehicles/entities/vehicle.entity";
+import { RoutePoint } from "./route-point.entity";
+import { RouteAnomaly } from "./route-anomaly.entity";
+import { RouteTaskLink } from "./route-task-link.entity";
 
 // ============================================================================
 // ENUMS
@@ -20,10 +24,12 @@ export enum RouteType {
 }
 
 export enum RouteStatus {
+  DRAFT = "draft",
   PLANNED = "planned",
-  IN_PROGRESS = "in_progress",
+  ACTIVE = "active",
   COMPLETED = "completed",
   CANCELLED = "cancelled",
+  AUTO_CLOSED = "auto_closed",
 }
 
 export enum RouteStopStatus {
@@ -32,6 +38,14 @@ export enum RouteStopStatus {
   IN_PROGRESS = "in_progress",
   COMPLETED = "completed",
   SKIPPED = "skipped",
+}
+
+export enum TransportType {
+  CAR = "car",
+  MOTORCYCLE = "motorcycle",
+  BICYCLE = "bicycle",
+  ON_FOOT = "on_foot",
+  PUBLIC_TRANSPORT = "public_transport",
 }
 
 // ============================================================================
@@ -43,6 +57,10 @@ export enum RouteStopStatus {
 @Index(["operatorId"])
 @Index(["plannedDate"])
 @Index(["status"])
+@Index(["vehicleId"])
+@Index(["operatorId", "status"], {
+  where: '"status" = \'active\' AND "deleted_at" IS NULL',
+})
 export class Route extends BaseEntity {
   @Column({ type: "uuid" })
   organizationId: string;
@@ -62,6 +80,32 @@ export class Route extends BaseEntity {
   @Column({ type: "date" })
   plannedDate: Date;
 
+  // ── Vehicle & Transport (from Trip) ──────────────────────────────
+
+  @Column({ type: "uuid", nullable: true })
+  vehicleId: string | null;
+
+  @ManyToOne(() => Vehicle, { nullable: true })
+  @JoinColumn({ name: "vehicle_id" })
+  vehicle: Vehicle | null;
+
+  @Column({
+    type: "enum",
+    enum: TransportType,
+    nullable: true,
+  })
+  transportType: TransportType | null;
+
+  // ── Planning Fields ──────────────────────────────────────────────
+
+  @Column({ type: "int", nullable: true })
+  estimatedDurationMinutes: number | null;
+
+  @Column({ type: "decimal", precision: 8, scale: 2, nullable: true })
+  estimatedDistanceKm: number | null;
+
+  // ── Execution Fields ─────────────────────────────────────────────
+
   @Column({ type: "timestamp with time zone", nullable: true })
   startedAt: Date | null;
 
@@ -69,16 +113,65 @@ export class Route extends BaseEntity {
   completedAt: Date | null;
 
   @Column({ type: "int", nullable: true })
-  estimatedDurationMinutes: number | null;
-
-  @Column({ type: "int", nullable: true })
   actualDurationMinutes: number | null;
 
   @Column({ type: "decimal", precision: 8, scale: 2, nullable: true })
-  estimatedDistanceKm: number | null;
-
-  @Column({ type: "decimal", precision: 8, scale: 2, nullable: true })
   actualDistanceKm: number | null;
+
+  // ── Odometer (from Trip) ─────────────────────────────────────────
+
+  @Column({ type: "int", nullable: true })
+  startOdometer: number | null;
+
+  @Column({ type: "int", nullable: true })
+  endOdometer: number | null;
+
+  @Column({ type: "int", default: 0 })
+  calculatedDistanceMeters: number;
+
+  // ── GPS Start/End Coordinates (from Trip) ────────────────────────
+
+  @Column({ type: "decimal", precision: 10, scale: 8, nullable: true })
+  startLatitude: number | null;
+
+  @Column({ type: "decimal", precision: 11, scale: 8, nullable: true })
+  startLongitude: number | null;
+
+  @Column({ type: "decimal", precision: 10, scale: 8, nullable: true })
+  endLatitude: number | null;
+
+  @Column({ type: "decimal", precision: 11, scale: 8, nullable: true })
+  endLongitude: number | null;
+
+  // ── Live Tracking (from Trip) ────────────────────────────────────
+
+  @Column({ type: "boolean", default: false })
+  liveLocationActive: boolean;
+
+  @Column({ type: "timestamp with time zone", nullable: true })
+  lastLocationUpdate: Date | null;
+
+  @Column({ type: "bigint", nullable: true })
+  telegramMessageId: number | null;
+
+  // ── Statistics (from Trip) ───────────────────────────────────────
+
+  @Column({ type: "int", default: 0 })
+  totalPoints: number;
+
+  @Column({ type: "int", default: 0 })
+  totalStopsVisited: number;
+
+  @Column({ type: "int", default: 0 })
+  totalAnomalies: number;
+
+  @Column({ type: "int", default: 0 })
+  visitedMachinesCount: number;
+
+  @Column({ type: "decimal", precision: 12, scale: 2, nullable: true })
+  taxiTotalAmount: number | null;
+
+  // ── Notes & Metadata ─────────────────────────────────────────────
 
   @Column({ type: "text", nullable: true })
   notes: string | null;
@@ -86,8 +179,19 @@ export class Route extends BaseEntity {
   @Column({ type: "jsonb", default: {} })
   metadata: Record<string, unknown>;
 
+  // ── Relations ────────────────────────────────────────────────────
+
   @OneToMany(() => RouteStop, (stop) => stop.route, { cascade: true })
   stops: RouteStop[];
+
+  @OneToMany(() => RoutePoint, (point) => point.route)
+  points: RoutePoint[];
+
+  @OneToMany(() => RouteAnomaly, (anomaly) => anomaly.route)
+  anomalies: RouteAnomaly[];
+
+  @OneToMany(() => RouteTaskLink, (link) => link.route)
+  taskLinks: RouteTaskLink[];
 }
 
 // ============================================================================
@@ -146,6 +250,28 @@ export class RouteStop extends BaseEntity {
 
   @Column({ type: "boolean", default: false })
   isPriority: boolean;
+
+  // ── New fields from TripStop ─────────────────────────────────────
+
+  @Column({ type: "varchar", length: 128, nullable: true })
+  machineName: string | null;
+
+  @Column({ type: "varchar", length: 256, nullable: true })
+  machineAddress: string | null;
+
+  @Column({ type: "int", nullable: true })
+  distanceToMachineMeters: number | null;
+
+  @Column({ type: "int", nullable: true })
+  actualDurationSeconds: number | null;
+
+  @Column({ type: "boolean", default: false })
+  isVerified: boolean;
+
+  @Column({ type: "boolean", default: false })
+  isAnomaly: boolean;
+
+  // ── Existing fields ──────────────────────────────────────────────
 
   @Column({ type: "text", nullable: true })
   notes: string | null;

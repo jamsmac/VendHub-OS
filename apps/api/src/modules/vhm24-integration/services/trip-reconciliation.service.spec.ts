@@ -7,10 +7,10 @@ import {
   MismatchSeverity,
 } from "./trip-reconciliation.service";
 import { TripReconciliation } from "../../trips/entities/trip-reconciliation.entity";
-import { Trip } from "../../trips/entities/trip.entity";
-import { TripStop } from "../../trips/entities/trip-stop.entity";
-import { TripTaskLink } from "../../trips/entities/trip-task-link.entity";
-import { GpsProcessingService } from "../../trips/services/gps-processing.service";
+import { Route as Trip } from "../../routes/entities/route.entity";
+import { RouteStop as TripStop } from "../../routes/entities/route.entity";
+import { RouteTaskLink as TripTaskLink } from "../../routes/entities/route-task-link.entity";
+import { GpsProcessingService } from "../../routes/services/gps-processing.service";
 
 describe("TripReconciliationService", () => {
   let service: TripReconciliationService;
