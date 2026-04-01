@@ -30,7 +30,7 @@ export class SeedTestMachinesData1775300000000 implements MigrationInterface {
     await queryRunner.query(`
       INSERT INTO "machines" (
         "id", "machine_number", "name", "serial_number", "type", "status",
-        "manufacturer", "model", "slot_count", "content_model",
+        "manufacturer", "model", "max_product_slots", "content_model",
         "is_active", "organization_id", "created_by_id"
       ) VALUES (
         'm1000000-0000-0000-0000-000000000001',
@@ -44,7 +44,7 @@ export class SeedTestMachinesData1775300000000 implements MigrationInterface {
     await queryRunner.query(`
       INSERT INTO "machines" (
         "id", "machine_number", "name", "serial_number", "type", "status",
-        "manufacturer", "model", "slot_count", "content_model",
+        "manufacturer", "model", "max_product_slots", "content_model",
         "is_active", "organization_id", "created_by_id"
       ) VALUES (
         'm1000000-0000-0000-0000-000000000002',
@@ -58,7 +58,7 @@ export class SeedTestMachinesData1775300000000 implements MigrationInterface {
     await queryRunner.query(`
       INSERT INTO "machines" (
         "id", "machine_number", "name", "serial_number", "type", "status",
-        "manufacturer", "model", "slot_count", "content_model",
+        "manufacturer", "model", "max_product_slots", "content_model",
         "is_active", "organization_id", "created_by_id"
       ) VALUES (
         'm1000000-0000-0000-0000-000000000003',
@@ -72,7 +72,7 @@ export class SeedTestMachinesData1775300000000 implements MigrationInterface {
     await queryRunner.query(`
       INSERT INTO "machines" (
         "id", "machine_number", "name", "serial_number", "type", "status",
-        "manufacturer", "model", "slot_count", "content_model",
+        "manufacturer", "model", "max_product_slots", "content_model",
         "is_active", "organization_id", "created_by_id"
       ) VALUES (
         'm1000000-0000-0000-0000-000000000004',
@@ -86,7 +86,7 @@ export class SeedTestMachinesData1775300000000 implements MigrationInterface {
     await queryRunner.query(`
       INSERT INTO "machines" (
         "id", "machine_number", "name", "serial_number", "type", "status",
-        "manufacturer", "model", "slot_count", "content_model",
+        "manufacturer", "model", "max_product_slots", "content_model",
         "is_active", "organization_id", "created_by_id"
       ) VALUES (
         'm1000000-0000-0000-0000-000000000005',
@@ -101,11 +101,51 @@ export class SeedTestMachinesData1775300000000 implements MigrationInterface {
     // ════════════════════════════════════════════════════════════
 
     const coffeeContainers = [
-      { id: "c1000000-0000-0000-0000-000000000001", num: 1, name: "Кофе зёрна", cap: 1200, unit: "g", cur: 850, min: 100 },
-      { id: "c1000000-0000-0000-0000-000000000002", num: 2, name: "Молоко сухое", cap: 800, unit: "g", cur: 320, min: 80 },
-      { id: "c1000000-0000-0000-0000-000000000003", num: 3, name: "Вода", cap: 5000, unit: "ml", cur: 3200, min: 500 },
-      { id: "c1000000-0000-0000-0000-000000000004", num: 4, name: "Сахар", cap: 1000, unit: "g", cur: 720, min: 100 },
-      { id: "c1000000-0000-0000-0000-000000000005", num: 5, name: "Стаканчики", cap: 100, unit: "pcs", cur: 45, min: 10 },
+      {
+        id: "c1000000-0000-0000-0000-000000000001",
+        num: 1,
+        name: "Кофе зёрна",
+        cap: 1200,
+        unit: "g",
+        cur: 850,
+        min: 100,
+      },
+      {
+        id: "c1000000-0000-0000-0000-000000000002",
+        num: 2,
+        name: "Молоко сухое",
+        cap: 800,
+        unit: "g",
+        cur: 320,
+        min: 80,
+      },
+      {
+        id: "c1000000-0000-0000-0000-000000000003",
+        num: 3,
+        name: "Вода",
+        cap: 5000,
+        unit: "ml",
+        cur: 3200,
+        min: 500,
+      },
+      {
+        id: "c1000000-0000-0000-0000-000000000004",
+        num: 4,
+        name: "Сахар",
+        cap: 1000,
+        unit: "g",
+        cur: 720,
+        min: 100,
+      },
+      {
+        id: "c1000000-0000-0000-0000-000000000005",
+        num: 5,
+        name: "Стаканчики",
+        cap: 100,
+        unit: "pcs",
+        cur: 45,
+        min: 10,
+      },
     ];
 
     for (const c of coffeeContainers) {
@@ -145,17 +185,80 @@ export class SeedTestMachinesData1775300000000 implements MigrationInterface {
 
     const components = [
       // Coffee machine components
-      { id: "e1000000-0000-0000-0000-000000000001", mid: "m1000000-0000-0000-0000-000000000001", type: "grinder", name: "Кофемолка Necta", status: "installed", loc: "machine" },
-      { id: "e1000000-0000-0000-0000-000000000002", mid: "m1000000-0000-0000-0000-000000000001", type: "brew_unit", name: "Варочный блок", status: "installed", loc: "machine" },
-      { id: "e1000000-0000-0000-0000-000000000003", mid: "m1000000-0000-0000-0000-000000000001", type: "pump", name: "Водяной насос", status: "installed", loc: "machine" },
-      { id: "e1000000-0000-0000-0000-000000000004", mid: "m1000000-0000-0000-0000-000000000001", type: "board", name: "Плата управления v3.2", status: "installed", loc: "machine" },
+      {
+        id: "e1000000-0000-0000-0000-000000000001",
+        mid: "m1000000-0000-0000-0000-000000000001",
+        type: "grinder",
+        name: "Кофемолка Necta",
+        status: "installed",
+        loc: "machine",
+      },
+      {
+        id: "e1000000-0000-0000-0000-000000000002",
+        mid: "m1000000-0000-0000-0000-000000000001",
+        type: "brew_unit",
+        name: "Варочный блок",
+        status: "installed",
+        loc: "machine",
+      },
+      {
+        id: "e1000000-0000-0000-0000-000000000003",
+        mid: "m1000000-0000-0000-0000-000000000001",
+        type: "pump",
+        name: "Водяной насос",
+        status: "installed",
+        loc: "machine",
+      },
+      {
+        id: "e1000000-0000-0000-0000-000000000004",
+        mid: "m1000000-0000-0000-0000-000000000001",
+        type: "board",
+        name: "Плата управления v3.2",
+        status: "installed",
+        loc: "machine",
+      },
       // Snack machine components
-      { id: "e1000000-0000-0000-0000-000000000005", mid: "m1000000-0000-0000-0000-000000000002", type: "motor", name: "Спиральный мотор A-ряд", status: "installed", loc: "machine" },
-      { id: "e1000000-0000-0000-0000-000000000006", mid: "m1000000-0000-0000-0000-000000000002", type: "motor", name: "Спиральный мотор B-ряд", status: "installed", loc: "machine" },
-      { id: "e1000000-0000-0000-0000-000000000007", mid: "m1000000-0000-0000-0000-000000000002", type: "board", name: "Контроллер Jofemar", status: "installed", loc: "machine" },
+      {
+        id: "e1000000-0000-0000-0000-000000000005",
+        mid: "m1000000-0000-0000-0000-000000000002",
+        type: "motor",
+        name: "Спиральный мотор A-ряд",
+        status: "installed",
+        loc: "machine",
+      },
+      {
+        id: "e1000000-0000-0000-0000-000000000006",
+        mid: "m1000000-0000-0000-0000-000000000002",
+        type: "motor",
+        name: "Спиральный мотор B-ряд",
+        status: "installed",
+        loc: "machine",
+      },
+      {
+        id: "e1000000-0000-0000-0000-000000000007",
+        mid: "m1000000-0000-0000-0000-000000000002",
+        type: "board",
+        name: "Контроллер Jofemar",
+        status: "installed",
+        loc: "machine",
+      },
       // Water machine
-      { id: "e1000000-0000-0000-0000-000000000008", mid: "m1000000-0000-0000-0000-000000000003", type: "pump", name: "Насос подачи воды", status: "installed", loc: "machine" },
-      { id: "e1000000-0000-0000-0000-000000000009", mid: "m1000000-0000-0000-0000-000000000003", type: "filter", name: "Система фильтрации 5-ступ", status: "in_repair", loc: "repair" },
+      {
+        id: "e1000000-0000-0000-0000-000000000008",
+        mid: "m1000000-0000-0000-0000-000000000003",
+        type: "pump",
+        name: "Насос подачи воды",
+        status: "installed",
+        loc: "machine",
+      },
+      {
+        id: "e1000000-0000-0000-0000-000000000009",
+        mid: "m1000000-0000-0000-0000-000000000003",
+        type: "filter",
+        name: "Система фильтрации 5-ступ",
+        status: "in_repair",
+        loc: "repair",
+      },
     ];
 
     for (const comp of components) {
@@ -178,8 +281,11 @@ export class SeedTestMachinesData1775300000000 implements MigrationInterface {
     // ════════════════════════════════════════════════════════════
 
     // Snack machine: 3 rows × 8 columns = 24 slots (deterministic fill levels)
-    const snackFill = [8,5,10,3,7,0,6,9, 4,10,2,8,5,7,1,6, 9,3,7,5,0,8,4,10];
-    const snackSlots: { id: string; num: string; cap: number; cur: number }[] = [];
+    const snackFill = [
+      8, 5, 10, 3, 7, 0, 6, 9, 4, 10, 2, 8, 5, 7, 1, 6, 9, 3, 7, 5, 0, 8, 4, 10,
+    ];
+    const snackSlots: { id: string; num: string; cap: number; cur: number }[] =
+      [];
     let slotIdx = 1;
     for (const row of ["A", "B", "C"]) {
       for (let col = 1; col <= 8; col++) {
@@ -208,8 +314,9 @@ export class SeedTestMachinesData1775300000000 implements MigrationInterface {
     }
 
     // Drink machine: 3 rows × 6 columns = 18 slots (deterministic fill levels)
-    const drinkFill = [6,3,8,0,5,7, 2,8,4,6,1,5, 7,0,3,8,6,2];
-    const drinkSlots: { id: string; num: string; cap: number; cur: number }[] = [];
+    const drinkFill = [6, 3, 8, 0, 5, 7, 2, 8, 4, 6, 1, 5, 7, 0, 3, 8, 6, 2];
+    const drinkSlots: { id: string; num: string; cap: number; cur: number }[] =
+      [];
     slotIdx = 25; // continue from 25
     let drinkIdx = 0;
     for (const row of ["A", "B", "C"]) {
