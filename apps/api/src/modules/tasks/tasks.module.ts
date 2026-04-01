@@ -11,6 +11,9 @@ import {
 } from "./entities/task.entity";
 import { Incident } from "../incidents/entities/incident.entity";
 import { TaskAnalyticsService } from "./services/task-analytics.service";
+import { TaskAutoGenerationService } from "./services/task-auto-generation.service";
+import { ContainersModule } from "../containers/containers.module";
+import { Organization } from "../organizations/entities/organization.entity";
 
 @Module({
   imports: [
@@ -21,10 +24,12 @@ import { TaskAnalyticsService } from "./services/task-analytics.service";
       TaskComponent,
       TaskPhoto,
       Incident,
+      Organization,
     ]),
+    ContainersModule,
   ],
   controllers: [TasksController],
-  providers: [TasksService, TaskAnalyticsService],
+  providers: [TasksService, TaskAnalyticsService, TaskAutoGenerationService],
   exports: [TasksService],
 })
 export class TasksModule {}
