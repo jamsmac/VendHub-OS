@@ -35,7 +35,7 @@ export class ClientPublicService {
   ) {
     this.publicOrgId =
       this.configService.get<string>("VENDHUB_PUBLIC_ORG_ID") ??
-      "a0000000-0000-0000-0000-000000000001";
+      "d0000000-0000-0000-0000-000000000001";
   }
 
   // ============================================
