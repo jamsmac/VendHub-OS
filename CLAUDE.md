@@ -660,6 +660,41 @@ New backend endpoint storing complaint settings in Organization's `settings` JSO
 - Roles: GET (owner/admin/manager), PUT (owner/admin)
 - Files: `dto/complaint-settings.dto.ts`, `complaints.service.ts`, `complaints.controller.ts`, `complaints.module.ts`
 
+### Site Supabase → API Migration (2026-04-04)
+
+Full migration of site app from supabase adapter to VendHub API. 30+ files changed, `lib/supabase.ts` deleted.
+
+**API — `site-cms` module (JSONB document store):**
+
+- **Entity**: `SiteCmsItem` — `collection` (VARCHAR 50), `data` (JSONB), `sortOrder` (INT), `isActive` (BOOLEAN), `organizationId` (UUID). Extends BaseEntity.
+- **Admin controller** (`/site-cms/:collection[/:id]`): GET list, GET by ID, GET count, POST create, PATCH update, DELETE soft-delete. JWT required, roles: owner/admin.
+- **Public controller** (`/client/public/*`): GET partners, GET machine-types, GET site-cms/:collection, POST cooperation-requests (rate-limited).
+- **Service**: `findByCollection`, `countByCollection`, `findById`, `create`, `update`, `remove`. Returns flattened objects: `{id, ...data, sort_order, is_active, created_at, updated_at}`.
+- **Migrations**: `1775900000000-CreateSiteCmsItems` (table + indexes), `1775900000001-SeedSiteCmsData` (84 rows across 9 collections)
+- **Collections**: products (20), machines (16), promotions (3), loyalty_tiers (4), bonus_actions (11), loyalty_privileges (8), site_content (14), partners (4), partnership_models (4)
+
+**Site — Auth proxy:**
+
+- `app/api/auth/login/route.ts` — POST: proxy to API `/auth/login`, JWT → httpOnly cookie
+- `app/api/auth/session/route.ts` — GET: validate JWT cookie via API `/auth/me`
+- `app/api/auth/logout/route.ts` — POST: clear cookies
+- `lib/admin-auth.ts` — `getSession()`, `signIn()`, `signOut()` via proxy routes
+
+**Site — Admin API client:**
+
+- `app/api/admin/[...path]/route.ts` — catch-all proxy: JWT from cookie → Bearer header → API
+- `lib/admin-api.ts` — `cmsGetAll`, `cmsCount`, `cmsCreate`, `cmsUpdate`, `cmsDelete` helpers
+- `lib/color-schemes.ts` — extracted COLOR_SCHEMES from data.ts
+
+**Site — Public pages:**
+
+- `lib/api-client.ts` extended: `fetchPublicPartners()`, `fetchPublicMachineTypes()`, `fetchPublicSiteCms()`, `submitCooperationRequest()`
+- Public pages use api-client.ts with data.ts fallbacks
+- Admin pages use admin-api.ts (no fallbacks, real CRUD)
+
+**Deleted:** `lib/supabase.ts` (zero consumers remain)
+**Kept:** `lib/data.ts` as fallback for 4 public pages
+
 ### Routes + Trips Merge (2026-04-01)
 
 Unified Routes module — merged 3 modules (routes, trips, trip-analytics) into 1. Single lifecycle: `DRAFT → PLANNED → ACTIVE → COMPLETED/CANCELLED/AUTO_CLOSED`. Commit `a5153bc`.

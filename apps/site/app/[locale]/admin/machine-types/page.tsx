@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Plus, Search, Pencil, Trash2, Eye, EyeOff } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { cmsGetAll, cmsUpdate, cmsDelete } from "@/lib/admin-api";
 import { useToast } from "@/components/ui/Toast";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import MachineTypeForm from "@/components/admin/MachineTypeForm";
@@ -29,15 +29,12 @@ export default function AdminMachineTypesPage() {
   const pageSize = 10;
 
   const fetchTypes = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("machine_types")
-      .select("*")
-      .order("sort_order", { ascending: true });
+    const { data, error } = await cmsGetAll<MachineTypeDetail>("machine_types");
 
     if (error) {
       showToast(t("loadError"), "error");
     } else {
-      setTypes(data as MachineTypeDetail[]);
+      setTypes((data ?? []) as MachineTypeDetail[]);
     }
     setLoading(false);
   }, [showToast, t]);
@@ -47,10 +44,9 @@ export default function AdminMachineTypesPage() {
   }, [fetchTypes]);
 
   const handleToggleActive = async (item: MachineTypeDetail) => {
-    const { error } = await supabase
-      .from("machine_types")
-      .update({ is_active: !item.is_active })
-      .eq("id", item.id);
+    const { error } = await cmsUpdate("machine_types", item.id, {
+      is_active: !item.is_active,
+    });
     if (error) {
       showToast(t("saveError"), "error");
     } else {
@@ -60,10 +56,7 @@ export default function AdminMachineTypesPage() {
 
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    const { error } = await supabase
-      .from("machine_types")
-      .delete()
-      .eq("id", deleteTarget.id);
+    const { error } = await cmsDelete("machine_types", deleteTarget.id);
     if (error) {
       showToast(t("deleteError"), "error");
     } else {
@@ -197,7 +190,7 @@ export default function AdminMachineTypesPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-espresso/60">
-                      {mt.model_name ?? "—"}
+                      {mt.model_name ?? "---"}
                     </td>
                     <td className="px-4 py-3 text-espresso/40 font-mono text-xs">
                       {mt.slug}

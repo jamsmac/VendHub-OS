@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Save } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { cmsGetAll, cmsUpdate } from "@/lib/admin-api";
 import { useToast } from "@/components/ui/Toast";
 import type { SiteContent } from "@/lib/types";
 
@@ -27,15 +27,12 @@ export default function AdminContentPage() {
   useEffect(() => {
     async function fetchContent() {
       try {
-        const { data, error } = await supabase
-          .from("site_content")
-          .select("*")
-          .order("section", { ascending: true });
+        const { data, error } = await cmsGetAll<SiteContent>("site_content");
 
         if (error) {
           showToast(t("loadError"), "error");
         } else {
-          const contentData = data as SiteContent[];
+          const contentData = (data ?? []) as SiteContent[];
           setContent(contentData);
           const newEdits: Record<string, string> = {};
           for (const item of contentData) {
@@ -56,10 +53,9 @@ export default function AdminContentPage() {
 
   const handleSave = async (item: SiteContent) => {
     setSavingId(item.id);
-    const { error } = await supabase
-      .from("site_content")
-      .update({ value: edits[item.id] })
-      .eq("id", item.id);
+    const { error } = await cmsUpdate("site_content", item.id, {
+      value: edits[item.id],
+    });
 
     if (error) {
       showToast(t("saveError"), "error");

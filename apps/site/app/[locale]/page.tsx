@@ -12,11 +12,13 @@ import BenefitsSection from "@/components/sections/BenefitsSection";
 import LoyaltyTab from "@/components/benefits/LoyaltyTab";
 import PartnerSection from "@/components/sections/PartnerSection";
 import AboutSection from "@/components/sections/AboutSection";
-import { supabase } from "@/lib/supabase";
 import {
   fetchPublicPromotions,
   fetchPublicStats,
   fetchPublicContent,
+  fetchPublicPartners,
+  fetchPublicMachineTypes,
+  fetchPublicSiteCms,
 } from "@/lib/api-client";
 import {
   partners as fallbackPartners,
@@ -34,45 +36,28 @@ import type {
 } from "@/lib/types";
 
 export default async function Home() {
-  // Fetch from VendHub API (with ISR caching) + supabase adapter fallbacks
+  // Fetch from VendHub API (with ISR caching) + static data fallbacks
   const [
     apiStats,
     apiPromotions,
     apiContent,
-    partnersResult,
-    machinesResult,
-    machineTypesResult,
-    promosResult,
-    modelsResult,
+    apiPartners,
+    apiMachines,
+    apiMachineTypes,
+    apiPromos,
+    apiModels,
   ] = await Promise.all([
-    // Real API calls (return null if API unavailable)
     fetchPublicStats(),
     fetchPublicPromotions(),
     fetchPublicContent(),
-    // Supabase adapter fallbacks (return static data)
-    supabase
-      .from("partners")
-      .select("*")
-      .order("sort_order", { ascending: true }),
-    supabase.from("machines").select("*").order("name"),
-    supabase
-      .from("machine_types")
-      .select("*")
-      .eq("is_active", true)
-      .order("sort_order"),
-    supabase
-      .from("promotions")
-      .select("*")
-      .eq("is_active", true)
-      .order("sort_order"),
-    supabase
-      .from("partnership_models")
-      .select("*")
-      .eq("is_active", true)
-      .order("sort_order"),
+    fetchPublicPartners(),
+    fetchPublicSiteCms("machines"),
+    fetchPublicMachineTypes(),
+    fetchPublicSiteCms("promotions"),
+    fetchPublicSiteCms("partnership_models"),
   ]);
 
-  // Build CMS data — prefer API, fall back to supabase adapter → static data
+  // Build CMS data — prefer API, fall back to static data
   const allCms: Record<string, Record<string, string>> = {};
   if (apiContent && Object.keys(apiContent).length > 0) {
     // API returns grouped content: { hero: [...], stats: [...], about: [...] }
@@ -99,22 +84,21 @@ export default async function Home() {
     statsCmsData["orders_count"] = apiStats.totalOrders.toString();
     statsCmsData["avg_rating"] = apiStats.avgRating.toString();
   } else {
-    const machineCount = machinesResult.data?.length ?? 0;
+    const machineCount = apiMachines.length;
     if (machineCount > 0) {
       statsCmsData["machines_count"] = machineCount.toString();
     }
   }
 
   const partnerList = (
-    partnersResult.data?.length ? partnersResult.data : fallbackPartners
+    apiPartners.length > 0 ? apiPartners : fallbackPartners
   ) as Partner[];
   const machineList = (
-    machinesResult.data?.length ? machinesResult.data : fallbackMachines
+    apiMachines.length > 0 ? apiMachines : fallbackMachines
   ) as Machine[];
-  const machineTypeList = (machineTypesResult.data ??
-    []) as MachineTypeDetail[];
+  const machineTypeList = apiMachineTypes as unknown as MachineTypeDetail[];
 
-  // Promotions: prefer API, fall back to supabase adapter
+  // Promotions: prefer API, fall back to CMS, fall back to static
   const apiPromosMapped: Promotion[] = (apiPromotions ?? []).map((p) => ({
     id: p.id,
     code: p.code,
@@ -131,12 +115,12 @@ export default async function Home() {
   const promoList =
     apiPromosMapped.length > 0
       ? apiPromosMapped
-      : ((promosResult.data?.length
-          ? promosResult.data
+      : ((apiPromos.length > 0
+          ? apiPromos
           : fallbackPromotions) as Promotion[]);
 
   const modelList = (
-    modelsResult.data?.length ? modelsResult.data : fallbackModels
+    apiModels.length > 0 ? apiModels : fallbackModels
   ) as PartnershipModel[];
 
   return (

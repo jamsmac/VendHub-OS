@@ -32,7 +32,7 @@ import { useTranslations, useLocale } from "next-intl";
 import SectionHeader from "@/components/ui/SectionHeader";
 import Card from "@/components/ui/Card";
 import PartnerForm from "@/components/partner/PartnerForm";
-import { COLOR_SCHEMES } from "@/lib/data";
+import { COLOR_SCHEMES } from "@/lib/color-schemes";
 import type { Partner, PartnershipModel } from "@/lib/types";
 
 const ICON_MAP: Record<string, LucideIcon> = {

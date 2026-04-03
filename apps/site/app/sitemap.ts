@@ -1,5 +1,5 @@
 import { MetadataRoute } from "next";
-import { supabase } from "@/lib/supabase";
+import { fetchPublicMachineTypes } from "@/lib/api-client";
 
 const BASE_URL = "https://vendhub.uz";
 
@@ -9,13 +9,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let slugs = FALLBACK_SLUGS;
 
   try {
-    const { data } = await supabase
-      .from("machine_types")
-      .select("slug")
-      .eq("is_active", true);
+    const machineTypes = await fetchPublicMachineTypes();
 
-    if (data && Array.isArray(data) && data.length > 0) {
-      slugs = (data as { slug: string }[]).map((t) => t.slug);
+    if (machineTypes.length > 0) {
+      const parsed = machineTypes
+        .filter((t) => t.is_active !== false && typeof t.slug === "string")
+        .map((t) => t.slug as string);
+      if (parsed.length > 0) slugs = parsed;
     }
   } catch {
     // Use fallback slugs if query fails

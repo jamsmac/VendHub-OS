@@ -3,7 +3,7 @@
 import { useState, FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { X, Plus, Trash2 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { cmsCreate, cmsUpdate } from "@/lib/admin-api";
 import { useToast } from "@/components/ui/Toast";
 import ImageUpload from "@/components/admin/ImageUpload";
 import AdminFormField from "@/components/admin/AdminFormField";
@@ -143,18 +143,11 @@ export default function ProductForm({
     };
 
     try {
-      if (product) {
-        const { error } = await supabase
-          .from("products")
-          .update(payload)
-          .eq("id", product.id);
-        if (error) throw error;
-        showToast(t("updated"), "success");
-      } else {
-        const { error } = await supabase.from("products").insert(payload);
-        if (error) throw error;
-        showToast(t("created"), "success");
-      }
+      const { error } = product
+        ? await cmsUpdate("products", product.id, payload)
+        : await cmsCreate("products", payload);
+      if (error) throw new Error(error);
+      showToast(product ? t("updated") : t("created"), "success");
       onSaved();
       onClose();
     } catch (err: unknown) {

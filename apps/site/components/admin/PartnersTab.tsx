@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, FormEvent } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Plus, Pencil, Trash2, X, ExternalLink } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { cmsGetAll, cmsCreate, cmsUpdate, cmsDelete } from "@/lib/admin-api";
 import { useToast } from "@/components/ui/Toast";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import TableSkeleton from "@/components/admin/TableSkeleton";
@@ -37,28 +37,21 @@ export default function PartnersTab() {
 
   const fetchPartners = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("partners")
-      .select("*")
-      .order("sort_order", { ascending: true });
+    const { data, error } = await cmsGetAll<Partner>("partners");
     if (error) {
       showToast(t("loadError"), "error");
     } else {
-      setPartners(data as Partner[]);
+      setPartners(data ?? []);
     }
     setLoading(false);
   }, [showToast, t]);
 
   useEffect(() => {
-    supabase
-      .from("partners")
-      .select("*")
-      .order("sort_order", { ascending: true })
-      .then(({ data, error }) => {
-        if (error) showToast(t("loadError"), "error");
-        else setPartners(data as Partner[]);
-        setLoading(false);
-      });
+    cmsGetAll<Partner>("partners").then(({ data, error }) => {
+      if (error) showToast(t("loadError"), "error");
+      else setPartners(data ?? []);
+      setLoading(false);
+    });
   }, [showToast, t]);
 
   const openCreate = () => {
@@ -83,10 +76,7 @@ export default function PartnersTab() {
 
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    const { error } = await supabase
-      .from("partners")
-      .delete()
-      .eq("id", deleteTarget.id);
+    const { error } = await cmsDelete("partners", deleteTarget.id);
     if (error) {
       showToast(t("deleteError"), "error");
     } else {
@@ -107,18 +97,11 @@ export default function PartnersTab() {
       sort_order: sortOrder,
     };
     try {
-      if (editingId) {
-        const { error } = await supabase
-          .from("partners")
-          .update(payload)
-          .eq("id", editingId);
-        if (error) throw error;
-        showToast(t("updated"), "success");
-      } else {
-        const { error } = await supabase.from("partners").insert(payload);
-        if (error) throw error;
-        showToast(t("created"), "success");
-      }
+      const { error } = editingId
+        ? await cmsUpdate("partners", editingId, payload)
+        : await cmsCreate("partners", payload);
+      if (error) throw new Error(error);
+      showToast(editingId ? t("updated") : t("created"), "success");
       setFormOpen(false);
       fetchPartners();
     } catch (err: unknown) {

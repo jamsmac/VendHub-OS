@@ -1,21 +1,40 @@
 /**
- * Site admin auth — graceful no-op.
- *
- * The site CMS admin reads static data via the supabase adapter (lib/supabase.ts).
- * Full admin operations (with auth) are in apps/web at the main dashboard.
- * If site CMS needs live auth, wire to POST /api/v1/auth/login.
+ * Site admin auth — delegates to VendHub API via Next.js proxy routes.
  */
 
-export async function getSession() {
-  return null;
+export interface AdminSession {
+  user: { email: string | null; id?: string; role?: string };
 }
 
-export async function signIn(_email: string, _password: string) {
-  throw new Error(
-    "Admin authentication is available at the main dashboard (apps/web).",
-  );
+export async function getSession(): Promise<AdminSession | null> {
+  try {
+    const res = await fetch("/api/auth/session");
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.session ?? null;
+  } catch {
+    return null;
+  }
 }
 
-export async function signOut() {
-  // No-op
+export async function signIn(
+  email: string,
+  password: string,
+): Promise<{ user: Record<string, unknown> }> {
+  const res = await fetch("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({ error: "Login failed" }));
+    throw new Error(json.error ?? "Login failed");
+  }
+
+  return res.json();
+}
+
+export async function signOut(): Promise<void> {
+  await fetch("/api/auth/logout", { method: "POST" });
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Plus, Pencil, Trash2, X, Save } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { cmsGetAll, cmsCreate, cmsUpdate, cmsDelete } from "@/lib/admin-api";
 import { useToast } from "@/components/ui/Toast";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import AdminFormField from "@/components/admin/AdminFormField";
@@ -55,21 +55,15 @@ export default function AdminLoyaltyPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     const [tiersRes, privsRes] = await Promise.all([
-      supabase
-        .from("loyalty_tiers")
-        .select("*")
-        .order("sort_order", { ascending: true }),
-      supabase
-        .from("loyalty_privileges")
-        .select("*")
-        .order("sort_order", { ascending: true }),
+      cmsGetAll<LoyaltyTier>("loyalty_tiers"),
+      cmsGetAll<LoyaltyPrivilege>("loyalty_privileges"),
     ]);
 
     if (tiersRes.error || privsRes.error) {
       showToast(t("loadError"), "error");
     } else {
-      const tierData = tiersRes.data as LoyaltyTier[];
-      const privData = privsRes.data as LoyaltyPrivilege[];
+      const tierData = (tiersRes.data ?? []) as LoyaltyTier[];
+      const privData = (privsRes.data ?? []) as LoyaltyPrivilege[];
       setTiers(tierData);
       setPrivileges(privData);
 
@@ -132,15 +126,16 @@ export default function AdminLoyaltyPage() {
 
     try {
       if (editingTierId) {
-        const { error } = await supabase
-          .from("loyalty_tiers")
-          .update(payload)
-          .eq("id", editingTierId);
-        if (error) throw error;
+        const { error } = await cmsUpdate(
+          "loyalty_tiers",
+          editingTierId,
+          payload,
+        );
+        if (error) throw new Error(error);
         showToast(t("updated"), "success");
       } else {
-        const { error } = await supabase.from("loyalty_tiers").insert(payload);
-        if (error) throw error;
+        const { error } = await cmsCreate("loyalty_tiers", payload);
+        if (error) throw new Error(error);
         showToast(t("created"), "success");
       }
       setTierFormOpen(false);
@@ -155,10 +150,7 @@ export default function AdminLoyaltyPage() {
 
   const handleDeleteTier = async () => {
     if (!deleteTierTarget) return;
-    const { error } = await supabase
-      .from("loyalty_tiers")
-      .delete()
-      .eq("id", deleteTierTarget.id);
+    const { error } = await cmsDelete("loyalty_tiers", deleteTierTarget.id);
     if (error) {
       showToast(t("deleteError"), "error");
     } else {
@@ -189,12 +181,11 @@ export default function AdminLoyaltyPage() {
     setSavingMatrix(true);
     try {
       for (const tier of tiers) {
-        const privileges = matrixEdits[tier.id] || {};
-        const { error } = await supabase
-          .from("loyalty_tiers")
-          .update({ privileges })
-          .eq("id", tier.id);
-        if (error) throw error;
+        const privs = matrixEdits[tier.id] || {};
+        const { error } = await cmsUpdate("loyalty_tiers", tier.id, {
+          privileges: privs,
+        });
+        if (error) throw new Error(error);
       }
       showToast(t("updated"), "success");
       fetchData();
@@ -213,13 +204,13 @@ export default function AdminLoyaltyPage() {
     const label = newPrivLabel.trim();
     if (!key || !label) return;
 
-    const { error } = await supabase.from("loyalty_privileges").insert({
+    const { error } = await cmsCreate("loyalty_privileges", {
       key,
       label,
       sort_order: privileges.length,
     });
     if (error) {
-      showToast(error.message, "error");
+      showToast(error, "error");
     } else {
       showToast(t("privilegeCreated"), "success");
       setNewPrivKey("");
@@ -230,12 +221,12 @@ export default function AdminLoyaltyPage() {
 
   const handleDeletePrivilege = async () => {
     if (!deletePrivTarget) return;
-    const { error } = await supabase
-      .from("loyalty_privileges")
-      .delete()
-      .eq("id", deletePrivTarget.id);
+    const { error } = await cmsDelete(
+      "loyalty_privileges",
+      deletePrivTarget.id,
+    );
     if (error) {
-      showToast(error.message, "error");
+      showToast(error, "error");
     } else {
       showToast(t("privilegeDeleted"), "success");
       fetchData();

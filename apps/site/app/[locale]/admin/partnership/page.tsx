@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { supabase } from "@/lib/supabase";
+import { cmsGetAll } from "@/lib/admin-api";
 import PartnershipModelsTab from "@/components/admin/PartnershipModelsTab";
 import RequestsTab from "@/components/admin/RequestsTab";
 import PartnersTab from "@/components/admin/PartnersTab";
@@ -11,11 +11,9 @@ import type { PartnershipModel } from "@/lib/types";
 type Tab = "models" | "requests" | "partners";
 
 function loadModels() {
-  return supabase
-    .from("partnership_models")
-    .select("*")
-    .order("sort_order", { ascending: true })
-    .then(({ data }) => (data ?? []) as PartnershipModel[]);
+  return cmsGetAll<PartnershipModel>("partnership_models").then(
+    ({ data }) => (data ?? []) as PartnershipModel[],
+  );
 }
 
 export default function AdminPartnershipPage() {

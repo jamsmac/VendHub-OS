@@ -22,7 +22,7 @@ import {
   Cake,
   Coins,
 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { cmsGetAll, cmsCreate, cmsUpdate, cmsDelete } from "@/lib/admin-api";
 import { useToast } from "@/components/ui/Toast";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import TableSkeleton from "@/components/admin/TableSkeleton";
@@ -84,16 +84,12 @@ export default function AdminBonusActionsPage() {
 
   const fetchActions = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("bonus_actions")
-      .select("*")
-      .order("type", { ascending: true })
-      .order("sort_order", { ascending: true });
+    const { data, error } = await cmsGetAll<BonusAction>("bonus_actions");
 
     if (error) {
       showToast(t("loadError"), "error");
     } else {
-      setActions(data as BonusAction[]);
+      setActions((data ?? []) as BonusAction[]);
     }
     setLoading(false);
   }, [showToast, t]);
@@ -127,10 +123,7 @@ export default function AdminBonusActionsPage() {
 
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    const { error } = await supabase
-      .from("bonus_actions")
-      .delete()
-      .eq("id", deleteTarget.id);
+    const { error } = await cmsDelete("bonus_actions", deleteTarget.id);
     if (error) {
       showToast(t("deleteError"), "error");
     } else {
@@ -156,15 +149,12 @@ export default function AdminBonusActionsPage() {
 
     try {
       if (editingId) {
-        const { error } = await supabase
-          .from("bonus_actions")
-          .update(payload)
-          .eq("id", editingId);
-        if (error) throw error;
+        const { error } = await cmsUpdate("bonus_actions", editingId, payload);
+        if (error) throw new Error(error);
         showToast(t("updated"), "success");
       } else {
-        const { error } = await supabase.from("bonus_actions").insert(payload);
-        if (error) throw error;
+        const { error } = await cmsCreate("bonus_actions", payload);
+        if (error) throw new Error(error);
         showToast(t("created"), "success");
       }
       setFormOpen(false);
@@ -287,7 +277,7 @@ export default function AdminBonusActionsPage() {
                       {renderIcon(action.icon)}
                     </td>
                     <td className="px-4 py-3 text-espresso/60 font-mono text-xs">
-                      {action.points_amount || "—"}
+                      {action.points_amount || "---"}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span

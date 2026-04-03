@@ -3,7 +3,7 @@
 import { useState, useEffect, FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { cmsGetAll, cmsCreate, cmsUpdate } from "@/lib/admin-api";
 import { useToast } from "@/components/ui/Toast";
 import ImageUpload from "@/components/admin/ImageUpload";
 import AdminFormField from "@/components/admin/AdminFormField";
@@ -39,14 +39,12 @@ export default function MachineForm({
   >([]);
 
   useEffect(() => {
-    supabase
-      .from("machine_types")
-      .select("slug, name")
-      .eq("is_active", true)
-      .order("sort_order")
-      .then(({ data, error }) => {
-        if (!error && data) setMachineTypes(data);
-      });
+    cmsGetAll<{ slug: string; name: string }>("machine_types").then(
+      ({ data }) => {
+        if (data)
+          setMachineTypes(data.map((mt) => ({ slug: mt.slug, name: mt.name })));
+      },
+    );
   }, []);
 
   const [name, setName] = useState(machine?.name ?? "");
@@ -108,18 +106,11 @@ export default function MachineForm({
     };
 
     try {
-      if (machine) {
-        const { error } = await supabase
-          .from("machines")
-          .update(payload)
-          .eq("id", machine.id);
-        if (error) throw error;
-        showToast(t("updated"), "success");
-      } else {
-        const { error } = await supabase.from("machines").insert(payload);
-        if (error) throw error;
-        showToast(t("created"), "success");
-      }
+      const { error } = machine
+        ? await cmsUpdate("machines", machine.id, payload)
+        : await cmsCreate("machines", payload);
+      if (error) throw new Error(error);
+      showToast(machine ? t("updated") : t("created"), "success");
       onSaved();
       onClose();
     } catch (err: unknown) {

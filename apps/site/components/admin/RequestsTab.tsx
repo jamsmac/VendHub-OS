@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { X, Trash2 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { cmsGetAll, cmsUpdate, cmsDelete } from "@/lib/admin-api";
 import { useToast } from "@/components/ui/Toast";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import TableSkeleton from "@/components/admin/TableSkeleton";
@@ -21,10 +21,7 @@ interface RequestsTabProps {
 }
 
 function loadRequests() {
-  return supabase
-    .from("cooperation_requests")
-    .select("*")
-    .order("created_at", { ascending: false });
+  return cmsGetAll<CooperationRequest>("cooperation_requests");
 }
 
 export default function RequestsTab({ partnershipModels }: RequestsTabProps) {
@@ -72,7 +69,7 @@ export default function RequestsTab({ partnershipModels }: RequestsTabProps) {
     if (error) {
       showToast(t("loadError"), "error");
     } else {
-      setRequests(data as CooperationRequest[]);
+      setRequests(data ?? []);
     }
     setLoading(false);
   }, [showToast, t]);
@@ -82,7 +79,7 @@ export default function RequestsTab({ partnershipModels }: RequestsTabProps) {
       if (error) {
         showToast(t("loadError"), "error");
       } else {
-        setRequests(data as CooperationRequest[]);
+        setRequests(data ?? []);
       }
       setLoading(false);
     });
@@ -92,10 +89,9 @@ export default function RequestsTab({ partnershipModels }: RequestsTabProps) {
     id: string,
     newStatus: CooperationRequest["status"],
   ) => {
-    const { error } = await supabase
-      .from("cooperation_requests")
-      .update({ status: newStatus })
-      .eq("id", id);
+    const { error } = await cmsUpdate("cooperation_requests", id, {
+      status: newStatus,
+    });
     if (error) {
       showToast(t("statusError"), "error");
     } else {
@@ -107,10 +103,7 @@ export default function RequestsTab({ partnershipModels }: RequestsTabProps) {
 
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    const { error } = await supabase
-      .from("cooperation_requests")
-      .delete()
-      .eq("id", deleteTarget.id);
+    const { error } = await cmsDelete("cooperation_requests", deleteTarget.id);
     if (error) {
       showToast(tp("deleteError"), "error");
     } else {
@@ -129,10 +122,11 @@ export default function RequestsTab({ partnershipModels }: RequestsTabProps) {
   const handleSaveNotes = async () => {
     if (!selectedRequest) return;
     setSavingNotes(true);
-    const { error } = await supabase
-      .from("cooperation_requests")
-      .update({ admin_notes: notesValue || null })
-      .eq("id", selectedRequest.id);
+    const { error } = await cmsUpdate(
+      "cooperation_requests",
+      selectedRequest.id,
+      { admin_notes: notesValue || null },
+    );
     if (error) {
       showToast(t("saveError"), "error");
     } else {

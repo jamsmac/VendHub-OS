@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Button from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
-import { supabase } from "@/lib/supabase";
+import { submitCooperationRequest } from "@/lib/api-client";
 import type { PartnershipModel } from "@/lib/types";
 
 interface PartnerFormProps {
@@ -48,15 +48,14 @@ export default function PartnerForm({ models }: PartnerFormProps) {
     setLoading(true);
 
     try {
-      const { error } = await supabase.from("cooperation_requests").insert({
+      const { ok } = await submitCooperationRequest({
         model: form.model,
         name: form.name.trim(),
         phone: cleanPhone,
         comment: form.comment.trim() || null,
-        status: "new",
       });
 
-      if (error) throw error;
+      if (!ok) throw new Error("Request failed");
 
       showToast(t("success"), "success");
       setForm({

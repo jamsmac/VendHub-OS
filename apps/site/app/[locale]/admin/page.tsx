@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ShoppingBag, MapPin, Inbox, Tag, ArrowRight } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { cmsGetAll } from "@/lib/admin-api";
 
 interface StatCard {
   label: string;
@@ -32,54 +32,56 @@ export default function AdminDashboardPage() {
       try {
         const [
           productsRes,
-          productsAvailableRes,
           machinesRes,
-          machinesOnlineRes,
           requestsRes,
           promotionsRes,
           partnersRes,
         ] = await Promise.all([
-          supabase
-            .from("products")
-            .select("id", { count: "exact", head: true }),
-          supabase
-            .from("products")
-            .select("id", { count: "exact", head: true })
-            .eq("available", true),
-          supabase
-            .from("machines")
-            .select("id", { count: "exact", head: true }),
-          supabase
-            .from("machines")
-            .select("id", { count: "exact", head: true })
-            .eq("status", "online"),
-          supabase
-            .from("cooperation_requests")
-            .select("id", { count: "exact", head: true })
-            .eq("status", "new"),
-          supabase
-            .from("promotions")
-            .select("id", { count: "exact", head: true })
-            .eq("is_active", true),
-          supabase
-            .from("partners")
-            .select("id", { count: "exact", head: true }),
+          cmsGetAll("products"),
+          cmsGetAll("machines"),
+          cmsGetAll("cooperation_requests"),
+          cmsGetAll("promotions"),
+          cmsGetAll("partners"),
         ]);
 
+        const productsData = Array.isArray(productsRes.data)
+          ? productsRes.data
+          : [];
+        const machinesData = Array.isArray(machinesRes.data)
+          ? machinesRes.data
+          : [];
+        const requestsData = Array.isArray(requestsRes.data)
+          ? requestsRes.data
+          : [];
+        const promotionsData = Array.isArray(promotionsRes.data)
+          ? promotionsRes.data
+          : [];
+        const partnersData = Array.isArray(partnersRes.data)
+          ? partnersRes.data
+          : [];
+
         setStats({
-          products: productsRes.error ? null : (productsRes.count ?? 0),
-          productsAvailable: productsAvailableRes.error
+          products: productsRes.error ? null : productsData.length,
+          productsAvailable: productsRes.error
             ? null
-            : (productsAvailableRes.count ?? 0),
-          machines: machinesRes.error ? null : (machinesRes.count ?? 0),
-          machinesOnline: machinesOnlineRes.error
+            : productsData.filter((p: Record<string, unknown>) => p.available)
+                .length,
+          machines: machinesRes.error ? null : machinesData.length,
+          machinesOnline: machinesRes.error
             ? null
-            : (machinesOnlineRes.count ?? 0),
-          newRequests: requestsRes.error ? null : (requestsRes.count ?? 0),
+            : machinesData.filter(
+                (m: Record<string, unknown>) => m.status === "online",
+              ).length,
+          newRequests: requestsRes.error
+            ? null
+            : requestsData.filter(
+                (r: Record<string, unknown>) => r.status === "new",
+              ).length,
           activePromotions: promotionsRes.error
             ? null
-            : (promotionsRes.count ?? 0),
-          partners: partnersRes.error ? null : (partnersRes.count ?? 0),
+            : promotionsData.filter((p: Record<string, unknown>) => p.is_active)
+                .length,
+          partners: partnersRes.error ? null : partnersData.length,
         });
       } catch (err: unknown) {
         console.error("Dashboard stats fetch failed:", err);

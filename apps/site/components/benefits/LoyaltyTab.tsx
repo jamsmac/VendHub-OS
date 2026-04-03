@@ -19,8 +19,7 @@ import {
 import { getTranslations, getLocale } from "next-intl/server";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
-import { supabase } from "@/lib/supabase";
-import { fetchLoyaltyTiers } from "@/lib/api-client";
+import { fetchLoyaltyTiers, fetchPublicSiteCms } from "@/lib/api-client";
 import {
   loyaltyTiers as fallbackTiers,
   bonusActions as fallbackBonusActions,
@@ -67,23 +66,15 @@ export default async function LoyaltyTab() {
   const t = await getTranslations("loyalty");
   const locale = await getLocale();
 
-  // Fetch all data in parallel — API + supabase adapter fallbacks
-  const [apiTiers, tiersRes, actionsRes, privsRes] = await Promise.all([
+  // Fetch all data in parallel — API + static data fallbacks
+  const [apiTiers, cmsTiers, cmsActions, cmsPrivileges] = await Promise.all([
     fetchLoyaltyTiers(),
-    supabase.from("loyalty_tiers").select("*").order("sort_order"),
-    supabase
-      .from("bonus_actions")
-      .select("*")
-      .eq("is_active", true)
-      .order("sort_order"),
-    supabase
-      .from("loyalty_privileges")
-      .select("*")
-      .eq("is_active", true)
-      .order("sort_order"),
+    fetchPublicSiteCms("loyalty_tiers"),
+    fetchPublicSiteCms("bonus_actions"),
+    fetchPublicSiteCms("loyalty_privileges"),
   ]);
 
-  // Use API tiers if available, else supabase adapter, else static fallback
+  // Use API tiers if available, else CMS, else static fallback
   const emojis = ["🥉", "🥈", "🥇", "💎"];
   const sortedTiers: LoyaltyTier[] =
     apiTiers && apiTiers.length > 0
@@ -99,20 +90,22 @@ export default async function LoyaltyTab() {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }))
-      : (tiersRes.data?.length
-          ? (tiersRes.data as LoyaltyTier[])
+      : (cmsTiers.length > 0
+          ? (cmsTiers as unknown as LoyaltyTier[])
           : fallbackTiers
         ).sort((a, b) => a.sort_order - b.sort_order);
 
-  const allActions = actionsRes.data?.length
-    ? (actionsRes.data as BonusAction[])
-    : fallbackBonusActions;
+  const allActions =
+    cmsActions.length > 0
+      ? (cmsActions as unknown as BonusAction[])
+      : fallbackBonusActions;
   const earnActions = allActions.filter((a) => a.type === "earn");
   const spendActions = allActions.filter((a) => a.type === "spend");
 
-  const activePrivileges = privsRes.data?.length
-    ? (privsRes.data as LoyaltyPrivilege[])
-    : fallbackPrivileges;
+  const activePrivileges =
+    cmsPrivileges.length > 0
+      ? (cmsPrivileges as unknown as LoyaltyPrivilege[])
+      : fallbackPrivileges;
 
   return (
     <div>

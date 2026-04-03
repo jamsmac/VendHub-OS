@@ -151,3 +151,62 @@ export async function fetchPublicContent(
   }>(`/cms/banners/public/content${params}`);
   return result?.data ?? {};
 }
+
+// ============================================
+// PARTNERS, MACHINE TYPES, SITE CMS
+// ============================================
+
+export async function fetchPublicPartners(): Promise<
+  Record<string, unknown>[]
+> {
+  const result = await fetchApi<Record<string, unknown>[]>(
+    "/client/public/partners",
+  );
+  return result ?? [];
+}
+
+export async function fetchPublicMachineTypes(): Promise<
+  Record<string, unknown>[]
+> {
+  const result = await fetchApi<Record<string, unknown>[]>(
+    "/client/public/machine-types",
+  );
+  return result ?? [];
+}
+
+export async function fetchPublicSiteCms(
+  collection: string,
+): Promise<Record<string, unknown>[]> {
+  const result = await fetchApi<Record<string, unknown>[]>(
+    `/client/public/site-cms/${collection}`,
+  );
+  return result ?? [];
+}
+
+// ============================================
+// COOPERATION REQUESTS (write)
+// ============================================
+
+export async function submitCooperationRequest(payload: {
+  model: string;
+  name: string;
+  phone: string;
+  comment: string | null;
+}): Promise<{ ok: boolean }> {
+  try {
+    const res = await fetch(
+      `${API_PREFIX}/client/public/cooperation-requests`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+    return { ok: res.ok };
+  } catch {
+    return { ok: false };
+  }
+}

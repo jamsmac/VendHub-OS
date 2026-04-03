@@ -4,7 +4,7 @@ import { useState, FormEvent } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { X, Plus, Trash2, GripVertical } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { cmsCreate, cmsUpdate } from "@/lib/admin-api";
 import { useToast } from "@/components/ui/Toast";
 import ImageUpload from "@/components/admin/ImageUpload";
 import type {
@@ -125,18 +125,11 @@ export default function MachineTypeForm({
     };
 
     try {
-      if (machineType) {
-        const { error } = await supabase
-          .from("machine_types")
-          .update(payload)
-          .eq("id", machineType.id);
-        if (error) throw error;
-        showToast(t("updated"), "success");
-      } else {
-        const { error } = await supabase.from("machine_types").insert(payload);
-        if (error) throw error;
-        showToast(t("created"), "success");
-      }
+      const { error } = machineType
+        ? await cmsUpdate("machine_types", machineType.id, payload)
+        : await cmsCreate("machine_types", payload);
+      if (error) throw new Error(error);
+      showToast(machineType ? t("updated") : t("created"), "success");
       onSaved();
       onClose();
     } catch (err: unknown) {

@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { supabase } from "@/lib/supabase";
+import { getSession } from "@/lib/admin-auth";
+import { cmsGetAll } from "@/lib/admin-api";
 import { ToastProvider } from "@/components/ui/Toast";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminHeader from "@/components/admin/AdminHeader";
@@ -38,15 +39,14 @@ export default function AdminLayout({
   const isLoginPage = pathname.endsWith("/admin/login");
 
   useEffect(() => {
-    supabase.auth
-      .getSession()
-      .then(({ data }) => {
-        if (!data.session && !isLoginPage) {
+    getSession()
+      .then((session) => {
+        if (!session && !isLoginPage) {
           router.push("/admin/login");
           return;
         }
-        if (data.session) {
-          setEmail(data.session.user.email ?? null);
+        if (session) {
+          setEmail(session.user.email ?? null);
         }
         setLoading(false);
       })
@@ -55,32 +55,16 @@ export default function AdminLayout({
         if (!isLoginPage) router.push("/admin/login");
         setLoading(false);
       });
-
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (!session && !isLoginPage) {
-          router.push("/admin/login");
-        }
-        if (session) {
-          setEmail(session.user.email ?? null);
-        }
-      },
-    );
-
-    return () => {
-      listener.subscription.unsubscribe();
-    };
   }, [isLoginPage, router]);
 
   // Fetch new cooperation requests count
   const fetchCooperationCount = useCallback(() => {
-    supabase
-      .from("cooperation_requests")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "new")
-      .then(({ count }) => {
-        setCooperationNewCount(count ?? 0);
-      });
+    cmsGetAll("cooperation_requests").then(({ data }) => {
+      const newCount = Array.isArray(data)
+        ? data.filter((r: Record<string, unknown>) => r.status === "new").length
+        : 0;
+      setCooperationNewCount(newCount);
+    });
   }, []);
 
   useEffect(() => {

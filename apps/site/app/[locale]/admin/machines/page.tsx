@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Pencil, Trash2 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { cmsGetAll, cmsDelete } from "@/lib/admin-api";
 import { useToast } from "@/components/ui/Toast";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import MachineForm from "@/components/admin/MachineForm";
@@ -30,15 +30,12 @@ export default function AdminMachinesPage() {
 
   const fetchMachines = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from("machines")
-        .select("*")
-        .order("name", { ascending: true });
+      const { data, error } = await cmsGetAll<Machine>("machines");
 
       if (error) {
         showToast(t("loadError"), "error");
       } else {
-        setMachines(data as Machine[]);
+        setMachines((data ?? []) as Machine[]);
       }
     } catch (err: unknown) {
       console.error("Machines fetch failed:", err);
@@ -54,10 +51,7 @@ export default function AdminMachinesPage() {
 
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    const { error } = await supabase
-      .from("machines")
-      .delete()
-      .eq("id", deleteTarget.id);
+    const { error } = await cmsDelete("machines", deleteTarget.id);
     if (error) {
       showToast(t("deleteError"), "error");
     } else {

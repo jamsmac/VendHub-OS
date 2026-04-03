@@ -1,56 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Pencil, Eye, EyeOff } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
-import { supabase } from "@/lib/supabase";
+import { cmsGetAll, cmsUpdate } from "@/lib/admin-api";
 import { useToast } from "@/components/ui/Toast";
 import ProductForm from "@/components/admin/ProductForm";
 import AdminSearchToolbar from "@/components/admin/AdminSearchToolbar";
 import Pagination from "@/components/admin/Pagination";
 import TableSkeleton from "@/components/admin/TableSkeleton";
 import type { Product } from "@/lib/types";
-
-const ONE_TIME_DISABLE_PRODUCT_IDS = new Set([
-  "prod-water",
-  "prod-cola",
-  "prod-orange-juice",
-  "prod-chocolate-bar",
-  "prod-chips",
-  "prod-croissant",
-]);
-
-const ONE_TIME_DISABLE_PRODUCT_NAMES = new Set([
-  "water",
-  "cola",
-  "orange juice",
-  "orange-juice",
-  "chocolate bar",
-  "chocolate-bar",
-  "chips",
-  "croissant",
-  "вода",
-  "кола",
-  "сок апельсин",
-  "апельсиновый сок",
-  "шоколадный батончик",
-  "чипсы",
-  "круассан",
-]);
-
-const ONE_TIME_DISABLE_MARKER = {
-  section: "admin_migrations",
-  key: "disable_snack_products_v1",
-  value: "done",
-};
-
-const normalizeProductName = (value: string) =>
-  value.trim().toLowerCase().replace(/\s+/g, " ");
-
-const shouldDisableOneTime = (product: Product) =>
-  ONE_TIME_DISABLE_PRODUCT_IDS.has(product.id) ||
-  ONE_TIME_DISABLE_PRODUCT_NAMES.has(normalizeProductName(product.name));
 
 export default function AdminProductsPage() {
   const { showToast } = useToast();
@@ -65,7 +25,6 @@ export default function AdminProductsPage() {
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
-  const oneTimeDisableAppliedRef = useRef(false);
 
   const categories = [
     { value: "", label: tc("all") },
@@ -76,110 +35,26 @@ export default function AdminProductsPage() {
   ];
 
   const fetchProducts = async () => {
-    const { data, error } = await supabase
-      .from("products")
-      .select("*")
-      .order("sort_order", { ascending: true });
+    const { data, error } = await cmsGetAll<Product>("products");
 
     if (error) {
       showToast(t("loadError"), "error");
     } else {
-      setProducts(data as Product[]);
+      setProducts((data ?? []) as Product[]);
     }
     setLoading(false);
   };
 
   useEffect(() => {
-    let isMounted = true;
-
-    const loadProducts = async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .order("sort_order", { ascending: true });
-
-      if (!isMounted) return;
-
-      if (error) {
-        showToast(t("loadError"), "error");
-        setLoading(false);
-        return;
-      }
-
-      let nextProducts = (data ?? []) as Product[];
-
-      if (!oneTimeDisableAppliedRef.current) {
-        oneTimeDisableAppliedRef.current = true;
-
-        const { data: markerRow, error: markerError } = await supabase
-          .from("site_content")
-          .select("id")
-          .eq("section", ONE_TIME_DISABLE_MARKER.section)
-          .eq("key", ONE_TIME_DISABLE_MARKER.key)
-          .maybeSingle();
-
-        if (markerError) {
-          showToast(tc("errorOccurred"), "error");
-        } else if (!markerRow) {
-          const idsToDisable = nextProducts
-            .filter(
-              (product) => product.available && shouldDisableOneTime(product),
-            )
-            .map((product) => product.id);
-
-          let disableCompleted = true;
-
-          if (idsToDisable.length > 0) {
-            const { error: disableError } = await supabase
-              .from("products")
-              .update({ available: false })
-              .in("id", idsToDisable);
-
-            if (disableError) {
-              disableCompleted = false;
-              showToast(tc("errorOccurred"), "error");
-            } else {
-              const disabledSet = new Set(idsToDisable);
-              nextProducts = nextProducts.map((product) =>
-                disabledSet.has(product.id)
-                  ? { ...product, available: false }
-                  : product,
-              );
-            }
-          }
-
-          if (disableCompleted) {
-            await supabase.from("site_content").upsert(
-              {
-                section: ONE_TIME_DISABLE_MARKER.section,
-                key: ONE_TIME_DISABLE_MARKER.key,
-                value: ONE_TIME_DISABLE_MARKER.value,
-              },
-              { onConflict: "section,key" },
-            );
-          }
-        }
-      }
-
-      if (!isMounted) return;
-      setProducts(nextProducts);
-      setLoading(false);
-    };
-
-    void loadProducts();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [showToast, t, tc]);
+    fetchProducts();
+  }, []);
 
   const handleToggleAvailable = async (product: Product) => {
     setTogglingId(product.id);
     const nextAvailable = !product.available;
-    const { error } = await supabase
-      .from("products")
-      .update({ available: nextAvailable })
-      .eq("id", product.id);
+    const { error } = await cmsUpdate("products", product.id, {
+      available: nextAvailable,
+    });
 
     if (error) {
       showToast(tc("errorOccurred"), "error");

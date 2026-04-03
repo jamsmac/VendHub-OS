@@ -30,13 +30,13 @@ import {
   Heart,
   Zap,
 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { cmsGetAll, cmsCreate, cmsUpdate, cmsDelete } from "@/lib/admin-api";
 import { useToast } from "@/components/ui/Toast";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import TableSkeleton from "@/components/admin/TableSkeleton";
 import Pagination from "@/components/admin/Pagination";
 import AdminFormField from "@/components/admin/AdminFormField";
-import { COLOR_SCHEMES } from "@/lib/data";
+import { COLOR_SCHEMES } from "@/lib/color-schemes";
 import type { PartnershipModel } from "@/lib/types";
 
 const ICON_MAP: Record<
@@ -101,28 +101,24 @@ export default function PartnershipModelsTab() {
 
   const fetchModels = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("partnership_models")
-      .select("*")
-      .order("sort_order", { ascending: true });
+    const { data, error } =
+      await cmsGetAll<PartnershipModel>("partnership_models");
     if (error) {
       showToast(t("loadError"), "error");
     } else {
-      setModels(data as PartnershipModel[]);
+      setModels(data ?? []);
     }
     setLoading(false);
   }, [showToast, t]);
 
   useEffect(() => {
-    supabase
-      .from("partnership_models")
-      .select("*")
-      .order("sort_order", { ascending: true })
-      .then(({ data, error }) => {
+    cmsGetAll<PartnershipModel>("partnership_models").then(
+      ({ data, error }) => {
         if (error) showToast(t("loadError"), "error");
-        else setModels(data as PartnershipModel[]);
+        else setModels(data ?? []);
         setLoading(false);
-      });
+      },
+    );
   }, [showToast, t]);
 
   const openCreate = () => {
@@ -153,10 +149,7 @@ export default function PartnershipModelsTab() {
 
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    const { error } = await supabase
-      .from("partnership_models")
-      .delete()
-      .eq("id", deleteTarget.id);
+    const { error } = await cmsDelete("partnership_models", deleteTarget.id);
     if (error) {
       showToast(t("deleteError"), "error");
     } else {
@@ -185,20 +178,11 @@ export default function PartnershipModelsTab() {
     };
 
     try {
-      if (editingId) {
-        const { error } = await supabase
-          .from("partnership_models")
-          .update(payload)
-          .eq("id", editingId);
-        if (error) throw error;
-        showToast(t("updated"), "success");
-      } else {
-        const { error } = await supabase
-          .from("partnership_models")
-          .insert(payload);
-        if (error) throw error;
-        showToast(t("created"), "success");
-      }
+      const { error } = editingId
+        ? await cmsUpdate("partnership_models", editingId, payload)
+        : await cmsCreate("partnership_models", payload);
+      if (error) throw new Error(error);
+      showToast(editingId ? t("updated") : t("created"), "success");
       setFormOpen(false);
       fetchModels();
     } catch (err: unknown) {

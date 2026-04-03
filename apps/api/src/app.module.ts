@@ -77,6 +77,7 @@ import { SecurityModule } from "./modules/security/security.module";
 import { SettingsModule } from "./modules/settings/settings.module";
 import { WebsiteConfigModule } from "./modules/website-config/website-config.module";
 import { CmsModule } from "./modules/cms/cms.module";
+import { SiteCmsModule } from "./modules/site-cms/site-cms.module";
 import { WarehouseModule } from "./modules/warehouse/warehouse.module";
 import { RoutesModule } from "./modules/routes/routes.module";
 import { EquipmentModule } from "./modules/equipment/equipment.module";
@@ -629,6 +630,8 @@ const defaultedNumber = (value: number) =>
 
     // Content Management System (Articles, Help Content)
     CmsModule,
+    // Site CMS (JSONB document store for landing page data)
+    SiteCmsModule,
 
     // Warehouse & Stock Management
     WarehouseModule,

@@ -12,7 +12,7 @@ import { ToastProvider } from "@/components/ui/Toast";
 import { ModalProvider } from "@/lib/modal-context";
 import { ProductsProvider } from "@/lib/useProductsData";
 import ModalRoot from "@/components/modals/ModalRoot";
-import { supabase } from "@/lib/supabase";
+import { fetchPublicSiteCms } from "@/lib/api-client";
 import { products as fallbackProducts } from "@/lib/data";
 import type { Product } from "@/lib/types";
 import "../globals.css";
@@ -103,17 +103,14 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   setRequestLocale(locale);
 
-  const [messages, seo, productsResult] = await Promise.all([
+  const [messages, seo, apiProducts] = await Promise.all([
     getMessages(),
     getTranslations("seo"),
-    supabase
-      .from("products")
-      .select("*")
-      .order("sort_order", { ascending: true }),
+    fetchPublicSiteCms("products"),
   ]);
 
   const initialProducts = (
-    productsResult.data?.length ? productsResult.data : fallbackProducts
+    apiProducts.length > 0 ? apiProducts : fallbackProducts
   ) as Product[];
 
   // JSON-LD: Product catalog for SEO
@@ -211,7 +208,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         />
         <script
           type="application/ld+json"
-          // Safe: product data is from server-side Supabase query, serialized via JSON.stringify
+          // Safe: product data is from server-side API query, serialized via JSON.stringify
           dangerouslySetInnerHTML={{ __html: productListJsonLd }}
         />
         <NextIntlClientProvider messages={messages}>

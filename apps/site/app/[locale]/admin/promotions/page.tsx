@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Plus, Pencil, Trash2, X, Copy } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { cmsGetAll, cmsCreate, cmsUpdate, cmsDelete } from "@/lib/admin-api";
 import { useToast } from "@/components/ui/Toast";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import TableSkeleton from "@/components/admin/TableSkeleton";
@@ -49,15 +49,12 @@ export default function AdminPromotionsPage() {
 
   const fetchPromotions = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("promotions")
-      .select("*")
-      .order("sort_order", { ascending: true });
+    const { data, error } = await cmsGetAll<Promotion>("promotions");
 
     if (error) {
       showToast(t("loadError"), "error");
     } else {
-      setPromotions(data as Promotion[]);
+      setPromotions((data ?? []) as Promotion[]);
     }
     setLoading(false);
   }, [showToast, t]);
@@ -118,10 +115,7 @@ export default function AdminPromotionsPage() {
 
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    const { error } = await supabase
-      .from("promotions")
-      .delete()
-      .eq("id", deleteTarget.id);
+    const { error } = await cmsDelete("promotions", deleteTarget.id);
     if (error) {
       showToast(t("deleteError"), "error");
     } else {
@@ -167,15 +161,12 @@ export default function AdminPromotionsPage() {
 
     try {
       if (editingId) {
-        const { error } = await supabase
-          .from("promotions")
-          .update(payload)
-          .eq("id", editingId);
-        if (error) throw error;
+        const { error } = await cmsUpdate("promotions", editingId, payload);
+        if (error) throw new Error(error);
         showToast(t("updated"), "success");
       } else {
-        const { error } = await supabase.from("promotions").insert(payload);
-        if (error) throw error;
+        const { error } = await cmsCreate("promotions", payload);
+        if (error) throw new Error(error);
         showToast(t("created"), "success");
       }
       setFormOpen(false);
@@ -266,7 +257,7 @@ export default function AdminPromotionsPage() {
                       {promo.badge}
                     </td>
                     <td className="px-4 py-3 text-espresso/60 font-mono text-xs">
-                      {promo.promo_code ?? "—"}
+                      {promo.promo_code ?? "---"}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span
