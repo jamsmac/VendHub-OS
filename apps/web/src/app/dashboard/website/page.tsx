@@ -65,10 +65,24 @@ import {
   useWebsiteConfig,
   useBulkUpdateWebsiteConfig,
 } from "@/lib/hooks/use-website-config";
+import {
+  useCmsBanners,
+  useCreateCmsBanner,
+  useUpdateCmsBanner,
+  useDeleteCmsBanner,
+  type CmsBanner,
+  type CreateBannerInput,
+} from "@/lib/hooks/use-cms-banners";
 
 // ═══ Types ═══
 
-type TabId = "content" | "partnership" | "analytics" | "seo" | "settings";
+type TabId =
+  | "content"
+  | "banners"
+  | "partnership"
+  | "analytics"
+  | "seo"
+  | "settings";
 
 interface ContentField {
   key: string;
@@ -893,6 +907,334 @@ function ContentTab() {
           </Card>
         );
       })}
+    </div>
+  );
+}
+
+// ═══ Tab: Banners ═══
+
+function BannersTab() {
+  const { data: bannersData, isLoading } = useCmsBanners();
+  const createBanner = useCreateCmsBanner();
+  const updateBanner = useUpdateCmsBanner();
+  const deleteBanner = useDeleteCmsBanner();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
+  const [form, setForm] = useState<CreateBannerInput>({
+    titleRu: "",
+    position: "hero",
+    status: "draft",
+  });
+
+  const banners: CmsBanner[] = Array.isArray(bannersData)
+    ? bannersData
+    : (bannersData?.data ?? []);
+
+  const statusColors: Record<string, string> = {
+    active: "bg-green-100 text-green-800",
+    draft: "bg-zinc-100 text-zinc-600",
+    scheduled: "bg-blue-100 text-blue-800",
+    expired: "bg-red-100 text-red-700",
+    archived: "bg-zinc-200 text-zinc-500",
+  };
+
+  const resetForm = () => {
+    setForm({ titleRu: "", position: "hero", status: "draft" });
+    setEditingId(null);
+    setShowCreate(false);
+  };
+
+  const handleSave = async () => {
+    if (editingId) {
+      await updateBanner.mutateAsync({ id: editingId, data: form });
+    } else {
+      await createBanner.mutateAsync(form);
+    }
+    resetForm();
+  };
+
+  const startEdit = (b: CmsBanner) => {
+    setForm({
+      titleRu: b.titleRu,
+      descriptionRu: b.descriptionRu ?? undefined,
+      titleUz: b.titleUz ?? undefined,
+      descriptionUz: b.descriptionUz ?? undefined,
+      imageUrl: b.imageUrl ?? undefined,
+      linkUrl: b.linkUrl ?? undefined,
+      buttonTextRu: b.buttonTextRu ?? undefined,
+      buttonTextUz: b.buttonTextUz ?? undefined,
+      position: b.position,
+      status: b.status,
+      sortOrder: b.sortOrder,
+      backgroundColor: b.backgroundColor ?? undefined,
+      textColor: b.textColor ?? undefined,
+    });
+    setEditingId(b.id);
+    setShowCreate(true);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Promotional Banners</h2>
+        <Button
+          onClick={() => {
+            resetForm();
+            setShowCreate(true);
+          }}
+          size="sm"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          New Banner
+        </Button>
+      </div>
+
+      {/* Create/Edit Form */}
+      {showCreate && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">
+              {editingId ? "Edit Banner" : "New Banner"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium">Title (RU) *</label>
+                <Input
+                  value={form.titleRu}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, titleRu: e.target.value }))
+                  }
+                  placeholder="Заголовок баннера"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Title (UZ)</label>
+                <Input
+                  value={form.titleUz ?? ""}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, titleUz: e.target.value }))
+                  }
+                  placeholder="Banner sarlavhasi"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium">Description (RU)</label>
+                <Textarea
+                  value={form.descriptionRu ?? ""}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, descriptionRu: e.target.value }))
+                  }
+                  rows={2}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Description (UZ)</label>
+                <Textarea
+                  value={form.descriptionUz ?? ""}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, descriptionUz: e.target.value }))
+                  }
+                  rows={2}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="text-sm font-medium">Image URL</label>
+                <Input
+                  value={form.imageUrl ?? ""}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, imageUrl: e.target.value }))
+                  }
+                  placeholder="https://..."
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Link URL</label>
+                <Input
+                  value={form.linkUrl ?? ""}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, linkUrl: e.target.value }))
+                  }
+                  placeholder="/promotions"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Button Text (RU)</label>
+                <Input
+                  value={form.buttonTextRu ?? ""}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, buttonTextRu: e.target.value }))
+                  }
+                  placeholder="Подробнее"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-4 gap-3">
+              <div>
+                <label className="text-sm font-medium">Position</label>
+                <select
+                  className="w-full rounded-md border px-3 py-2 text-sm bg-background"
+                  value={form.position}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      position: e.target.value as CmsBanner["position"],
+                    }))
+                  }
+                >
+                  <option value="hero">Hero</option>
+                  <option value="top">Top</option>
+                  <option value="sidebar">Sidebar</option>
+                  <option value="popup">Popup</option>
+                  <option value="inline">Inline</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Status</label>
+                <select
+                  className="w-full rounded-md border px-3 py-2 text-sm bg-background"
+                  value={form.status}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      status: e.target.value as CmsBanner["status"],
+                    }))
+                  }
+                >
+                  <option value="draft">Draft</option>
+                  <option value="active">Active</option>
+                  <option value="scheduled">Scheduled</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">BG Color</label>
+                <Input
+                  value={form.backgroundColor ?? ""}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, backgroundColor: e.target.value }))
+                  }
+                  placeholder="#FF5733"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Sort Order</label>
+                <Input
+                  type="number"
+                  value={form.sortOrder ?? 0}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      sortOrder: parseInt(e.target.value, 10) || 0,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button
+                onClick={handleSave}
+                disabled={
+                  !form.titleRu ||
+                  createBanner.isPending ||
+                  updateBanner.isPending
+                }
+                size="sm"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {editingId ? "Update" : "Create"}
+              </Button>
+              <Button variant="outline" onClick={resetForm} size="sm">
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Banners List */}
+      {isLoading ? (
+        <Card>
+          <CardContent className="py-8 text-center text-muted-foreground">
+            Loading banners...
+          </CardContent>
+        </Card>
+      ) : banners.length === 0 ? (
+        <Card>
+          <CardContent className="py-8 text-center text-muted-foreground">
+            <Image className="h-10 w-10 mx-auto mb-2 opacity-40" />
+            <p>No banners yet. Create your first promotional banner.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {banners.map((b) => (
+            <Card key={b.id}>
+              <CardContent className="py-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {b.imageUrl ? (
+                      <div className="h-12 w-20 rounded overflow-hidden bg-muted flex-shrink-0">
+                        <img
+                          src={b.imageUrl}
+                          alt={b.titleRu}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="h-12 w-20 rounded bg-muted flex items-center justify-center flex-shrink-0">
+                        <Image className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm">{b.titleRu}</span>
+                        <Badge
+                          variant="secondary"
+                          className={cn("text-xs", statusColors[b.status])}
+                        >
+                          {b.status}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {b.position}
+                        </Badge>
+                      </div>
+                      <div className="flex gap-3 text-xs text-muted-foreground mt-0.5">
+                        <span>Views: {formatNumber(b.impressions)}</span>
+                        <span>Clicks: {formatNumber(b.clicks)}</span>
+                        <span>Order: {b.sortOrder}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => startEdit(b)}
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive"
+                      onClick={() => deleteBanner.mutate(b.id)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -1807,6 +2149,7 @@ export default function WebsitePage() {
 
   const tabs: Array<{ id: TabId; label: string; icon: React.ElementType }> = [
     { id: "content", label: t("tabContent"), icon: FileText },
+    { id: "banners", label: "Banners", icon: Image },
     { id: "partnership", label: t("tabPartnership"), icon: Handshake },
     { id: "analytics", label: t("tabAnalytics"), icon: BarChart3 },
     { id: "seo", label: "SEO", icon: Target },
@@ -1847,6 +2190,7 @@ export default function WebsitePage() {
 
       {/* Tab Content */}
       {activeTab === "content" && <ContentTab />}
+      {activeTab === "banners" && <BannersTab />}
       {activeTab === "partnership" && <PartnershipTab />}
       {activeTab === "analytics" && <AnalyticsTab />}
       {activeTab === "seo" && <SeoTab />}
