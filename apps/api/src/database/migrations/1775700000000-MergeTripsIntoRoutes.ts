@@ -18,7 +18,9 @@ export class MergeTripsIntoRoutes1775700000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // ── Step 1: Extend route status enum ──────────────────────────
     // Add new values: draft, active, auto_closed
-    // Rename in_progress → active via temp swap
+    // NOTE: ALTER TYPE ADD VALUE cannot run inside a transaction with
+    // subsequent use of the new value. We COMMIT the enum changes first.
+    await queryRunner.query(`COMMIT`);
     await queryRunner.query(`
       ALTER TYPE "routes_status_enum" ADD VALUE IF NOT EXISTS 'draft' BEFORE 'planned';
     `);
@@ -28,6 +30,7 @@ export class MergeTripsIntoRoutes1775700000000 implements MigrationInterface {
     await queryRunner.query(`
       ALTER TYPE "routes_status_enum" ADD VALUE IF NOT EXISTS 'auto_closed' AFTER 'cancelled';
     `);
+    await queryRunner.query(`BEGIN`);
     // Migrate existing in_progress → active
     await queryRunner.query(`
       UPDATE "routes" SET "status" = 'active' WHERE "status" = 'in_progress';
