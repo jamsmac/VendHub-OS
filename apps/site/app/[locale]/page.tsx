@@ -14,6 +14,11 @@ import PartnerSection from "@/components/sections/PartnerSection";
 import AboutSection from "@/components/sections/AboutSection";
 import { supabase } from "@/lib/supabase";
 import {
+  fetchPublicPromotions,
+  fetchPublicStats,
+  fetchPublicContent,
+} from "@/lib/api-client";
+import {
   partners as fallbackPartners,
   machines as fallbackMachines,
   promotions as fallbackPromotions,
@@ -29,15 +34,22 @@ import type {
 } from "@/lib/types";
 
 export default async function Home() {
+  // Fetch from VendHub API (with ISR caching) + supabase adapter fallbacks
   const [
-    cmsResult,
+    apiStats,
+    apiPromotions,
+    apiContent,
     partnersResult,
     machinesResult,
     machineTypesResult,
     promosResult,
     modelsResult,
   ] = await Promise.all([
-    supabase.from("site_content").select("section, key, value"),
+    // Real API calls (return null if API unavailable)
+    fetchPublicStats(),
+    fetchPublicPromotions(),
+    fetchPublicContent(),
+    // Supabase adapter fallbacks (return static data)
     supabase
       .from("partners")
       .select("*")
@@ -60,19 +72,39 @@ export default async function Home() {
       .order("sort_order"),
   ]);
 
-  // Group all CMS content by section
+  // Build CMS data — prefer API, fall back to supabase adapter → static data
   const allCms: Record<string, Record<string, string>> = {};
-  const cmsRows = cmsResult.data?.length ? cmsResult.data : fallbackContent;
-  for (const item of cmsRows) {
-    if (!allCms[item.section]) allCms[item.section] = {};
-    allCms[item.section][item.key] = item.value;
+  if (apiContent && Object.keys(apiContent).length > 0) {
+    // API returns grouped content: { hero: [...], stats: [...], about: [...] }
+    for (const [section, articles] of Object.entries(apiContent)) {
+      if (!allCms[section]) allCms[section] = {};
+      for (const article of articles) {
+        allCms[section][article.slug] = article.content;
+      }
+    }
+  } else {
+    // Fallback to static data
+    for (const item of fallbackContent) {
+      if (!allCms[item.section]) allCms[item.section] = {};
+      allCms[item.section][item.key] = item.value;
+    }
   }
+
   const statsCmsData = allCms["stats"] ?? {};
-  // Dynamic machine count — override CMS value with real count
-  const machineCount = machinesResult.data?.length ?? 0;
-  if (machineCount > 0) {
-    statsCmsData["machines_count"] = machineCount.toString();
+
+  // Override stats with real API data if available
+  if (apiStats) {
+    statsCmsData["machines_count"] = apiStats.totalMachines.toString();
+    statsCmsData["products_count"] = apiStats.totalProducts.toString();
+    statsCmsData["orders_count"] = apiStats.totalOrders.toString();
+    statsCmsData["avg_rating"] = apiStats.avgRating.toString();
+  } else {
+    const machineCount = machinesResult.data?.length ?? 0;
+    if (machineCount > 0) {
+      statsCmsData["machines_count"] = machineCount.toString();
+    }
   }
+
   const partnerList = (
     partnersResult.data?.length ? partnersResult.data : fallbackPartners
   ) as Partner[];
@@ -81,9 +113,28 @@ export default async function Home() {
   ) as Machine[];
   const machineTypeList = (machineTypesResult.data ??
     []) as MachineTypeDetail[];
-  const promoList = (
-    promosResult.data?.length ? promosResult.data : fallbackPromotions
-  ) as Promotion[];
+
+  // Promotions: prefer API, fall back to supabase adapter
+  const apiPromosMapped: Promotion[] = (apiPromotions ?? []).map((p) => ({
+    id: p.id,
+    code: p.code,
+    description: p.description ?? "",
+    discount_type: p.discountType,
+    discount_value: p.discountValue,
+    min_order_amount: p.minOrderAmount ?? 0,
+    valid_from: p.validFrom,
+    valid_until: p.validUntil,
+    is_active: true,
+    sort_order: 0,
+  })) as unknown as Promotion[];
+
+  const promoList =
+    apiPromosMapped.length > 0
+      ? apiPromosMapped
+      : ((promosResult.data?.length
+          ? promosResult.data
+          : fallbackPromotions) as Promotion[]);
+
   const modelList = (
     modelsResult.data?.length ? modelsResult.data : fallbackModels
   ) as PartnershipModel[];

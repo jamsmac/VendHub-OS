@@ -20,6 +20,7 @@ import { getTranslations, getLocale } from "next-intl/server";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { supabase } from "@/lib/supabase";
+import { fetchLoyaltyTiers } from "@/lib/api-client";
 import {
   loyaltyTiers as fallbackTiers,
   bonusActions as fallbackBonusActions,
@@ -66,8 +67,9 @@ export default async function LoyaltyTab() {
   const t = await getTranslations("loyalty");
   const locale = await getLocale();
 
-  // Fetch all data in parallel
-  const [tiersRes, actionsRes, privsRes] = await Promise.all([
+  // Fetch all data in parallel — API + supabase adapter fallbacks
+  const [apiTiers, tiersRes, actionsRes, privsRes] = await Promise.all([
+    fetchLoyaltyTiers(),
     supabase.from("loyalty_tiers").select("*").order("sort_order"),
     supabase
       .from("bonus_actions")
@@ -81,9 +83,26 @@ export default async function LoyaltyTab() {
       .order("sort_order"),
   ]);
 
-  const sortedTiers = (
-    tiersRes.data?.length ? (tiersRes.data as LoyaltyTier[]) : fallbackTiers
-  ).sort((a, b) => a.sort_order - b.sort_order);
+  // Use API tiers if available, else supabase adapter, else static fallback
+  const emojis = ["🥉", "🥈", "🥇", "💎"];
+  const sortedTiers: LoyaltyTier[] =
+    apiTiers && apiTiers.length > 0
+      ? apiTiers.map((t, i) => ({
+          id: t.level,
+          level: t.level,
+          emoji: emojis[i] ?? "⭐",
+          discount_percent: t.cashbackPercent,
+          threshold: t.minPoints,
+          cashback_percent: t.cashbackPercent,
+          privileges: Object.fromEntries(t.privileges.map((p) => [p, true])),
+          sort_order: i,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }))
+      : (tiersRes.data?.length
+          ? (tiersRes.data as LoyaltyTier[])
+          : fallbackTiers
+        ).sort((a, b) => a.sort_order - b.sort_order);
 
   const allActions = actionsRes.data?.length
     ? (actionsRes.data as BonusAction[])
