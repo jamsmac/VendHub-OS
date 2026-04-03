@@ -262,9 +262,13 @@ export class RoutesService {
       );
     }
 
-    // Check no other active route for this operator
+    // Check no other active route for this operator within the same org
     const activeRoute = await this.routeRepository.findOne({
-      where: { operatorId: route.operatorId, status: RouteStatus.ACTIVE },
+      where: {
+        operatorId: route.operatorId,
+        organizationId,
+        status: RouteStatus.ACTIVE,
+      },
     });
     if (activeRoute) {
       throw new ConflictException(

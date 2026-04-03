@@ -3,10 +3,14 @@
  *
  * Business logic for public (no-auth) endpoints.
  * All queries are read-only and return aggregated/safe data.
+ *
+ * IMPORTANT: All queries filter by PUBLIC_ORG_ID to prevent
+ * cross-tenant data leakage (CLAUDE.md Rule 7).
  */
 
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { ConfigService } from "@nestjs/config";
 import { Repository } from "typeorm";
 import { Product } from "../products/entities/product.entity";
 import { ClientOrder } from "./entities/client-order.entity";
@@ -15,6 +19,7 @@ import { ClientUser } from "./entities/client-user.entity";
 @Injectable()
 export class ClientPublicService {
   private readonly logger = new Logger(ClientPublicService.name);
+  private readonly publicOrgId: string;
 
   constructor(
     @InjectRepository(Product)
@@ -25,7 +30,13 @@ export class ClientPublicService {
 
     @InjectRepository(ClientUser)
     private readonly clientUserRepository: Repository<ClientUser>,
-  ) {}
+
+    private readonly configService: ConfigService,
+  ) {
+    this.publicOrgId =
+      this.configService.get<string>("VENDHUB_PUBLIC_ORG_ID") ??
+      "a0000000-0000-0000-0000-000000000001";
+  }
 
   // ============================================
   // STATS
@@ -38,26 +49,29 @@ export class ClientPublicService {
     totalClients: number;
     avgRating: number;
   }> {
-    // Count active machines across all organizations
+    // Count active machines for public organization
     const machineCount = await this.productRepository.manager
       .createQueryBuilder()
       .select("COUNT(*)", "count")
       .from("machines", "m")
-      .where("m.status = :status", { status: "active" })
+      .where("m.organization_id = :orgId", { orgId: this.publicOrgId })
+      .andWhere("m.status = :status", { status: "active" })
       .andWhere("m.deleted_at IS NULL")
       .getRawOne();
 
-    // Count active products
+    // Count active products for public organization
     const productCount = await this.productRepository
       .createQueryBuilder("p")
-      .where("p.status = :status", { status: "active" })
+      .where("p.organizationId = :orgId", { orgId: this.publicOrgId })
+      .andWhere("p.status = :status", { status: "active" })
       .andWhere("p.deletedAt IS NULL")
       .getCount();
 
-    // Count completed orders
+    // Count completed orders for public organization
     const orderCount = await this.orderRepository
       .createQueryBuilder("o")
-      .where("o.deletedAt IS NULL")
+      .where("o.organizationId = :orgId", { orgId: this.publicOrgId })
+      .andWhere("o.deletedAt IS NULL")
       .getCount();
 
     // Count registered clients
@@ -95,7 +109,8 @@ export class ClientPublicService {
     page?: number;
     limit?: number;
   }) {
-    const { category, search, page = 1, limit = 50 } = filters || {};
+    const { category, search, page = 1 } = filters || {};
+    const limit = Math.min(Math.max(filters?.limit ?? 50, 1), 100);
 
     const query = this.productRepository
       .createQueryBuilder("p")
@@ -114,7 +129,8 @@ export class ClientPublicService {
         "p.isActive",
         "p.vatRate",
       ])
-      .where("p.status = :status", { status: "active" })
+      .where("p.organizationId = :orgId", { orgId: this.publicOrgId })
+      .andWhere("p.status = :status", { status: "active" })
       .andWhere("p.isIngredient = false")
       .andWhere("p.deletedAt IS NULL");
 
@@ -180,7 +196,8 @@ export class ClientPublicService {
         "pc.valid_until",
       ])
       .from("promo_codes", "pc")
-      .where("pc.is_active = true")
+      .where("pc.organization_id = :orgId", { orgId: this.publicOrgId })
+      .andWhere("pc.is_active = true")
       .andWhere("pc.deleted_at IS NULL")
       .andWhere("(pc.valid_from IS NULL OR pc.valid_from <= :now)", { now })
       .andWhere("(pc.valid_until IS NULL OR pc.valid_until >= :now)", { now })

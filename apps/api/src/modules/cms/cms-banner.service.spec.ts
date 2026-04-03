@@ -1,5 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
+import { ConfigService } from "@nestjs/config";
 import { NotFoundException } from "@nestjs/common";
 import { CmsBannerService } from "./cms-banner.service";
 import {
@@ -75,6 +76,14 @@ describe("CmsBannerService", () => {
         CmsBannerService,
         { provide: getRepositoryToken(CmsBanner), useValue: bannerRepo },
         { provide: getRepositoryToken(CmsArticle), useValue: articleRepo },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest
+              .fn()
+              .mockReturnValue("a0000000-0000-0000-0000-000000000001"),
+          },
+        },
       ],
     }).compile();
 

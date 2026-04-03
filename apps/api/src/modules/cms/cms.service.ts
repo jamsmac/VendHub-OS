@@ -119,9 +119,9 @@ export class CmsService {
 
     const slug = this.generateSlug(dto.title);
 
-    // Check if slug already exists
+    // Check if slug already exists within the same organization
     const existing = await this.articleRepository.findOne({
-      where: { slug, deletedAt: IsNull() },
+      where: { organizationId, slug, deletedAt: IsNull() },
     });
 
     if (existing) {
@@ -156,7 +156,7 @@ export class CmsService {
 
       if (newSlug !== article.slug) {
         const existing = await this.articleRepository.findOne({
-          where: { slug: newSlug, deletedAt: IsNull() },
+          where: { organizationId, slug: newSlug, deletedAt: IsNull() },
         });
 
         if (existing) {

@@ -1,5 +1,6 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { ConfigService } from "@nestjs/config";
 import { Repository } from "typeorm";
 import {
   CmsBanner,
@@ -12,6 +13,7 @@ import { CreateCmsBannerDto, UpdateCmsBannerDto } from "./dto/cms-banner.dto";
 @Injectable()
 export class CmsBannerService {
   private readonly logger = new Logger(CmsBannerService.name);
+  private readonly publicOrgId: string;
 
   constructor(
     @InjectRepository(CmsBanner)
@@ -19,7 +21,13 @@ export class CmsBannerService {
 
     @InjectRepository(CmsArticle)
     private readonly articleRepository: Repository<CmsArticle>,
-  ) {}
+
+    private readonly configService: ConfigService,
+  ) {
+    this.publicOrgId =
+      this.configService.get<string>("VENDHUB_PUBLIC_ORG_ID") ??
+      "a0000000-0000-0000-0000-000000000001";
+  }
 
   // ============================================
   // PUBLIC: Active banners for site
@@ -46,7 +54,8 @@ export class CmsBannerService {
         "b.backgroundColor",
         "b.textColor",
       ])
-      .where("b.status = :status", { status: BannerStatus.ACTIVE })
+      .where("b.organizationId = :orgId", { orgId: this.publicOrgId })
+      .andWhere("b.status = :status", { status: BannerStatus.ACTIVE })
       .andWhere("b.deletedAt IS NULL")
       .andWhere("(b.validFrom IS NULL OR b.validFrom <= :now)", { now })
       .andWhere("(b.validUntil IS NULL OR b.validUntil >= :now)", { now });
@@ -92,7 +101,8 @@ export class CmsBannerService {
         "a.sortOrder",
         "a.tags",
       ])
-      .where("a.isPublished = true")
+      .where("a.organizationId = :orgId", { orgId: this.publicOrgId })
+      .andWhere("a.isPublished = true")
       .andWhere("a.deletedAt IS NULL");
 
     if (category) {

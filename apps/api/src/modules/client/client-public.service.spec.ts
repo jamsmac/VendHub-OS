@@ -1,5 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
+import { ConfigService } from "@nestjs/config";
 import { ClientPublicService } from "./client-public.service";
 import { Product } from "../products/entities/product.entity";
 import { ClientOrder } from "./entities/client-order.entity";
@@ -52,6 +53,14 @@ describe("ClientPublicService", () => {
         { provide: getRepositoryToken(Product), useValue: productRepo },
         { provide: getRepositoryToken(ClientOrder), useValue: orderRepo },
         { provide: getRepositoryToken(ClientUser), useValue: clientUserRepo },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest
+              .fn()
+              .mockReturnValue("a0000000-0000-0000-0000-000000000001"),
+          },
+        },
       ],
     }).compile();
 
