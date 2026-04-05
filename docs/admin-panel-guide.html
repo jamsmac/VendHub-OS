@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VendHub OS — Гид по админ-панели</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#faf6f1;--bg2:#f3ece3;--bg3:#ebe2d5;
+--text:#3d2c1e;--text2:#6b5344;--text3:#917a69;
+--accent:#c0703a;--accent2:#d4944e;--accent3:#e8b87a;
+--green:#4a9d6e;--yellow:#c49a3c;--red:#c45a4a;
+--card:#fff;--border:#e0d5c8;--shadow:0 2px 12px rgba(61,44,30,.08);
+--radius:12px;--sidebar-w:280px;
+}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow:hidden;height:100vh}
+h1,h2,h3,h4{font-family:'Playfair Display',serif;color:var(--text);font-weight:600}
+.app{display:flex;height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);background:linear-gradient(180deg,#3d2c1e 0%,#2a1e14 100%);color:#e8ddd0;overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column}
+.sidebar::-webkit-scrollbar{width:6px}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
+.sidebar-header{padding:20px;border-bottom:1px solid rgba(255,255,255,.1);text-align:center}
+.sidebar-header h1{font-size:18px;color:#e8b87a;letter-spacing:1px}
+.sidebar-header p{font-size:11px;color:rgba(255,255,255,.5);margin-top:4px}
+
+.sidebar-controls{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sidebar-controls input{width:100%;padding:8px 12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#e8ddd0;font-size:13px;outline:none;transition:.2s}
+.sidebar-controls input:focus{border-color:var(--accent);background:rgba(255,255,255,.12)}
+.sidebar-controls input::placeholder{color:rgba(255,255,255,.35)}
+.role-filter{margin-top:8px}
+.role-filter select{width:100%;padding:7px 10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#e8ddd0;font-size:12px;outline:none;cursor:pointer}
+.role-filter select option{background:#2a1e14;color:#e8ddd0}
+
+.sidebar-nav{flex:1;padding:8px 0}
+.nav-section{padding:4px 16px 2px;margin-top:8px}
+.nav-section-title{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.35);font-weight:600}
+.nav-item{display:flex;align-items:center;padding:8px 16px;cursor:pointer;transition:.15s;font-size:13px;border-left:3px solid transparent;gap:10px}
+.nav-item:hover{background:rgba(255,255,255,.06)}
+.nav-item.active{background:rgba(192,112,58,.2);border-left-color:var(--accent);color:#e8b87a}
+.nav-item .icon{width:18px;text-align:center;font-size:14px;opacity:.7}
+.nav-item .label{flex:1}
+.nav-item .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.status-dot.green{background:var(--green)}
+.status-dot.yellow{background:var(--yellow)}
+.status-dot.red{background:var(--red)}
+.nav-item.hidden{display:none}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;padding:0}
+.main::-webkit-scrollbar{width:8px}
+.main::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+/* STATS BAR */
+.stats-bar{display:flex;gap:12px;padding:20px 32px;background:var(--bg2);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.stat-card{background:var(--card);border-radius:10px;padding:14px 20px;flex:1;min-width:140px;box-shadow:var(--shadow);text-align:center}
+.stat-card .num{font-size:28px;font-weight:700;font-family:'Playfair Display',serif}
+.stat-card .lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.stat-card.s-green .num{color:var(--green)}
+.stat-card.s-yellow .num{color:var(--yellow)}
+.stat-card.s-red .num{color:var(--red)}
+
+/* TAB DETAIL */
+.tab-detail{padding:32px;max-width:960px;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.tab-detail h2{font-size:28px;margin-bottom:4px}
+.tab-path{font-size:13px;color:var(--text3);margin-bottom:6px;font-family:monospace;background:var(--bg2);display:inline-block;padding:3px 10px;border-radius:6px}
+.tab-roles{display:flex;gap:6px;margin:10px 0 20px;flex-wrap:wrap}
+.role-badge{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--bg3);color:var(--text2);font-weight:500}
+
+.section-block{background:var(--card);border-radius:var(--radius);padding:24px;margin-bottom:20px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.section-block h3{font-size:16px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section-block h3 .ico{font-size:18px}
+
+.status-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600}
+.status-badge.works{background:#e8f5e9;color:#2e7d32}
+.status-badge.partial{background:#fff8e1;color:#f57f17}
+.status-badge.stub{background:#fce4ec;color:#c62828}
+
+.action-list{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.action-list li{padding:10px 14px;background:var(--bg);border-radius:8px;font-size:13px;display:flex;align-items:center;gap:8px;border:1px solid var(--border)}
+.action-list li::before{content:'→';color:var(--accent);font-weight:700}
+
+.scenario-card{background:var(--bg);border-radius:10px;padding:16px;margin-bottom:10px;border-left:4px solid var(--accent);font-size:13px}
+.scenario-card strong{color:var(--accent);display:block;margin-bottom:6px}
+.scenario-card code{background:var(--bg2);padding:2px 6px;border-radius:4px;font-size:12px}
+
+.related-tags{display:flex;gap:6px;flex-wrap:wrap}
+.related-tag{font-size:12px;padding:4px 12px;border-radius:20px;background:var(--accent);color:white;cursor:pointer;transition:.15s;font-weight:500}
+.related-tag:hover{background:var(--accent2);transform:translateY(-1px)}
+
+.improve-list{list-style:none}
+.improve-list li{padding:8px 12px;background:#fff8e1;border-radius:8px;margin-bottom:6px;font-size:13px;border-left:3px solid var(--yellow)}
+.improve-list li::before{content:'⚡'}
+
+.diagram{background:#2a1e14;color:#e8ddd0;padding:20px;border-radius:10px;font-family:'Courier New',monospace;font-size:12px;line-height:1.5;overflow-x:auto;white-space:pre}
+
+/* WELCOME */
+.welcome{padding:40px 32px;max-width:960px}
+.welcome h2{font-size:32px;margin-bottom:8px}
+.welcome p{color:var(--text2);font-size:15px;margin-bottom:24px}
+.welcome-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.welcome-card{background:var(--card);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);border:1px solid var(--border);cursor:pointer;transition:.2s}
+.welcome-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(61,44,30,.12);border-color:var(--accent3)}
+.welcome-card h4{margin-bottom:6px;font-size:15px}
+.welcome-card p{font-size:12px;color:var(--text3)}
+.welcome-card .cnt{font-size:24px;font-weight:700;color:var(--accent);font-family:'Playfair Display',serif}
+
+.flow-section{margin-top:32px}
+.flow-section h3{font-size:20px;margin-bottom:16px}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+.sidebar{position:fixed;left:-300px;z-index:100;transition:.3s;height:100vh}
+.sidebar.open{left:0}
+.mobile-toggle{display:block !important}
+}
+.mobile-toggle{display:none;position:fixed;top:12px;left:12px;z-index:101;background:var(--accent);color:white;border:none;padding:10px 14px;border-radius:8px;font-size:16px;cursor:pointer}
+</style>
+</head>
+<body>
+<button class="mobile-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+<div class="app">
+<aside class="sidebar">
+<div class="sidebar-header">
+<h1>☕ VendHub OS</h1>
+<p>Гид по админ-панели • 61 вкладка</p>
+</div>
+<div class="sidebar-controls">
+<input type="text" id="search" placeholder="🔍 Поиск вкладки..." oninput="filterTabs()">
+<div class="role-filter">
+<select id="roleFilter" onchange="filterTabs()">
+<option value="all">Все роли</option>
+<option value="owner">👑 Владелец (owner)</option>
+<option value="admin">🔧 Админ (admin)</option>
+<option value="manager">📋 Менеджер (manager)</option>
+<option value="operator">🔩 Оператор (operator)</option>
+<option value="warehouse">📦 Кладовщик (warehouse)</option>
+<option value="accountant">💰 Бухгалтер (accountant)</option>
+<option value="viewer">👁 Наблюдатель (viewer)</option>
+</select>
+</div>
+</div>
+<nav class="sidebar-nav" id="sidebarNav"></nav>
+</aside>
+<main class="main" id="mainContent"></main>
+</div>
+<script>
+const TABS=[
+{id:"dashboard",name:"Дашборд",icon:"📊",path:"/dashboard",section:"Главная",roles:["owner","admin","manager","operator","warehouse","accountant","viewer"],status:"partial",
+desc:"Главная страница с ключевыми KPI: машины, продажи, выручка, задачи.",
+actions:["Просмотр KPI карточек","Переход к деталям по клику"],
+scenarios:["Открыть дашборд → Увидеть 6 KPI → Клик на карточку → Переход в раздел"],
+related:["machines","analytics","tasks"],
+improve:["Карта машин — пока заглушка","Виджет последних задач — заглушка"],
+diagram:"┌──────────────────────────────────────┐\n│ Машин:31 │ Активных:28 │ Продажи:847│\n│ Выручка: 4.2M │ Низкий: 5 │ Задачи:12 │\n├──────────────────────────────────────┤\n│ [Последние задачи]  [Карта машин]   │\n└──────────────────────────────────────┘"},
+{id:"machines",name:"Машины",icon:"☕",path:"/dashboard/machines",section:"Операции",roles:["owner","admin","manager","operator"],status:"works",
+desc:"Управление вендинговыми автоматами. CRUD, поиск, фильтры, карта, детали с 8 вкладками.",
+actions:["Список машин (плитка/карта)","Создать новую машину","Поиск и фильтр по статусу","Детали: 8 вкладок (Паспорт, Содержимое, Аналитика, Инкассация, Обслуживание, Локации, Задачи, Хронология)","Быстрые действия: Инкассация, Загрузка, Задача"],
+scenarios:["Список → Поиск → Фильтр → Переключение Список/Карта","[+ Новая] → Форма → Сохранить","Клик → 8 вкладок детали","Шапка → [Инкассация] [Загрузка] [Задача]"],
+related:["containers","tasks","trips","maintenance","locations","inventory"],
+improve:["WebSocket телеметрия в реальном времени","Кнопка Загрузка — без формы пополнения"],
+diagram:"┌──────────────────────────────────────┐\n│ Всего:31│Актив:28│Вниман:3│Ошибки:0│\n├──────────────────────────────────────┤\n│ [+Новая]  🔍[____]  [Все статусы▾]  │\n├────────┬────────┬────────┬──────────┤\n│VM-0001 │VM-0002 │VM-0003 │ ...      │\n│Остат78%│Остат34%│Остат91%│          │\n│Касса450│Касса120│Касса680│          │\n└────────┴────────┴────────┴──────────┘"},
+{id:"products",name:"Продукты",icon:"📦",path:"/dashboard/products",section:"Операции",roles:["owner","admin","manager","operator","warehouse"],status:"works",
+desc:"Каталог продуктов с рецептами, партиями и историей цен.",
+actions:["Список продуктов","Создать продукт (имя, SKU, категория, цены)","Управление рецептами","Управление партиями","История цен"],
+scenarios:["[+Новый] → Форма → Сохранить","Клик → Детали + Рецепты + Партии + Цены","[Добавить рецепт] → Ингредиенты → Дозировка","[Обновить цену] → Журнал изменений"],
+related:["machines","inventory","containers"],improve:[],diagram:""},
+{id:"inventory",name:"Инвентарь",icon:"📋",path:"/dashboard/inventory",section:"Операции",roles:["owner","admin","manager","warehouse"],status:"works",
+desc:"Остатки на складе, у оператора, в машине. Перемещения и алерты.",
+actions:["Остатки: склад/оператор/машина","Алерты низкого остатка","Перемещение товаров","История перемещений"],
+scenarios:["Склад/Оператор/Машина → Просмотр остатков","[Перемещение] → Откуда → Куда → Продукт → Кол-во → ОК"],
+related:["products","warehouse","machines","containers"],improve:["Автоуведомления при низком остатке"],diagram:""},
+{id:"orders",name:"Заказы",icon:"🛒",path:"/dashboard/orders",section:"Операции",roles:["owner","admin","manager","accountant"],status:"works",
+desc:"Все заказы с машин. Поиск, фильтры по статусу заказа и оплаты, детали.",
+actions:["Поиск заказов","Фильтр по статусу (6 статусов)","Фильтр по оплате (4 статуса)","Просмотр деталей (модальное окно)","Экспорт данных"],
+scenarios:["Поиск → Фильтр → Таблица → Клик → Модальное окно с деталями"],
+related:["machines","transactions","payments"],improve:[],diagram:""},
+{id:"tasks",name:"Задачи",icon:"📝",path:"/dashboard/tasks",section:"Операции",roles:["owner","admin","manager","operator"],status:"works",
+desc:"Задачи для операторов: заправка, инкассация, чистка, ремонт. Список и Канбан.",
+actions:["Создать задачу","Список / Канбан вид","8 типов задач","4 приоритета","Назначить / Начать / Завершить","Фото до и после"],
+scenarios:["Менеджер: [+Задача] → Тип → Приоритет → Дедлайн → Назначить","Оператор: [Начать] → Фото до → Работа → Фото после → [Завершить]","Канбан: Ожидает → Назначена → В работе → Готово"],
+related:["machines","trips","employees"],improve:[],
+diagram:"┌──────────┬──────────┬──────────┬──────────┐\n│ Ожидает  │Назначена │ В работе │  Готово  │\n│   (12)   │   (5)    │   (8)    │  (131)   │\n├──────────┼──────────┼──────────┼──────────┤\n│Заправка  │ Ремонт   │ Чистка   │Инкассац. │\n│ VM-0005  │ VM-0012  │ VM-0003  │ VM-0001  │\n└──────────┴──────────┴──────────┴──────────┘"},
+{id:"collections",name:"Инкассация",icon:"💰",path:"/dashboard/collections",section:"Операции",roles:["owner","admin","manager","accountant"],status:"works",
+desc:"Двухэтапный процесс сбора наличных: оператор собирает → бухгалтер принимает.",
+actions:["Просмотр инкассаций","Принять инкассацию","Отменить инкассацию","Фильтр по статусу"],
+scenarios:["Этап 1: Оператор → Машина → Считает → Статус: Собрано","Этап 2: Бухгалтер → Проверяет → [Принять] → Статус: Принято"],
+related:["machines","transactions","trips","finance"],improve:[],diagram:""},
+{id:"trips",name:"Поездки",icon:"🚗",path:"/dashboard/trips",section:"Операции",roles:["owner","admin","manager","operator"],status:"works",
+desc:"Поездки операторов по маршрутам. Трекер, аналитика, аномалии.",
+actions:["Список поездок","Начать / Завершить поездку","Трекер реального времени","Аналитика поездок","Обнаружение аномалий"],
+scenarios:["Оператор: [Начать] → Маршрут → Транспорт → Точки → [Завершить]","Менеджер: Трекер → Аномалии → Аналитика"],
+related:["routes","tasks","machines","vehicles","trip-analytics"],improve:["GPS-трекинг в реальном времени"],diagram:"Запланирована → Активна → Завершена\n                  ↓\n              Отменена"},
+{id:"routes",name:"Маршруты",icon:"🗺️",path:"/dashboard/routes",section:"Операции",roles:["owner","admin","manager"],status:"works",
+desc:"Конструктор маршрутов для операторов. Оптимизация, дублирование.",
+actions:["Список маршрутов","Конструктор маршрутов","Оптимизация маршрута","Дублирование"],
+scenarios:["[+Новый] → Конструктор → Остановки → [Оптимизировать] → Сохранить"],
+related:["trips","machines","locations"],improve:[],diagram:""},
+{id:"maintenance",name:"Обслуживание",icon:"🔧",path:"/dashboard/maintenance",section:"Операции",roles:["owner","admin","manager","operator"],status:"works",
+desc:"Заявки на ТО: профилактика, ремонт, аварийное. Полный workflow с запчастями.",
+actions:["Создать заявку","Назначить техника","Добавить запчасти","Журнал работ","Плановое ТО"],
+scenarios:["Черновик → Подана → Утверждена → Запланирована → В работе → Завершена → Проверена"],
+related:["machines","equipment","tasks"],improve:[],
+diagram:"Черновик→Подана→Утверждена→Запланирована→В работе\n→Завершена→Проверена\n     ↓              ↓\n Отклонена    Ожидает запчастей"},
+{id:"containers",name:"Контейнеры",icon:"🫙",path:"/dashboard/containers",section:"Операции",roles:["owner","admin","manager","operator"],status:"partial",
+desc:"Бункеры машин с уровнем заполнения. Цветовая индикация остатков.",
+actions:["Просмотр уровня заполнения","Фильтр по статусу","Поиск по имени/машине/продукту"],
+scenarios:["Список → Фильтр (активен/пуст/на ТО) → Карточки с уровнем"],
+related:["machines","products","inventory"],improve:["Кнопка пополнения бункера (сейчас через машину)"],diagram:""},
+{id:"equipment",name:"Оборудование",icon:"⚙️",path:"/dashboard/equipment",section:"Операции",roles:["owner","admin","manager","operator"],status:"works",
+desc:"4 раздела: оборудование, типы бункеров, запчасти, графики мойки.",
+actions:["CRUD оборудования","Справочник типов бункеров","Склад запчастей","Расписание чистки"],
+scenarios:["Вкладки: Оборудование → Типы бункеров → Запчасти → Графики мойки"],
+related:["machines","maintenance"],improve:[],diagram:""},
+{id:"material-requests",name:"Запросы материалов",icon:"📋",path:"/dashboard/material-requests",section:"Операции",roles:["owner","admin","manager","operator","warehouse"],status:"works",
+desc:"Заявки на материалы и запчасти. Workflow от черновика до завершения.",
+actions:["Создать запрос","Подать / Утвердить / Отклонить","Отправить / Оплатить / Доставить"],
+scenarios:["Черновик→Подан→Утверждён→Отправлен→Оплачен→Доставлен→Завершён"],
+related:["warehouse","maintenance"],improve:[],diagram:""},
+{id:"complaints",name:"Жалобы",icon:"📢",path:"/dashboard/complaints",section:"Операции",roles:["owner","admin","manager"],status:"works",
+desc:"Жалобы клиентов с SLA трекингом. 7 типов, workflow, возвраты.",
+actions:["Просмотр жалоб","Назначить ответственного","Комментарии","Возврат средств","Решить / Отклонить"],
+scenarios:["Клиент → Жалоба → Менеджер: [Назначить] → Сотрудник → [Решено] / [Отклонено]"],
+related:["machines","tasks"],improve:[],diagram:""},
+{id:"incidents",name:"Инциденты",icon:"🚨",path:"/dashboard/incidents",section:"Операции",roles:["owner","admin","manager","operator"],status:"works",
+desc:"Инциденты: вандализм, кража, поломки, отключения. Расследование и закрытие.",
+actions:["Создать инцидент","Назначить ответственного","Расследование","Решить / Закрыть","Статистика по машине"],
+scenarios:["[+Инцидент] → Тип → Машина → Описание → [Назначить] → Расследование → [Закрыть]"],
+related:["machines","alerts","maintenance"],improve:[],diagram:""},
+{id:"alerts",name:"Алерты",icon:"⚠️",path:"/dashboard/alerts",section:"Операции",roles:["owner","admin","manager","operator"],status:"works",
+desc:"Правила алертов: метрика → условие → порог. INFO/WARNING/CRITICAL.",
+actions:["CRUD правил алертов","Подтвердить / Решить / Отклонить","Фильтр по severity","История алертов"],
+scenarios:["[+Правило] → Метрика → Условие → Порог → Severity → Машина → Сохранить","Алерт сработал → [Подтвердить] → [Решить]"],
+related:["machines","incidents"],improve:[],diagram:""},
+{id:"vehicles",name:"Транспорт",icon:"🚛",path:"/dashboard/vehicles",section:"Операции",roles:["owner","admin","manager","operator"],status:"works",
+desc:"Транспортные средства: CRUD, одометр, служебный/личный.",
+actions:["CRUD транспорта","Обновление одометра","Фильтр: тип и статус"],
+scenarios:["[+Транспорт] → Марка → Модель → Номер → Тип → Сохранить"],
+related:["trips","routes","employees"],improve:[],diagram:""},
+{id:"operator-ratings",name:"Рейтинги операторов",icon:"⭐",path:"/dashboard/operator-ratings",section:"Операции",roles:["owner","admin","manager"],status:"works",
+desc:"Рейтинги и лидерборд операторов по эффективности.",
+actions:["Расчёт рейтинга","Лидерборд","Сводка по периоду","История рейтингов"],
+scenarios:["Выбрать период → Рассчитать → Лидерборд → Детали оператора"],
+related:["employees","tasks","trips"],improve:[],diagram:""},
+{id:"transactions",name:"Транзакции",icon:"💳",path:"/dashboard/transactions",section:"Финансы",roles:["owner","admin","manager","accountant"],status:"works",
+desc:"Все продажи, инкассации, дневные сводки, комиссии.",
+actions:["Просмотр продаж","Инкассации","Дневные сводки","Пересчёт сводки","Комиссии"],
+scenarios:["Список → Фильтр → Детали транзакции"],
+related:["orders","payments","machines","finance"],improve:[],diagram:""},
+{id:"payments",name:"Платежи",icon:"💸",path:"/dashboard/payments",section:"Финансы",roles:["owner","admin","accountant"],status:"works",
+desc:"Платёжные транзакции Payme/Click/Uzum. Статистика и возвраты.",
+actions:["Просмотр транзакций","Статистика","Инициация возврата (refund)"],
+scenarios:["Список платежей → Фильтр → Детали → [Возврат]"],
+related:["transactions","orders","finance"],improve:[],diagram:""},
+{id:"finance",name:"Финансы",icon:"💵",path:"/dashboard/finance",section:"Финансы",roles:["owner","admin","accountant"],status:"partial",
+desc:"10 вкладок: Обзор, P&L, Денежный поток, Транзакции, Счета, Платежи, Сверка, Фискализация, Бюджет, Отчёты.",
+actions:["Обзор: выручка, расходы, прибыль","P&L: EBITDA","Денежный поток: операционный/инвестиционный","Счета: входящие/исходящие","Платёжные системы: балансы","Сверка расхождений","Бюджет: план vs факт"],
+scenarios:["Выбор периода → Обзор → P&L → Cash Flow → Экспорт"],
+related:["transactions","payments","collections","reconciliation","fiscal"],improve:["P&L, Cash Flow, бюджет — моковые данные"],
+diagram:"┌────────┬──────┬──────────┬───────────┬────────┐\n│ Обзор  │ P&L  │Ден.поток │Транзакции │ Счета  │\n├────────┼──────┼──────────┼───────────┼────────┤\n│Платежи │Сверка│Фискализ. │  Бюджет   │ Отчёты │\n└────────┴──────┴──────────┴───────────┴────────┘"},
+{id:"counterparty",name:"Контрагенты",icon:"🏢",path:"/dashboard/counterparty",section:"Финансы",roles:["owner","admin","manager","accountant"],status:"stub",
+desc:"Список контрагентов: клиенты, поставщики, партнёры, арендодатели.",
+actions:["Список контрагентов","Фильтр по типу","Просмотр: ИНН, телефон, email"],
+scenarios:["Список → Фильтр по типу → Просмотр"],
+related:["finance","contractors"],improve:["CRUD для контрагентов","Привязка к договорам и счетам"],diagram:""},
+{id:"fiscal",name:"Фискализация",icon:"🧾",path:"/dashboard/fiscal",section:"Финансы",roles:["owner","admin","accountant"],status:"works",
+desc:"Multikassa: аппараты, смены, чеки, X/Z-отчёты, очередь отправки.",
+actions:["Управление аппаратами","Открытие/закрытие смен","X-отчёт и Z-отчёт","Журнал чеков","Очередь отправки"],
+scenarios:["Регистрация → Активация → Открыть смену → Продажи → X-отчёт → Z-отчёт → Закрыть"],
+related:["payments","transactions","machines"],improve:[],diagram:""},
+{id:"reconciliation",name:"Сверка",icon:"⚖️",path:"/dashboard/reconciliation",section:"Финансы",roles:["owner","admin","accountant"],status:"works",
+desc:"Сверка данных машины с данными ПО. Поиск и разрешение расхождений.",
+actions:["Создать прогон сверки","Просмотр расхождений","Разрешение расхождений","Импорт аппаратных данных"],
+scenarios:["[Новый прогон] → Сравнение → Расхождения → [Разрешить]"],
+related:["transactions","collections","finance"],improve:[],diagram:""},
+{id:"payment-reports",name:"Отчёты платежей",icon:"📄",path:"/dashboard/payment-reports",section:"Финансы",roles:["owner","admin","accountant"],status:"works",
+desc:"Загрузка и анализ отчётов от платёжных систем.",
+actions:["Загрузка файла отчёта","Парсинг и сопоставление","Аналитика"],
+scenarios:["[Загрузить] → Файл → Парсинг → Сопоставление → Аналитика"],
+related:["payments","reconciliation","finance"],improve:[],diagram:""},
+{id:"opening-balances",name:"Начальные остатки",icon:"📊",path:"/dashboard/opening-balances",section:"Финансы",roles:["owner","admin","accountant"],status:"works",
+desc:"Ввод начальных остатков. Массовое создание и применение.",
+actions:["Создать записи","Массовое создание","Применить / Отменить","Статистика"],
+scenarios:["[+Запись] → Сущность → Тип → Сумма → [Применить]"],
+related:["inventory","finance"],improve:[],diagram:""},
+{id:"promotions",name:"Акции и Промо",icon:"🎯",path:"/dashboard/promotions",section:"Маркетинг",roles:["owner","admin","manager"],status:"works",
+desc:"Акции с расписанием, A/B тесты, купоны, аналитика, гео-ограничения.",
+actions:["Создание акций","Сегментация аудитории","A/B тестирование","Система купонов","Аналитика эффективности"],
+scenarios:["[+Акция] → Название → Период → Аудитория → Условия → Запуск"],
+related:["loyalty","promo-codes"],improve:[],diagram:""},
+{id:"investor",name:"Инвестор",icon:"📈",path:"/dashboard/investor",section:"Маркетинг",roles:["owner","admin","manager"],status:"partial",
+desc:"Дашборд инвестора: ROI, IRR, окупаемость, топ локации, тепловая карта.",
+actions:["Просмотр KPI инвестора","Графики доходности","Топ локаций и машин","Скачивание отчётов"],
+scenarios:["Дашборд → KPI → Графики → Топ локации → Экспорт"],
+related:["finance","analytics","machines"],improve:["Demo/seed данные — нужны реальные"],diagram:""},
+{id:"loyalty",name:"Лояльность",icon:"🏆",path:"/dashboard/loyalty",section:"Маркетинг",roles:["owner","admin","manager"],status:"works",
+desc:"Программа лояльности: уровни, достижения, квесты, промокоды, транзакции очков.",
+actions:["Уровни: Bronze/Silver/Gold/Platinum","Достижения (badges)","Квесты (daily/weekly/monthly)","Промокоды + статистика","Транзакции очков","Настройки правил"],
+scenarios:["Уровни → Настроить пороги","Достижения → [+Badge] → Условия","Квесты → [+Квест] → Награда","Промокоды → [+Код] → Лимиты"],
+related:["achievements","quests","promo-codes","referrals"],improve:[],diagram:""},
+{id:"employees",name:"Сотрудники",icon:"👥",path:"/dashboard/employees",section:"HR",roles:["owner","admin","manager"],status:"works",
+desc:"6 вкладок: сотрудники, отделы, посещаемость, отпуска, зарплата, оценки.",
+actions:["CRUD сотрудников","Отделы и должности","Check-in / Check-out","Заявки на отпуск","Расчёт зарплаты","Performance review"],
+scenarios:["[+Сотрудник] → Форма → Привязать к пользователю","Зарплата: [Рассчитать] → [Утвердить] → [Выплатить]","Отпуска: Заявка → [Утвердить]/[Отклонить]","Оценки: [Создать ревью] → Заполнить → [Отправить]"],
+related:["tasks","trips","team","work-logs"],improve:[],diagram:""},
+{id:"contractors",name:"Подрядчики",icon:"🏗️",path:"/dashboard/contractors",section:"HR",roles:["owner","admin","manager"],status:"works",
+desc:"Управление подрядчиками, счетами, договорами с комиссиями.",
+actions:["CRUD подрядчиков","Счета: создать/утвердить/оплатить","Договоры: активировать/приостановить","Расчёт комиссий"],
+scenarios:["[+Подрядчик] → ИНН → Услуги → Сохранить","Подрядчик → [Счёт] → [Утвердить] → [Оплатить]"],
+related:["counterparty","finance"],improve:[],diagram:""},
+{id:"team",name:"Команда",icon:"👫",path:"/dashboard/team",section:"HR",roles:["owner","admin","manager"],status:"works",
+desc:"6 вкладок: участники, аналитика, расписание, зарплата, роли, активность. 3 вида: сетка/список/дерево.",
+actions:["Просмотр команды (3 режима)","Массовые действия","Приглашение участников","Аналитика команды","Расписание","Управление ролями"],
+scenarios:["Участники → Сетка/Список/Дерево → Массовые действия","Аналитика → Метрики команды → Экспорт"],
+related:["employees","users","tasks"],improve:[],diagram:""},
+{id:"work-logs",name:"Журнал работ",icon:"⏱️",path:"/dashboard/work-logs",section:"HR",roles:["owner","admin","manager"],status:"works",
+desc:"Clock-in/out, отгулы, табели, массовое утверждение.",
+actions:["Clock-in / Clock-out","Запрос отгула","Табели","Массовое утверждение"],
+scenarios:["Сотрудник: [Clock In] → Работает → [Clock Out]","Менеджер: Табели → [Утвердить]/[Отклонить]"],
+related:["employees","tasks"],improve:[],diagram:""},
+{id:"users",name:"Пользователи",icon:"👤",path:"/dashboard/users",section:"Администрирование",roles:["owner","admin"],status:"works",
+desc:"Управление пользователями системы. CRUD, RBAC, фильтр по роли.",
+actions:["Список пользователей","Создать / редактировать / удалить","Назначение ролей (RBAC)","Фильтр по роли"],
+scenarios:["[+Пользователь] → Форма → Роль → Сохранить","Клик → Детали → Назначение ролей (RBAC)"],
+related:["organizations","invites","employees"],improve:[],diagram:""},
+{id:"organizations",name:"Организации",icon:"🏛️",path:"/dashboard/organizations",section:"Администрирование",roles:["owner"],status:"works",
+desc:"Мульти-тенант: штаб-квартира, франшиза, филиал, оператор, партнёр.",
+actions:["CRUD организаций","Иерархия (parent/child)","Управление подписками"],
+scenarios:["[+Организация] → Тип → Имя → Parent → Сохранить"],
+related:["users","settings"],improve:[],diagram:""},
+{id:"invites",name:"Приглашения",icon:"✉️",path:"/dashboard/invites",section:"Администрирование",roles:["owner","admin"],status:"works",
+desc:"Приглашения для новых пользователей по коду.",
+actions:["Создать приглашение","Список активных/использованных","Отозвать приглашение"],
+scenarios:["[+Приглашение] → Код → Отправить → Пользователь регистрируется"],
+related:["users","organizations"],improve:[],diagram:""},
+{id:"warehouse",name:"Склад",icon:"🏭",path:"/dashboard/warehouse",section:"Администрирование",roles:["owner","admin","manager","warehouse"],status:"works",
+desc:"3 вкладки: склады, остатки по складу, перемещения (5 типов).",
+actions:["CRUD складов (основной/транзитный/мобильный/виртуальный)","Остатки по выбранному складу","Перемещения: приход/расход/transfer/корректировка/списание"],
+scenarios:["Склады → Выбрать → Остатки → Перемещения","[+Перемещение] → Тип → Продукт → Кол-во → Подтвердить"],
+related:["inventory","products","machines"],improve:[],diagram:""},
+{id:"locations",name:"Локации",icon:"📍",path:"/dashboard/locations",section:"Администрирование",roles:["owner","admin","manager"],status:"works",
+desc:"Точки размещения машин. Сетка/карта, Google Maps, фильтр по типу.",
+actions:["Список (сетка / карта)","CRUD локаций","Поиск по городу/адресу","Ссылка на Google Maps","Фильтр: ТЦ, офис, университет, транспорт"],
+scenarios:["[+Локация] → Имя → Адрес → Координаты → Сохранить","Переключение Сетка ↔ Карта"],
+related:["machines","routes","trips"],improve:[],diagram:""},
+{id:"website",name:"Сайт",icon:"🌐",path:"/dashboard/website",section:"Администрирование",roles:["owner","admin","manager"],status:"works",
+desc:"CMS для лендинга: контент, партнёры, аналитика, SEO, настройки.",
+actions:["Редактирование контента","Управление партнёрами","Веб-аналитика","Настройка SEO","История версий"],
+scenarios:["Контент → Выбрать секцию → Редактировать → Сохранить → Версия"],
+related:[],improve:[],diagram:""},
+{id:"map",name:"Карта",icon:"🗺️",path:"/dashboard/map",section:"Администрирование",roles:["owner","admin","manager","operator","warehouse"],status:"works",
+desc:"Leaflet-карта с локациями всех машин. Интерактивные маркеры.",
+actions:["Просмотр карты","Клик на маркер → детали машины"],scenarios:[],related:["machines","locations"],improve:[],diagram:""},
+{id:"reports",name:"Отчёты",icon:"📊",path:"/dashboard/reports",section:"Отчётность",roles:["owner","admin","manager","accountant"],status:"works",
+desc:"Отчёты по продажам, инвентарю, задачам, финансам.",
+actions:["Дашборд аналитики","Отчёт по продажам","Отчёт по инвентарю","Отчёт по задачам","Финансовый отчёт"],
+scenarios:["Выбрать тип → Период → Сформировать → Экспорт"],
+related:["analytics","finance"],improve:[],diagram:""},
+{id:"analytics",name:"Аналитика",icon:"📉",path:"/dashboard/analytics",section:"Отчётность",roles:["owner","admin","manager"],status:"works",
+desc:"KPI: выручка, продажи, средний чек. Топ продуктов и машин.",
+actions:["Просмотр KPI","Топ-8 продуктов","Топ-8 машин"],
+scenarios:["Дашборд → KPI → Топ продуктов → Топ машин"],
+related:["reports","machines","products"],improve:[],diagram:""},
+{id:"trip-analytics",name:"Аналитика поездок",icon:"📊",path:"/dashboard/trip-analytics",section:"Отчётность",roles:["owner","admin","manager"],status:"works",
+desc:"Статистика, активность, аналитика по сотрудникам, транспорту, аномалии.",
+actions:["Основная статистика","Активность по периодам","По сотрудникам","По транспорту","Аномалии","Такси-расходы"],
+scenarios:["Выбрать период → Статистика → Сотрудники → Аномалии"],
+related:["trips","routes","vehicles","employees"],improve:[],diagram:""},
+{id:"directories",name:"Справочники",icon:"📚",path:"/dashboard/directories",section:"Система",roles:["owner","admin","manager"],status:"works",
+desc:"Мастер-данные: CRUD справочников, поля, записи, иерархия, аудит.",
+actions:["CRUD справочников","Динамические поля","Источники синхронизации","Иерархия (дерево)","Аудит изменений"],
+scenarios:["[+Справочник] → Поля → Записи → Источник → Синхронизация"],
+related:[],improve:[],diagram:""},
+{id:"references",name:"Справочные данные",icon:"📖",path:"/dashboard/references",section:"Система",roles:["owner","admin"],status:"works",
+desc:"5 табов: MXIK, ИКПУ, НДС, упаковка, платёжные провайдеры.",
+actions:["CRUD по каждому типу","Товарные классификаторы (MXIK)","Коды ИКПУ","Ставки НДС","Типы упаковки","Платёжные провайдеры с комиссиями"],
+scenarios:["Выбрать таб → Список → [+Запись] → Заполнить → Сохранить"],
+related:["fiscal","payments","products"],improve:[],diagram:""},
+{id:"integrations",name:"Интеграции",icon:"🔌",path:"/dashboard/integrations",section:"Система",roles:["owner","admin"],status:"works",
+desc:"Каталог интеграций по категориям. Установка, настройка, тестирование.",
+actions:["Каталог шаблонов","Установить интеграцию","Настроить параметры","Тестировать подключение","Sandbox-режим","Просмотр логов"],
+scenarios:["Каталог → Выбрать → Установить → Настроить → Тестировать → Активировать"],
+related:["payments","fiscal"],improve:[],diagram:""},
+{id:"webhooks",name:"Вебхуки",icon:"🔗",path:"/dashboard/webhooks",section:"Система",roles:["owner","admin"],status:"works",
+desc:"Исходящие вебхуки: CRUD, тестирование, логи, перегенерация секрета.",
+actions:["CRUD вебхуков","Тестирование","Просмотр логов","Перегенерация секрета"],
+scenarios:["[+Вебхук] → URL → События → [Тестировать] → Активировать"],
+related:["integrations"],improve:[],diagram:""},
+{id:"machine-access",name:"Доступ к машинам",icon:"🔑",path:"/dashboard/machine-access",section:"Система",roles:["owner","admin","manager"],status:"works",
+desc:"Управление доступом к машинам: выдача, отзыв, шаблоны.",
+actions:["Выдать / отозвать доступ","Шаблоны доступа","Применить шаблон к группе","Просмотр по машине/пользователю"],
+scenarios:["[+Доступ] → Пользователь → Машины → Сохранить"],
+related:["machines","users"],improve:[],diagram:""},
+{id:"import",name:"Импорт",icon:"📥",path:"/dashboard/import",section:"Система",roles:["owner","admin"],status:"works",
+desc:"Wizard массового импорта данных: загрузка → классификация → валидация → импорт.",
+actions:["Загрузить файл","Классификация","Валидация","Утверждение","Импорт"],
+scenarios:["[Загрузить] → Файл → Классификация → Валидация → [Утвердить] → Импорт"],
+related:[],improve:[],diagram:""},
+{id:"audit",name:"Аудит",icon:"🔍",path:"/dashboard/audit",section:"Система",roles:["owner","admin"],status:"works",
+desc:"Лог всех действий: кто, что, когда, изменения до/после, IP. 10 категорий.",
+actions:["Статистика по действиям","Детальный лог","Фильтр по сущности/severity","Before/After значения"],
+scenarios:["Фильтр → Поиск → Лог → Детали (до/после)"],
+related:[],improve:[],diagram:""},
+{id:"settings",name:"Настройки",icon:"⚙️",path:"/dashboard/settings",section:"Система",roles:["owner","admin"],status:"works",
+desc:"Системные настройки организации. CRUD по ключам.",
+actions:["Просмотр настроек","Изменение значений","Публичные настройки","CRUD по ключам"],
+scenarios:["Список → Выбрать ключ → Изменить → Сохранить"],
+related:["organizations"],improve:[],diagram:""},
+{id:"notifications",name:"Уведомления",icon:"🔔",path:"/dashboard/notifications",section:"Общее",roles:["owner","admin","manager","operator","warehouse","accountant","viewer"],status:"works",
+desc:"Все уведомления. Отметить прочитанными, Push/FCM подписка.",
+actions:["Просмотр уведомлений","Отметить прочитанным","Отметить все прочитанными","Push/FCM подписка"],
+scenarios:["Список → [Прочитать] → [Все прочитаны]"],
+related:["alerts","tasks","orders"],improve:[],diagram:""},
+{id:"help",name:"Помощь",icon:"❓",path:"/dashboard/help",section:"Общее",roles:["owner","admin","manager","operator","warehouse","accountant","viewer"],status:"stub",
+desc:"Документация и FAQ. Контакты поддержки.",
+actions:["Чтение документации","Контакты поддержки"],
+scenarios:[],related:[],improve:["Нет реального FAQ/документации"],diagram:""},
+{id:"achievements",name:"Достижения",icon:"🏅",path:"/dashboard/achievements",section:"Лояльность",roles:["owner","admin","manager"],status:"works",
+desc:"CRUD badges/достижений для клиентов.",actions:["CRUD достижений","Условия получения"],scenarios:[],related:["loyalty"],improve:[],diagram:""},
+{id:"quests",name:"Квесты",icon:"🎮",path:"/dashboard/quests",section:"Лояльность",roles:["owner","admin","manager"],status:"works",
+desc:"Ежедневные/недельные/месячные вызовы для клиентов.",actions:["CRUD квестов","Награды"],scenarios:[],related:["loyalty"],improve:[],diagram:""},
+{id:"promo-codes",name:"Промокоды",icon:"🎟️",path:"/dashboard/promo-codes",section:"Лояльность",roles:["owner","admin","manager"],status:"works",
+desc:"Промокоды с лимитами, статистикой использования.",actions:["CRUD промокодов","Статистика использования","Деактивация"],scenarios:[],related:["loyalty","promotions"],improve:[],diagram:""},
+{id:"referrals",name:"Рефералы",icon:"🤝",path:"/dashboard/referrals",section:"Лояльность",roles:["owner","admin","manager"],status:"works",
+desc:"Аналитика реферальной программы.",actions:["Аналитика рефералов"],scenarios:[],related:["loyalty"],improve:[],diagram:""},
+{id:"purchase-history",name:"История покупок",icon:"🧾",path:"/dashboard/purchase-history",section:"Финансы",roles:["owner","admin","manager","accountant"],status:"works",
+desc:"Журнал закупок с массовым созданием и возвратами.",actions:["Список закупок","Массовое создание","Приёмка","Возврат"],scenarios:[],related:["inventory","finance"],improve:[],diagram:""},
+{id:"api-docs",name:"API Документация",icon:"📡",path:"/dashboard/api-docs",section:"Система",roles:["owner"],status:"works",
+desc:"Swagger UI для API. Только для владельца.",actions:["Просмотр API документации"],scenarios:[],related:[],improve:[],diagram:""}
+];
+
+const SECTIONS_ORDER=["Главная","Операции","Финансы","Маркетинг","HR","Администрирование","Отчётность","Система","Лояльность","Общее"];
+
+function getStatusInfo(s){return s==="works"?{label:"Работает",cls:"works",color:"green"}:s==="partial"?{label:"Нужна доработка",cls:"partial",color:"yellow"}:{label:"Заглушка",cls:"stub",color:"red"}}
+
+function buildSidebar(){
+const nav=document.getElementById("sidebarNav");
+let html="";
+SECTIONS_ORDER.forEach(sec=>{
+const items=TABS.filter(t=>t.section===sec);
+if(!items.length)return;
+html+=`<div class="nav-section"><div class="nav-section-title">${sec}</div></div>`;
+items.forEach(t=>{
+const si=getStatusInfo(t.status);
+html+=`<div class="nav-item" data-id="${t.id}" data-roles="${t.roles.join(",")}" onclick="showTab('${t.id}')"><span class="icon">${t.icon}</span><span class="label">${t.name}</span><span class="status-dot ${si.color}"></span></div>`;
+});
+});
+nav.innerHTML=html;
+}
+
+function filterTabs(){
+const q=document.getElementById("search").value.toLowerCase();
+const role=document.getElementById("roleFilter").value;
+document.querySelectorAll(".nav-item").forEach(el=>{
+const id=el.dataset.id;
+const tab=TABS.find(t=>t.id===id);
+if(!tab){el.classList.add("hidden");return}
+const matchQ=!q||tab.name.toLowerCase().includes(q)||tab.desc.toLowerCase().includes(q);
+const matchR=role==="all"||tab.roles.includes(role);
+el.classList.toggle("hidden",!matchQ||!matchR);
+});
+updateStats();
+}
+
+function updateStats(){
+const role=document.getElementById("roleFilter").value;
+const visible=role==="all"?TABS:TABS.filter(t=>t.roles.includes(role));
+const works=visible.filter(t=>t.status==="works").length;
+const partial=visible.filter(t=>t.status==="partial").length;
+const stub=visible.filter(t=>t.status==="stub").length;
+document.getElementById("statTotal").textContent=visible.length;
+document.getElementById("statWorks").textContent=works;
+document.getElementById("statPartial").textContent=partial;
+document.getElementById("statStub").textContent=stub;
+}
+
+function showTab(id){
+const tab=TABS.find(t=>t.id===id);
+if(!tab)return;
+document.querySelectorAll(".nav-item").forEach(el=>el.classList.toggle("active",el.dataset.id===id));
+const si=getStatusInfo(tab.status);
+let html=`<div class="tab-detail">`;
+html+=`<h2>${tab.icon} ${tab.name}</h2>`;
+html+=`<div class="tab-path">${tab.path}</div>`;
+html+=`<div class="tab-roles">${tab.roles.map(r=>`<span class="role-badge">${r}</span>`).join("")}</div>`;
+html+=`<div class="section-block"><h3><span class="ico">ℹ️</span> Описание <span class="status-badge ${si.cls}">${si.label}</span></h3><p>${tab.desc}</p></div>`;
+if(tab.actions.length){
+html+=`<div class="section-block"><h3><span class="ico">⚡</span> Доступные действия</h3><ul class="action-list">${tab.actions.map(a=>`<li>${a}</li>`).join("")}</ul></div>`;
+}
+if(tab.scenarios.length){
+html+=`<div class="section-block"><h3><span class="ico">🎯</span> Сценарии использования</h3>${tab.scenarios.map(s=>`<div class="scenario-card"><strong>Сценарий:</strong>${s}</div>`).join("")}</div>`;
+}
+if(tab.diagram){
+html+=`<div class="section-block"><h3><span class="ico">📐</span> Схема интерфейса</h3><div class="diagram">${tab.diagram}</div></div>`;
+}
+if(tab.related.length){
+html+=`<div class="section-block"><h3><span class="ico">🔗</span> Связанные разделы</h3><div class="related-tags">${tab.related.map(r=>{const rt=TABS.find(t=>t.id===r);return rt?`<span class="related-tag" onclick="showTab('${r}')">${rt.icon} ${rt.name}</span>`:""}).join("")}</div></div>`;
+}
+if(tab.improve.length){
+html+=`<div class="section-block"><h3><span class="ico">🔨</span> Что доработать</h3><ul class="improve-list">${tab.improve.map(i=>`<li> ${i}</li>`).join("")}</ul></div>`;
+}
+html+=`</div>`;
+document.getElementById("mainContent").innerHTML=html;
+document.querySelector(".sidebar").classList.remove("open");
+}
+
+function showWelcome(){
+const works=TABS.filter(t=>t.status==="works").length;
+const partial=TABS.filter(t=>t.status==="partial").length;
+const stub=TABS.filter(t=>t.status==="stub").length;
+let html=`<div class="stats-bar">
+<div class="stat-card"><div class="num">${TABS.length}</div><div class="lbl">Всего вкладок</div></div>
+<div class="stat-card s-green"><div class="num" id="statWorks">${works}</div><div class="lbl">Работают</div></div>
+<div class="stat-card s-yellow"><div class="num" id="statPartial">${partial}</div><div class="lbl">Доработать</div></div>
+<div class="stat-card s-red"><div class="num" id="statStub">${stub}</div><div class="lbl">Заглушки</div></div>
+<div class="stat-card"><div class="num" id="statTotal">${TABS.length}</div><div class="lbl">Доступно</div></div>
+</div>`;
+html+=`<div class="welcome"><h2>☕ Добро пожаловать в гид VendHub OS</h2>
+<p>Выберите вкладку в боковом меню или кликните на секцию ниже. Используйте поиск и фильтр по роли.</p>
+<div class="welcome-grid">`;
+SECTIONS_ORDER.forEach(sec=>{
+const items=TABS.filter(t=>t.section===sec);
+if(!items.length)return;
+const w=items.filter(t=>t.status==="works").length;
+html+=`<div class="welcome-card" onclick="showTab('${items[0].id}')"><div class="cnt">${items.length}</div><h4>${sec}</h4><p>${items.map(t=>t.icon).join(" ")} — ${w}/${items.length} работают</p></div>`;
+});
+html+=`</div>`;
+html+=`<div class="flow-section"><h3>📊 Операционная цепочка</h3><div class="diagram">Утро: Менеджер → Дашборд → Алерты + Задачи
+  │
+  ▼
+Создаёт маршрут → Оператор начинает поездку
+  │
+  ├─► Остановка 1: Заправка (фото до → засыпает → фото после)
+  ├─► Остановка 2: Инкассация (считает → записывает сумму)
+  ├─► Остановка 3: Ремонт (описание → запчасти → завершение)
+  │
+  ▼
+Завершает поездку → Аналитика
+  │
+  ▼
+Бухгалтер: Принимает инкассацию → Сверяет → Финансы</div></div>`;
+html+=`<div class="flow-section"><h3>💰 Финансовая цепочка</h3><div class="diagram">Продажа на машине
+  │
+  ▼
+Транзакция ────► Платёж (Payme / Click / Uzum)
+  │                    │
+  ▼                    ▼
+Инкассация         Фискальный чек (Multikassa)
+  │                    │
+  ▼                    ▼
+Сверка ◄──────── Отчёт платёжной системы
+  │
+  ▼
+Финансы (P&L, Cash Flow, Бюджет) → Отчёты → Инвестор</div></div>`;
+html+=`</div>`;
+document.getElementById("mainContent").innerHTML=html;
+}
+
+buildSidebar();
+showWelcome();
+</script>
+</body>
+</html>

@@ -166,8 +166,7 @@ export class UpdateTaskDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsArray()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  photos?: any[];
+  photos?: Record<string, unknown>[];
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -196,8 +195,7 @@ export class CompleteTaskDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsArray()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  photos?: any[];
+  photos?: Record<string, unknown>[];
 
   @ApiPropertyOptional()
   @IsOptional()

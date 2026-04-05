@@ -126,8 +126,7 @@ export class Referral extends BaseEntity {
     deviceType?: string;
     platform?: string;
     referrerLevel?: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any;
+    [key: string]: unknown;
   };
 
   // ===== Virtual =====

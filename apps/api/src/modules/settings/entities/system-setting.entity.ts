@@ -31,8 +31,7 @@ export class SystemSetting extends BaseEntity {
   key: string;
 
   @Column({ type: "jsonb", nullable: true })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  value: any;
+  value: unknown;
 
   @Column({ type: "varchar", length: 50, default: SettingCategory.GENERAL })
   category: SettingCategory;

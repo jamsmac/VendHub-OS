@@ -20,8 +20,7 @@ const logger = new Logger("BullBoardModule");
  * Attempt to dynamically load bull-board packages.
  * If they are not installed, return empty imports and log a warning.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getBullBoardImports(): any[] {
+function getBullBoardImports(): unknown[] {
   try {
     const {
       BullBoardModule: NestBullBoardModule,

@@ -15,7 +15,7 @@ import { CreateEntityEventDto } from "./dto/create-entity-event.dto";
 import { QueryEntityEventsDto } from "./dto/query-entity-events.dto";
 
 interface AuthenticatedRequest {
-  user: { id: string; organizationId: string; role: string };
+  user: { id: string; organizationId: string };
 }
 
 @ApiTags("Entity Events")
@@ -27,10 +27,7 @@ export class EntityEventsController {
 
   @Post()
   @ApiOperation({ summary: "Create a business event" })
-  async create(
-    @Body() dto: CreateEntityEventDto,
-    @Request() req: AuthenticatedRequest,
-  ) {
+  async create(@Body() dto: CreateEntityEventDto, @Request() req: AuthenticatedRequest) {
     return this.entityEventsService.createEvent(
       dto,
       req.user.id,
@@ -40,10 +37,7 @@ export class EntityEventsController {
 
   @Get()
   @ApiOperation({ summary: "Query events with filters" })
-  async query(
-    @Query() dto: QueryEntityEventsDto,
-    @Request() req: AuthenticatedRequest,
-  ) {
+  async query(@Query() dto: QueryEntityEventsDto, @Request() req: AuthenticatedRequest) {
     return this.entityEventsService.queryEvents(dto, req.user.organizationId);
   }
 
@@ -51,9 +45,9 @@ export class EntityEventsController {
   @ApiOperation({ summary: "Get timeline for a specific entity" })
   async getEntityTimeline(
     @Param("entityId") entityId: string,
-    @Request() req: AuthenticatedRequest,
     @Query("page") page?: number,
     @Query("limit") limit?: number,
+    @Request() req?: AuthenticatedRequest,
   ) {
     return this.entityEventsService.getEntityTimeline(
       entityId,
@@ -67,8 +61,8 @@ export class EntityEventsController {
   @ApiOperation({ summary: "Get last 10 events for mini-passport" })
   async getRecentEvents(
     @Param("entityId") entityId: string,
-    @Request() req: AuthenticatedRequest,
     @Query("count") count?: number,
+    @Request() req?: AuthenticatedRequest,
   ) {
     return this.entityEventsService.getRecentEvents(
       entityId,

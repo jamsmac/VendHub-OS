@@ -35,8 +35,7 @@ export class CreateSettingDto {
     required: false,
   })
   @IsOptional()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  value?: any;
+  value?: unknown;
 
   @ApiPropertyOptional({
     description: "Setting category",
@@ -88,8 +87,7 @@ export class UpdateSettingDto {
     required: false,
   })
   @IsOptional()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  value?: any;
+  value?: unknown;
 
   @ApiPropertyOptional({
     description: "Human-readable description of the setting",

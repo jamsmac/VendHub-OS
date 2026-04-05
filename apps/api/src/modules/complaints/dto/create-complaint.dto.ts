@@ -165,8 +165,7 @@ export class CreateComplaintDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsArray()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  attachments?: any[];
+  attachments?: Record<string, unknown>[];
 
   @ApiProperty()
   @IsUUID()
@@ -232,8 +231,7 @@ export class UpdateComplaintDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsArray()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  attachments?: any[];
+  attachments?: Record<string, unknown>[];
 
   @ApiPropertyOptional()
   @IsOptional()

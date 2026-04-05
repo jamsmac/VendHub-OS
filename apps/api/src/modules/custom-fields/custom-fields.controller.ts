@@ -21,7 +21,7 @@ import {
 } from "./dto/custom-field.dto";
 
 interface AuthenticatedRequest {
-  user: { id: string; organizationId: string; role: string };
+  user: { id: string; organizationId: string };
 }
 
 @ApiTags("Custom Fields")
@@ -39,19 +39,13 @@ export class CustomFieldsController {
   @ApiOperation({
     summary: "Get custom tabs (optionally filtered by entityType)",
   })
-  async getTabs(
-    @Query("entityType") entityType: string,
-    @Request() req: AuthenticatedRequest,
-  ) {
+  async getTabs(@Query("entityType") entityType: string, @Request() req: AuthenticatedRequest) {
     return this.service.getTabs(req.user.organizationId, entityType);
   }
 
   @Post("tabs")
   @ApiOperation({ summary: "Create a custom tab" })
-  async createTab(
-    @Body() dto: CreateCustomTabDto,
-    @Request() req: AuthenticatedRequest,
-  ) {
+  async createTab(@Body() dto: CreateCustomTabDto, @Request() req: AuthenticatedRequest) {
     return this.service.createTab(req.user.organizationId, dto);
   }
 
@@ -67,10 +61,7 @@ export class CustomFieldsController {
 
   @Delete("tabs/:id")
   @ApiOperation({ summary: "Delete a custom tab (soft)" })
-  async deleteTab(
-    @Param("id") id: string,
-    @Request() req: AuthenticatedRequest,
-  ) {
+  async deleteTab(@Param("id") id: string, @Request() req: AuthenticatedRequest) {
     return this.service.deleteTab(id, req.user.organizationId);
   }
 
@@ -90,10 +81,7 @@ export class CustomFieldsController {
 
   @Post("fields")
   @ApiOperation({ summary: "Create a custom field" })
-  async createField(
-    @Body() dto: CreateCustomFieldDto,
-    @Request() req: AuthenticatedRequest,
-  ) {
+  async createField(@Body() dto: CreateCustomFieldDto, @Request() req: AuthenticatedRequest) {
     return this.service.createField(req.user.organizationId, dto);
   }
 
@@ -109,10 +97,7 @@ export class CustomFieldsController {
 
   @Delete("fields/:id")
   @ApiOperation({ summary: "Delete a custom field (soft)" })
-  async deleteField(
-    @Param("id") id: string,
-    @Request() req: AuthenticatedRequest,
-  ) {
+  async deleteField(@Param("id") id: string, @Request() req: AuthenticatedRequest) {
     return this.service.deleteField(id, req.user.organizationId);
   }
 }

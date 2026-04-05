@@ -13,7 +13,7 @@ import { BatchMovementsService } from "./batch-movements.service";
 import { CreateBatchMovementDto } from "./dto/create-batch-movement.dto";
 
 interface AuthenticatedRequest {
-  user: { id: string; organizationId: string; role: string };
+  user: { id: string; organizationId: string };
 }
 
 @ApiTags("Batch Movements")
@@ -25,10 +25,7 @@ export class BatchMovementsController {
 
   @Post()
   @ApiOperation({ summary: "Record a batch movement" })
-  async create(
-    @Body() dto: CreateBatchMovementDto,
-    @Request() req: AuthenticatedRequest,
-  ) {
+  async create(@Body() dto: CreateBatchMovementDto, @Request() req: AuthenticatedRequest) {
     return this.batchMovementsService.createMovement(
       dto,
       req.user.id,

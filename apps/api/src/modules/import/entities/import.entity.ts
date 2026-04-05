@@ -249,7 +249,8 @@ export class ImportTemplate extends BaseEntity {
   // Default values
   @ApiPropertyOptional({ description: "Default values for missing fields" })
   @Column({ type: "jsonb", nullable: true })
-  defaultValues?: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  defaultValues?: Record<string, any>;
 
   // Transformations
   @ApiPropertyOptional({ description: "Value transformations" })
@@ -264,7 +265,7 @@ export class ImportTemplate extends BaseEntity {
       | "date_format"
       | "number_format"
       | "lookup";
-    config?: Record<string, unknown>;
+    config?: unknown;
   }[];
 
   // Validation rules
@@ -281,7 +282,7 @@ export class ImportTemplate extends BaseEntity {
       | "in_list"
       | "date"
       | "number";
-    config?: Record<string, unknown>;
+    config?: unknown;
   }[];
 
   // Options

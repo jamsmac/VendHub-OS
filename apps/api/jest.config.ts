@@ -16,6 +16,25 @@ const config: Config = {
       functions: 45,
       lines: 55,
     },
+    // Critical modules have higher thresholds
+    "./src/modules/auth/": {
+      statements: 70,
+      branches: 60,
+      functions: 65,
+      lines: 70,
+    },
+    "./src/modules/payments/": {
+      statements: 70,
+      branches: 60,
+      functions: 65,
+      lines: 70,
+    },
+    "./src/modules/organizations/": {
+      statements: 70,
+      branches: 60,
+      functions: 65,
+      lines: 70,
+    },
   },
   testEnvironment: "node",
   transformIgnorePatterns: [

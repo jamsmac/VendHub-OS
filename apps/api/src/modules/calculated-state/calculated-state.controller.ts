@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Controller,
   Get,
@@ -16,6 +15,10 @@ import {
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { CalculatedStateService } from "./calculated-state.service";
 
+interface AuthenticatedRequest {
+  user: { id: string; organizationId: string };
+}
+
 @ApiTags("Calculated State")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -30,7 +33,7 @@ export class CalculatedStateController {
   })
   async getMachineState(
     @Param("machineId") machineId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
   ) {
     return this.stateService.getMachineState(
       machineId,
@@ -53,7 +56,7 @@ export class CalculatedStateController {
     @Param("machineId") machineId: string,
     @Query("from") from: string,
     @Query("to") to: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
   ) {
     return this.stateService.getMachinePnL(
       machineId,
