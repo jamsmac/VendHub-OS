@@ -2,122 +2,99 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>VendHub OS — Гид по админ-панели</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-:root{
---bg:#faf6f1;--bg2:#f3ece3;--bg3:#ebe2d5;
---text:#3d2c1e;--text2:#6b5344;--text3:#917a69;
---accent:#c0703a;--accent2:#d4944e;--accent3:#e8b87a;
---green:#4a9d6e;--yellow:#c49a3c;--red:#c45a4a;
---card:#fff;--border:#e0d5c8;--shadow:0 2px 12px rgba(61,44,30,.08);
---radius:12px;--sidebar-w:280px;
-}
+:root{--bg:#faf6f1;--bg2:#f3ece3;--bg3:#ebe2d5;--text:#3d2c1e;--text2:#6b5344;--text3:#917a69;--accent:#c0703a;--accent2:#d4944e;--accent3:#e8b87a;--green:#4a9d6e;--yellow:#c49a3c;--red:#c45a4a;--card:#fff;--border:#e0d5c8;--shadow:0 2px 12px rgba(61,44,30,.08);--radius:12px;--sidebar-w:280px}
 body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow:hidden;height:100vh}
 h1,h2,h3,h4{font-family:'Playfair Display',serif;color:var(--text);font-weight:600}
 .app{display:flex;height:100vh}
-
-/* SIDEBAR */
 .sidebar{width:var(--sidebar-w);background:linear-gradient(180deg,#3d2c1e 0%,#2a1e14 100%);color:#e8ddd0;overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column}
-.sidebar::-webkit-scrollbar{width:6px}
-.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
+.sidebar::-webkit-scrollbar{width:6px}.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
 .sidebar-header{padding:20px;border-bottom:1px solid rgba(255,255,255,.1);text-align:center}
-.sidebar-header h1{font-size:18px;color:#e8b87a;letter-spacing:1px}
-.sidebar-header p{font-size:11px;color:rgba(255,255,255,.5);margin-top:4px}
-
+.sidebar-header h1{font-size:18px;color:#e8b87a;letter-spacing:1px}.sidebar-header p{font-size:11px;color:rgba(255,255,255,.5);margin-top:4px}
 .sidebar-controls{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
 .sidebar-controls input{width:100%;padding:8px 12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#e8ddd0;font-size:13px;outline:none;transition:.2s}
-.sidebar-controls input:focus{border-color:var(--accent);background:rgba(255,255,255,.12)}
-.sidebar-controls input::placeholder{color:rgba(255,255,255,.35)}
+.sidebar-controls input:focus{border-color:var(--accent)}.sidebar-controls input::placeholder{color:rgba(255,255,255,.35)}
 .role-filter{margin-top:8px}
 .role-filter select{width:100%;padding:7px 10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#e8ddd0;font-size:12px;outline:none;cursor:pointer}
 .role-filter select option{background:#2a1e14;color:#e8ddd0}
-
 .sidebar-nav{flex:1;padding:8px 0}
 .nav-section{padding:4px 16px 2px;margin-top:8px}
 .nav-section-title{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.35);font-weight:600}
 .nav-item{display:flex;align-items:center;padding:8px 16px;cursor:pointer;transition:.15s;font-size:13px;border-left:3px solid transparent;gap:10px}
-.nav-item:hover{background:rgba(255,255,255,.06)}
-.nav-item.active{background:rgba(192,112,58,.2);border-left-color:var(--accent);color:#e8b87a}
-.nav-item .icon{width:18px;text-align:center;font-size:14px;opacity:.7}
-.nav-item .label{flex:1}
+.nav-item:hover{background:rgba(255,255,255,.06)}.nav-item.active{background:rgba(192,112,58,.2);border-left-color:var(--accent);color:#e8b87a}
+.nav-item .icon{width:18px;text-align:center;font-size:14px;opacity:.7}.nav-item .label{flex:1}
 .nav-item .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.status-dot.green{background:var(--green)}
-.status-dot.yellow{background:var(--yellow)}
-.status-dot.red{background:var(--red)}
+.status-dot.green{background:var(--green)}.status-dot.yellow{background:var(--yellow)}.status-dot.red{background:var(--red)}
 .nav-item.hidden{display:none}
-
-/* MAIN */
-.main{flex:1;overflow-y:auto;padding:0}
-.main::-webkit-scrollbar{width:8px}
-.main::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
-
-/* STATS BAR */
-.stats-bar{display:flex;gap:12px;padding:20px 32px;background:var(--bg2);border-bottom:1px solid var(--border);flex-wrap:wrap}
-.stat-card{background:var(--card);border-radius:10px;padding:14px 20px;flex:1;min-width:140px;box-shadow:var(--shadow);text-align:center}
-.stat-card .num{font-size:28px;font-weight:700;font-family:'Playfair Display',serif}
-.stat-card .lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
-.stat-card.s-green .num{color:var(--green)}
-.stat-card.s-yellow .num{color:var(--yellow)}
-.stat-card.s-red .num{color:var(--red)}
-
-/* TAB DETAIL */
-.tab-detail{padding:32px;max-width:960px;animation:fadeIn .3s}
+.main{flex:1;overflow-y:auto;padding:0}.main::-webkit-scrollbar{width:8px}.main::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.stats-bar{display:flex;gap:12px;padding:20px 32px;background:var(--bg2);border-bottom:1px solid var(--border);flex-wrap:wrap;position:sticky;top:0;z-index:10}
+.stat-card{background:var(--card);border-radius:10px;padding:14px 20px;flex:1;min-width:120px;box-shadow:var(--shadow);text-align:center}
+.stat-card .num{font-size:26px;font-weight:700;font-family:'Playfair Display',serif}.stat-card .lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.stat-card.s-green .num{color:var(--green)}.stat-card.s-yellow .num{color:var(--yellow)}.stat-card.s-red .num{color:var(--red)}
+.tab-detail{padding:32px;max-width:1000px;animation:fadeIn .3s}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .tab-detail h2{font-size:28px;margin-bottom:4px}
-.tab-path{font-size:13px;color:var(--text3);margin-bottom:6px;font-family:monospace;background:var(--bg2);display:inline-block;padding:3px 10px;border-radius:6px}
+.tab-path{font-size:13px;color:var(--text3);font-family:monospace;background:var(--bg2);display:inline-block;padding:3px 10px;border-radius:6px}
 .tab-roles{display:flex;gap:6px;margin:10px 0 20px;flex-wrap:wrap}
 .role-badge{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--bg3);color:var(--text2);font-weight:500}
-
 .section-block{background:var(--card);border-radius:var(--radius);padding:24px;margin-bottom:20px;box-shadow:var(--shadow);border:1px solid var(--border)}
 .section-block h3{font-size:16px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.section-block h3 .ico{font-size:18px}
-
 .status-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600}
-.status-badge.works{background:#e8f5e9;color:#2e7d32}
-.status-badge.partial{background:#fff8e1;color:#f57f17}
-.status-badge.stub{background:#fce4ec;color:#c62828}
-
-.action-list{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.status-badge.works{background:#e8f5e9;color:#2e7d32}.status-badge.partial{background:#fff8e1;color:#f57f17}.status-badge.stub{background:#fce4ec;color:#c62828}
+.action-list{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
 .action-list li{padding:10px 14px;background:var(--bg);border-radius:8px;font-size:13px;display:flex;align-items:center;gap:8px;border:1px solid var(--border)}
 .action-list li::before{content:'→';color:var(--accent);font-weight:700}
-
 .scenario-card{background:var(--bg);border-radius:10px;padding:16px;margin-bottom:10px;border-left:4px solid var(--accent);font-size:13px}
-.scenario-card strong{color:var(--accent);display:block;margin-bottom:6px}
-.scenario-card code{background:var(--bg2);padding:2px 6px;border-radius:4px;font-size:12px}
-
+.scenario-card strong{color:var(--accent);display:block;margin-bottom:4px}
 .related-tags{display:flex;gap:6px;flex-wrap:wrap}
 .related-tag{font-size:12px;padding:4px 12px;border-radius:20px;background:var(--accent);color:white;cursor:pointer;transition:.15s;font-weight:500}
 .related-tag:hover{background:var(--accent2);transform:translateY(-1px)}
-
 .improve-list{list-style:none}
 .improve-list li{padding:8px 12px;background:#fff8e1;border-radius:8px;margin-bottom:6px;font-size:13px;border-left:3px solid var(--yellow)}
-.improve-list li::before{content:'⚡'}
-
 .diagram{background:#2a1e14;color:#e8ddd0;padding:20px;border-radius:10px;font-family:'Courier New',monospace;font-size:12px;line-height:1.5;overflow-x:auto;white-space:pre}
 
-/* WELCOME */
-.welcome{padding:40px 32px;max-width:960px}
-.welcome h2{font-size:32px;margin-bottom:8px}
-.welcome p{color:var(--text2);font-size:15px;margin-bottom:24px}
-.welcome-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+/* CARD MOCKUP */
+.card-mockup{border:2px solid var(--border);border-radius:12px;overflow:hidden;margin:12px 0;max-width:600px}
+.card-mockup-header{background:var(--bg2);padding:10px 16px;font-weight:600;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.card-mockup-body{padding:16px;display:grid;gap:8px}
+.card-field{display:flex;align-items:center;gap:8px;font-size:13px}
+.card-field .f-label{color:var(--text3);min-width:140px;font-size:12px}
+.card-field .f-value{color:var(--text);font-weight:500;background:var(--bg);padding:2px 8px;border-radius:4px;flex:1}
+.card-field .f-badge{font-size:11px;padding:2px 10px;border-radius:12px;font-weight:600}
+.f-badge.green{background:#e8f5e9;color:#2e7d32}.f-badge.yellow{background:#fff8e1;color:#f57f17}.f-badge.red{background:#fce4ec;color:#c62828}.f-badge.blue{background:#e3f2fd;color:#1565c0}.f-badge.gray{background:#f5f5f5;color:#616161}
+.card-mockup-footer{background:var(--bg);padding:8px 16px;display:flex;gap:8px;border-top:1px solid var(--border);flex-wrap:wrap}
+.mock-btn{font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid var(--border);background:white;cursor:default;font-weight:500}
+.mock-btn.primary{background:var(--accent);color:white;border-color:var(--accent)}
+.mock-btn.danger{background:var(--red);color:white;border-color:var(--red)}
+
+/* STAT MOCKUP */
+.stat-mockup{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin:12px 0}
+.stat-mock-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.stat-mock-card .sm-num{font-size:20px;font-weight:700;font-family:'Playfair Display',serif;color:var(--accent)}
+.stat-mock-card .sm-lbl{font-size:11px;color:var(--text3)}
+
+/* FILTER MOCKUP */
+.filter-mockup{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;align-items:center}
+.filter-mock{font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:white;color:var(--text2)}
+.filter-mock.search{min-width:180px;background:var(--bg)}
+
+/* TABLE MOCKUP */
+.table-mockup{width:100%;border-collapse:collapse;font-size:12px;margin:12px 0}
+.table-mockup th{background:var(--bg2);padding:8px 12px;text-align:left;font-weight:600;color:var(--text2);border-bottom:2px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.table-mockup td{padding:8px 12px;border-bottom:1px solid var(--border)}
+.table-mockup tr:hover td{background:var(--bg)}
+
+.welcome{padding:40px 32px;max-width:1000px}.welcome h2{font-size:32px;margin-bottom:8px}.welcome p{color:var(--text2);font-size:15px;margin-bottom:24px}
+.welcome-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
 .welcome-card{background:var(--card);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);border:1px solid var(--border);cursor:pointer;transition:.2s}
 .welcome-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(61,44,30,.12);border-color:var(--accent3)}
-.welcome-card h4{margin-bottom:6px;font-size:15px}
-.welcome-card p{font-size:12px;color:var(--text3)}
-.welcome-card .cnt{font-size:24px;font-weight:700;color:var(--accent);font-family:'Playfair Display',serif}
-
-.flow-section{margin-top:32px}
-.flow-section h3{font-size:20px;margin-bottom:16px}
-
-/* RESPONSIVE */
-@media(max-width:768px){
-.sidebar{position:fixed;left:-300px;z-index:100;transition:.3s;height:100vh}
-.sidebar.open{left:0}
-.mobile-toggle{display:block !important}
-}
+.welcome-card h4{margin-bottom:6px;font-size:15px}.welcome-card p{font-size:12px;color:var(--text3)}.welcome-card .cnt{font-size:24px;font-weight:700;color:var(--accent);font-family:'Playfair Display',serif}
+.flow-section{margin-top:32px}.flow-section h3{font-size:20px;margin-bottom:16px}
+@media(max-width:768px){.sidebar{position:fixed;left:-300px;z-index:100;transition:.3s;height:100vh}.sidebar.open{left:0}.mobile-toggle{display:block !important}}
 .mobile-toggle{display:none;position:fixed;top:12px;left:12px;z-index:101;background:var(--accent);color:white;border:none;padding:10px 14px;border-radius:8px;font-size:16px;cursor:pointer}
 </style>
 </head>
@@ -125,425 +102,579 @@ h1,h2,h3,h4{font-family:'Playfair Display',serif;color:var(--text);font-weight:6
 <button class="mobile-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
 <div class="app">
 <aside class="sidebar">
-<div class="sidebar-header">
-<h1>☕ VendHub OS</h1>
-<p>Гид по админ-панели • 61 вкладка</p>
-</div>
+<div class="sidebar-header"><h1>☕ VendHub OS</h1><p>Гид по админ-панели • 61 вкладка</p></div>
 <div class="sidebar-controls">
 <input type="text" id="search" placeholder="🔍 Поиск вкладки..." oninput="filterTabs()">
-<div class="role-filter">
-<select id="roleFilter" onchange="filterTabs()">
+<div class="role-filter"><select id="roleFilter" onchange="filterTabs()">
 <option value="all">Все роли</option>
-<option value="owner">👑 Владелец (owner)</option>
-<option value="admin">🔧 Админ (admin)</option>
-<option value="manager">📋 Менеджер (manager)</option>
-<option value="operator">🔩 Оператор (operator)</option>
-<option value="warehouse">📦 Кладовщик (warehouse)</option>
-<option value="accountant">💰 Бухгалтер (accountant)</option>
-<option value="viewer">👁 Наблюдатель (viewer)</option>
-</select>
-</div>
-</div>
+<option value="owner">👑 Владелец</option><option value="admin">🔧 Админ</option><option value="manager">📋 Менеджер</option>
+<option value="operator">🔩 Оператор</option><option value="warehouse">📦 Кладовщик</option><option value="accountant">💰 Бухгалтер</option><option value="viewer">👁 Наблюдатель</option>
+</select></div></div>
 <nav class="sidebar-nav" id="sidebarNav"></nav>
 </aside>
 <main class="main" id="mainContent"></main>
 </div>
 <script>
-const TABS=[
+const T=[
 {id:"dashboard",name:"Дашборд",icon:"📊",path:"/dashboard",section:"Главная",roles:["owner","admin","manager","operator","warehouse","accountant","viewer"],status:"partial",
-desc:"Главная страница с ключевыми KPI: машины, продажи, выручка, задачи.",
-actions:["Просмотр KPI карточек","Переход к деталям по клику"],
-scenarios:["Открыть дашборд → Увидеть 6 KPI → Клик на карточку → Переход в раздел"],
-related:["machines","analytics","tasks"],
-improve:["Карта машин — пока заглушка","Виджет последних задач — заглушка"],
-diagram:"┌──────────────────────────────────────┐\n│ Машин:31 │ Активных:28 │ Продажи:847│\n│ Выручка: 4.2M │ Низкий: 5 │ Задачи:12 │\n├──────────────────────────────────────┤\n│ [Последние задачи]  [Карта машин]   │\n└──────────────────────────────────────┘"},
+desc:"Главная страница с ключевыми KPI бизнеса.",
+actions:["Просмотр 6 KPI карточек","Переход к деталям по клику на карточку"],
+scenarios:["Открыть → 6 KPI → Клик на карточку → Переход в раздел"],
+related:["machines","analytics","tasks"],improve:["Карта машин — заглушка","Виджет задач — заглушка"],
+stats:[{n:"31",l:"Всего машин"},{n:"28",l:"Активных"},{n:"847",l:"Продажи"},{n:"4.2M",l:"Выручка (UZS)"},{n:"5",l:"Низкий остаток"},{n:"12",l:"Задачи"}],
+cardFields:[],tableFields:[],filters:[],formFields:[],cardButtons:[]},
+
 {id:"machines",name:"Машины",icon:"☕",path:"/dashboard/machines",section:"Операции",roles:["owner","admin","manager","operator"],status:"works",
 desc:"Управление вендинговыми автоматами. CRUD, поиск, фильтры, карта, детали с 8 вкладками.",
-actions:["Список машин (плитка/карта)","Создать новую машину","Поиск и фильтр по статусу","Детали: 8 вкладок (Паспорт, Содержимое, Аналитика, Инкассация, Обслуживание, Локации, Задачи, Хронология)","Быстрые действия: Инкассация, Загрузка, Задача"],
-scenarios:["Список → Поиск → Фильтр → Переключение Список/Карта","[+ Новая] → Форма → Сохранить","Клик → 8 вкладок детали","Шапка → [Инкассация] [Загрузка] [Задача]"],
-related:["containers","tasks","trips","maintenance","locations","inventory"],
-improve:["WebSocket телеметрия в реальном времени","Кнопка Загрузка — без формы пополнения"],
-diagram:"┌──────────────────────────────────────┐\n│ Всего:31│Актив:28│Вниман:3│Ошибки:0│\n├──────────────────────────────────────┤\n│ [+Новая]  🔍[____]  [Все статусы▾]  │\n├────────┬────────┬────────┬──────────┤\n│VM-0001 │VM-0002 │VM-0003 │ ...      │\n│Остат78%│Остат34%│Остат91%│          │\n│Касса450│Касса120│Касса680│          │\n└────────┴────────┴────────┴──────────┘"},
+actions:["Список машин (плитка/карта)","Создать машину","Поиск и фильтр","8 вкладок детали","Быстрые действия: Инкассация, Загрузка, Задача"],
+scenarios:["Список → Поиск → Фильтр → Список/Карта","[+Новая] → Имя, Код, Серийный №, Тип → Сохранить","Клик → 8 вкладок: Паспорт, Содержимое, Аналитика, Инкассация, Обслуживание, Локации, Задачи, Хронология"],
+related:["containers","tasks","trips","maintenance","locations","inventory"],improve:["WebSocket телеметрия","Кнопка Загрузка без формы"],
+stats:[{n:"31",l:"Всего"},{n:"28",l:"Активных"},{n:"3",l:"Внимание"},{n:"0",l:"Ошибки"}],
+cardFields:[{l:"Номер машины",v:"VM-0001",b:""},{l:"Название",v:"Coffee Master Pro",b:""},{l:"Тип",v:"coffee",b:"blue"},{l:"Статус",v:"Активна",b:"green"},{l:"Адрес",v:"ул. Навои 100, Ташкент",b:""},{l:"Уровень остатков",v:"████████░░ 78%",b:""},{l:"Касса (наличные)",v:"450,000 UZS",b:""},{l:"Последнее ТО",v:"28.03.2026",b:""},{l:"Оператор",v:"Азиз Т.",b:""}],
+tableFields:[],filters:["🔍 Поиск по имени/номеру","Статус: Все / Активна / Внимание / Ошибка / На ТО / Отключена","Вид: Список / Карта"],
+formFields:["Название машины *","Код (machineNumber) *","Серийный номер *","Тип: coffee / snack / drink / combo / fresh / ice_cream / water","Производитель","Модель","Кол-во слотов (1-100)","Модель содержимого: slots / containers / mixed"],
+cardButtons:["Открыть","Редактировать","Удалить"]},
+
 {id:"products",name:"Продукты",icon:"📦",path:"/dashboard/products",section:"Операции",roles:["owner","admin","manager","operator","warehouse"],status:"works",
-desc:"Каталог продуктов с рецептами, партиями и историей цен.",
-actions:["Список продуктов","Создать продукт (имя, SKU, категория, цены)","Управление рецептами","Управление партиями","История цен"],
-scenarios:["[+Новый] → Форма → Сохранить","Клик → Детали + Рецепты + Партии + Цены","[Добавить рецепт] → Ингредиенты → Дозировка","[Обновить цену] → Журнал изменений"],
-related:["machines","inventory","containers"],improve:[],diagram:""},
+desc:"Каталог продуктов: рецепты, партии, история цен.",
+actions:["Список продуктов","Создать продукт","Рецепты","Партии","История цен"],
+scenarios:["[+Новый] → Форма → Сохранить","Клик → Детали + Рецепты + Партии + Цены","[Добавить рецепт] → Ингредиенты → Дозировка"],
+related:["machines","inventory","containers"],improve:[],
+stats:[],
+cardFields:[{l:"Название",v:"Americano",b:""},{l:"SKU",v:"BEV-001",b:""},{l:"Категория",v:"Напиток",b:"blue"},{l:"Статус",v:"Активен",b:"green"},{l:"Себестоимость",v:"2,000 UZS",b:""},{l:"Цена продажи",v:"8,000 UZS",b:""},{l:"Маржа",v:"75%",b:""}],
+tableFields:[],filters:["🔍 Поиск","Категория","Статус"],
+formFields:["Название *","SKU *","Категория: beverage / snack / ingredient / combo","Цена себестоимости (UZS)","Цена продажи (UZS)","Единица измерения","Описание"],
+cardButtons:["Открыть","Редактировать","Удалить"]},
+
 {id:"inventory",name:"Инвентарь",icon:"📋",path:"/dashboard/inventory",section:"Операции",roles:["owner","admin","manager","warehouse"],status:"works",
-desc:"Остатки на складе, у оператора, в машине. Перемещения и алерты.",
+desc:"Остатки на складе, у оператора, в машине. Перемещения.",
 actions:["Остатки: склад/оператор/машина","Алерты низкого остатка","Перемещение товаров","История перемещений"],
-scenarios:["Склад/Оператор/Машина → Просмотр остатков","[Перемещение] → Откуда → Куда → Продукт → Кол-во → ОК"],
-related:["products","warehouse","machines","containers"],improve:["Автоуведомления при низком остатке"],diagram:""},
+scenarios:["Склад/Оператор/Машина → Просмотр остатков","[Перемещение] → Откуда → Куда → Продукт → Кол-во"],
+related:["products","warehouse","machines","containers"],improve:["Автоуведомления при низком остатке"],
+stats:[],cardFields:[],tableFields:["Продукт","SKU","Склад","Кол-во","Резерв","Доступно","Ед. изм."],filters:["Тип: Склад / Оператор / Машина"],
+formFields:["Откуда (склад/оператор)","Куда (машина/оператор)","Продукт","Количество","Примечание"],cardButtons:[]},
+
 {id:"orders",name:"Заказы",icon:"🛒",path:"/dashboard/orders",section:"Операции",roles:["owner","admin","manager","accountant"],status:"works",
-desc:"Все заказы с машин. Поиск, фильтры по статусу заказа и оплаты, детали.",
-actions:["Поиск заказов","Фильтр по статусу (6 статусов)","Фильтр по оплате (4 статуса)","Просмотр деталей (модальное окно)","Экспорт данных"],
-scenarios:["Поиск → Фильтр → Таблица → Клик → Модальное окно с деталями"],
-related:["machines","transactions","payments"],improve:[],diagram:""},
+desc:"Все заказы с машин. Поиск, фильтры, детали в модальном окне.",
+actions:["Поиск заказов","Фильтр по статусу (6)","Фильтр по оплате (4)","Детали (модальное окно)","Экспорт"],
+scenarios:["Поиск → Фильтр → Таблица → Клик → Модальное окно"],
+related:["machines","transactions","payments"],improve:[],
+stats:[{n:"1247",l:"Всего"},{n:"3",l:"Ожидают"},{n:"1201",l:"Завершено"},{n:"12.4M",l:"Выручка"}],
+cardFields:[],
+tableFields:["Номер заказа + кол-во позиций","Клиент: имя + телефон","Машина: название + серийный","Сумма (UZS)","Статус оплаты (badge)","Способ оплаты","Статус заказа (badge)","Дата/время"],
+filters:["🔍 Поиск","Статус: все / ожидает / подтверждён / готовится / готов / завершён / отменён","Оплата: все / ожидает / оплачен / ошибка / возврат"],
+formFields:[],cardButtons:["Просмотр деталей","Экспорт"]},
+
 {id:"tasks",name:"Задачи",icon:"📝",path:"/dashboard/tasks",section:"Операции",roles:["owner","admin","manager","operator"],status:"works",
-desc:"Задачи для операторов: заправка, инкассация, чистка, ремонт. Список и Канбан.",
-actions:["Создать задачу","Список / Канбан вид","8 типов задач","4 приоритета","Назначить / Начать / Завершить","Фото до и после"],
+desc:"Задачи для операторов. Список и Канбан. 8 типов, 4 приоритета.",
+actions:["Создать задачу","Список / Канбан","8 типов задач","Назначить / Начать / Завершить","Фото до и после"],
 scenarios:["Менеджер: [+Задача] → Тип → Приоритет → Дедлайн → Назначить","Оператор: [Начать] → Фото до → Работа → Фото после → [Завершить]","Канбан: Ожидает → Назначена → В работе → Готово"],
 related:["machines","trips","employees"],improve:[],
-diagram:"┌──────────┬──────────┬──────────┬──────────┐\n│ Ожидает  │Назначена │ В работе │  Готово  │\n│   (12)   │   (5)    │   (8)    │  (131)   │\n├──────────┼──────────┼──────────┼──────────┤\n│Заправка  │ Ремонт   │ Чистка   │Инкассац. │\n│ VM-0005  │ VM-0012  │ VM-0003  │ VM-0001  │\n└──────────┴──────────┴──────────┴──────────┘"},
+stats:[{n:"156",l:"Всего"},{n:"12",l:"Ожидают"},{n:"8",l:"В работе"},{n:"2",l:"Просрочено"}],
+cardFields:[{l:"Номер задачи",v:"TSK-0047",b:""},{l:"Тип",v:"Заправка (refill)",b:"blue"},{l:"Приоритет",v:"Высокий",b:"red"},{l:"Статус",v:"В работе",b:"yellow"},{l:"Машина",v:"VM-0005",b:""},{l:"Исполнитель",v:"Бобур К.",b:""},{l:"Дедлайн",v:"05.04.2026 18:00",b:""},{l:"Описание",v:"Засыпать кофе и молоко",b:""}],
+tableFields:[],filters:["🔍 Поиск","Статус: ожидает / назначена / в работе / завершена / отклонена / отложена","Тип: refill / collection / cleaning / repair / install / removal / audit / inspection","Вид: Список / Канбан"],
+formFields:["Заголовок *","Описание","Тип: refill / collection / cleaning / repair / install / removal / audit / inspection","Приоритет: low / normal / high / urgent","Дедлайн","Машина","Исполнитель"],
+cardButtons:["Начать","Завершить","Редактировать","Удалить"]},
+
 {id:"collections",name:"Инкассация",icon:"💰",path:"/dashboard/collections",section:"Операции",roles:["owner","admin","manager","accountant"],status:"works",
-desc:"Двухэтапный процесс сбора наличных: оператор собирает → бухгалтер принимает.",
-actions:["Просмотр инкассаций","Принять инкассацию","Отменить инкассацию","Фильтр по статусу"],
+desc:"Двухэтапный сбор наличных: оператор собирает → бухгалтер принимает.",
+actions:["Просмотр инкассаций","Принять","Отменить","Фильтр по статусу"],
 scenarios:["Этап 1: Оператор → Машина → Считает → Статус: Собрано","Этап 2: Бухгалтер → Проверяет → [Принять] → Статус: Принято"],
-related:["machines","transactions","trips","finance"],improve:[],diagram:""},
+related:["machines","transactions","trips","finance"],improve:[],
+stats:[{n:"340",l:"Всего"},{n:"34M",l:"Сумма (UZS)"},{n:"5",l:"Ожидают"},{n:"2.1M",l:"Сегодня"}],
+cardFields:[{l:"Статус",v:"Собрано",b:"yellow"},{l:"Машина",v:"VM-0005",b:""},{l:"Оператор",v:"Азиз Т.",b:""},{l:"Сумма",v:"450,000 UZS",b:""},{l:"Дата сбора",v:"05.04.2026",b:""},{l:"Источник",v:"Ручной ввод",b:"gray"}],
+tableFields:[],filters:["Статус: Все / Собрано / Принято / Отменено"],
+formFields:["Машина","Сумма (UZS)","Примечание"],cardButtons:["Принять","Отменить"]},
+
 {id:"trips",name:"Поездки",icon:"🚗",path:"/dashboard/trips",section:"Операции",roles:["owner","admin","manager","operator"],status:"works",
-desc:"Поездки операторов по маршрутам. Трекер, аналитика, аномалии.",
-actions:["Список поездок","Начать / Завершить поездку","Трекер реального времени","Аналитика поездок","Обнаружение аномалий"],
+desc:"Поездки операторов. Трекер, аналитика, аномалии.",
+actions:["Список поездок","Начать / Завершить","Трекер","Аналитика","Аномалии"],
 scenarios:["Оператор: [Начать] → Маршрут → Транспорт → Точки → [Завершить]","Менеджер: Трекер → Аномалии → Аналитика"],
-related:["routes","tasks","machines","vehicles","trip-analytics"],improve:["GPS-трекинг в реальном времени"],diagram:"Запланирована → Активна → Завершена\n                  ↓\n              Отменена"},
+related:["routes","tasks","machines","vehicles","trip-analytics"],improve:["GPS-трекинг в реальном времени"],
+stats:[{n:"89",l:"Всего"},{n:"3",l:"Активных"},{n:"82",l:"Завершено"},{n:"1",l:"Аномалии"}],
+cardFields:[{l:"Водитель",v:"Бобур К.",b:""},{l:"Статус",v:"Активна",b:"green"},{l:"Маршрут",v:"Центр-1",b:""},{l:"Транспорт",v:"01 A 777 BA",b:""},{l:"Остановок",v:"8 / 12",b:""},{l:"Старт",v:"09:15",b:""},{l:"Аномалии",v:"0",b:"green"}],
+tableFields:[],filters:["🔍 Поиск","Статус: все / запланирована / активна / завершена / отменена"],
+formFields:["Маршрут","Транспорт","Водитель"],cardButtons:["Завершить","Отменить","Трекер"]},
+
 {id:"routes",name:"Маршруты",icon:"🗺️",path:"/dashboard/routes",section:"Операции",roles:["owner","admin","manager"],status:"works",
-desc:"Конструктор маршрутов для операторов. Оптимизация, дублирование.",
-actions:["Список маршрутов","Конструктор маршрутов","Оптимизация маршрута","Дублирование"],
+desc:"Конструктор маршрутов: остановки, оптимизация, дублирование.",
+actions:["Список маршрутов","Конструктор","Оптимизация","Дублирование"],
 scenarios:["[+Новый] → Конструктор → Остановки → [Оптимизировать] → Сохранить"],
-related:["trips","machines","locations"],improve:[],diagram:""},
+related:["trips","machines","locations"],improve:[],
+stats:[{n:"15",l:"Всего"},{n:"8",l:"Активных"},{n:"142",l:"Остановок"},{n:"~18",l:"Ср. остановок"}],
+cardFields:[{l:"Название",v:"Центр-1",b:""},{l:"Статус",v:"Активен",b:"green"},{l:"Описание",v:"Центральный район, ТЦ",b:""},{l:"Остановок",v:"18",b:""},{l:"Дистанция",v:"24.5 км",b:""}],
+tableFields:[],filters:["Статус: черновик / активен / неактивен"],
+formFields:["Название *","Описание","Остановки (машины/локации)","Порядок остановок"],cardButtons:["Оптимизировать","Дублировать","Удалить"]},
+
 {id:"maintenance",name:"Обслуживание",icon:"🔧",path:"/dashboard/maintenance",section:"Операции",roles:["owner","admin","manager","operator"],status:"works",
-desc:"Заявки на ТО: профилактика, ремонт, аварийное. Полный workflow с запчастями.",
-actions:["Создать заявку","Назначить техника","Добавить запчасти","Журнал работ","Плановое ТО"],
-scenarios:["Черновик → Подана → Утверждена → Запланирована → В работе → Завершена → Проверена"],
+desc:"Заявки на ТО. Workflow: черновик → подана → утверждена → в работе → завершена → проверена.",
+actions:["Создать заявку","Назначить техника","Запчасти","Журнал работ","Плановое ТО"],
+scenarios:["Черновик→Подана→Утверждена→Запланирована→В работе→Завершена→Проверена"],
 related:["machines","equipment","tasks"],improve:[],
-diagram:"Черновик→Подана→Утверждена→Запланирована→В работе\n→Завершена→Проверена\n     ↓              ↓\n Отклонена    Ожидает запчастей"},
+stats:[{n:"67",l:"Всего"},{n:"4",l:"Ожидают"},{n:"3",l:"В работе"},{n:"58",l:"Завершено"}],
+cardFields:[],
+tableFields:["Номер заявки","Машина","Тип: preventive / corrective / emergency / inspection","Приоритет: low / medium / high / critical","Статус (badge)","Назначен","Дата","Смета / Факт"],
+filters:["Статус","Приоритет","Машина","Тип","Исполнитель"],
+formFields:["Заголовок *","Тип *","Приоритет *","Описание","Дата","Смета","Назначить","Запчасти","Примечание"],cardButtons:["Подать","Утвердить","Начать","Завершить","Проверить"]},
 {id:"containers",name:"Контейнеры",icon:"🫙",path:"/dashboard/containers",section:"Операции",roles:["owner","admin","manager","operator"],status:"partial",
-desc:"Бункеры машин с уровнем заполнения. Цветовая индикация остатков.",
-actions:["Просмотр уровня заполнения","Фильтр по статусу","Поиск по имени/машине/продукту"],
-scenarios:["Список → Фильтр (активен/пуст/на ТО) → Карточки с уровнем"],
-related:["machines","products","inventory"],improve:["Кнопка пополнения бункера (сейчас через машину)"],diagram:""},
+desc:"Бункеры машин с уровнем заполнения и цветовой индикацией.",
+actions:["Просмотр уровня","Фильтр по статусу","Поиск"],
+scenarios:["Список → Фильтр → Карточки с уровнем заполнения"],
+related:["machines","products","inventory"],improve:["Кнопка пополнения (сейчас через машину)"],
+stats:[{n:"186",l:"Всего"},{n:"174",l:"Активных"},{n:"8",l:"Пустых"},{n:"4",l:"На ТО"}],
+cardFields:[{l:"Имя бункера",v:"Бункер #1",b:""},{l:"Номер",v:"CNT-0042",b:""},{l:"Статус",v:"Активен",b:"green"},{l:"Продукт",v:"Americano (зерно)",b:""},{l:"Машина",v:"VM-0001",b:""},{l:"Уровень",v:"████████░░ 78%",b:""},{l:"Макс. ёмкость",v:"2,000 г",b:""},{l:"Последняя заправка",v:"03.04.2026",b:""}],
+tableFields:[],filters:["🔍 Поиск","Статус: активен / пуст / на ТО / отключён"],formFields:[],cardButtons:["Подробности"]},
+
 {id:"equipment",name:"Оборудование",icon:"⚙️",path:"/dashboard/equipment",section:"Операции",roles:["owner","admin","manager","operator"],status:"works",
 desc:"4 раздела: оборудование, типы бункеров, запчасти, графики мойки.",
-actions:["CRUD оборудования","Справочник типов бункеров","Склад запчастей","Расписание чистки"],
-scenarios:["Вкладки: Оборудование → Типы бункеров → Запчасти → Графики мойки"],
-related:["machines","maintenance"],improve:[],diagram:""},
+actions:["CRUD оборудования","Типы бункеров","Запчасти + количество","Расписание чистки"],
+scenarios:["Вкладки: Оборудование → Типы бункеров → Запчасти → Мойка"],
+related:["machines","maintenance"],improve:[],
+stats:[],
+cardFields:[],
+tableFields:["Серийный номер","Тип компонента","Статус: working / needs_maintenance","Машина","Дата послед. ТО","Местоположение"],
+filters:["Тип","Статус","Машина"],
+formFields:["Серийный номер","Тип компонента","Машина","Дата покупки","Гарантия до","Примечание"],cardButtons:["ТО","Редактировать","Удалить"]},
+
 {id:"material-requests",name:"Запросы материалов",icon:"📋",path:"/dashboard/material-requests",section:"Операции",roles:["owner","admin","manager","operator","warehouse"],status:"works",
-desc:"Заявки на материалы и запчасти. Workflow от черновика до завершения.",
-actions:["Создать запрос","Подать / Утвердить / Отклонить","Отправить / Оплатить / Доставить"],
+desc:"Заявки на материалы: черновик → подан → утверждён → отправлен → оплачен → доставлен → завершён.",
+actions:["Создать запрос","Workflow утверждения","Отслеживание доставки"],
 scenarios:["Черновик→Подан→Утверждён→Отправлен→Оплачен→Доставлен→Завершён"],
-related:["warehouse","maintenance"],improve:[],diagram:""},
+related:["warehouse","maintenance"],improve:[],stats:[],cardFields:[],tableFields:["Номер","Тип","Статус","Позиции","Сумма","Дата"],filters:["Статус"],formFields:["Название","Позиции (продукт+кол-во)","Примечание"],cardButtons:["Подать","Утвердить","Отклонить"]},
+
 {id:"complaints",name:"Жалобы",icon:"📢",path:"/dashboard/complaints",section:"Операции",roles:["owner","admin","manager"],status:"works",
 desc:"Жалобы клиентов с SLA трекингом. 7 типов, workflow, возвраты.",
-actions:["Просмотр жалоб","Назначить ответственного","Комментарии","Возврат средств","Решить / Отклонить"],
-scenarios:["Клиент → Жалоба → Менеджер: [Назначить] → Сотрудник → [Решено] / [Отклонено]"],
-related:["machines","tasks"],improve:[],diagram:""},
+actions:["Просмотр жалоб","Назначить","Комментарии","Возврат средств","Решить / Отклонить"],
+scenarios:["Клиент → Жалоба → [Назначить] → Работа → [Решено]/[Отклонено] → [Возврат]"],
+related:["machines","tasks"],improve:[],
+stats:[{n:"45",l:"Всего"},{n:"3",l:"Ожидают"},{n:"5",l:"В работе"},{n:"1",l:"Просрочено"}],
+cardFields:[{l:"Номер",v:"CMP-0023",b:""},{l:"Тип",v:"Товар не выдан",b:"red"},{l:"Статус",v:"В работе",b:"yellow"},{l:"SLA",v:"Осталось 4ч",b:"yellow"},{l:"Машина",v:"VM-0012",b:""},{l:"Телефон клиента",v:"+99890*****47",b:""},{l:"Назначен",v:"Азиз Т.",b:""},{l:"Дата",v:"05.04.2026",b:""},{l:"Возврат",v:"Нет",b:"gray"}],
+tableFields:[],filters:["🔍 Поиск","Статус: ожидает / назначена / в работе / решена / закрыта / отклонена"],
+formFields:["Тип: product_not_dispensed / product_defective / payment_issue / machine_malfunction / machine_dirty / other","Машина","Описание","Телефон клиента","Приоритет","Вложения"],
+cardButtons:["Назначить","Комментарий","Возврат","Решить","Отклонить"]},
+
 {id:"incidents",name:"Инциденты",icon:"🚨",path:"/dashboard/incidents",section:"Операции",roles:["owner","admin","manager","operator"],status:"works",
-desc:"Инциденты: вандализм, кража, поломки, отключения. Расследование и закрытие.",
-actions:["Создать инцидент","Назначить ответственного","Расследование","Решить / Закрыть","Статистика по машине"],
-scenarios:["[+Инцидент] → Тип → Машина → Описание → [Назначить] → Расследование → [Закрыть]"],
-related:["machines","alerts","maintenance"],improve:[],diagram:""},
+desc:"Вандализм, кражи, поломки, отключения. Расследование.",
+actions:["Создать","Назначить","Расследование","Решить","Статистика"],
+scenarios:["[+Инцидент] → Тип → Машина → Описание → [Назначить] → [Закрыть]"],
+related:["machines","alerts","maintenance"],improve:[],stats:[],
+cardFields:[{l:"Тип",v:"Механическая поломка",b:"red"},{l:"Приоритет",v:"Высокий",b:"red"},{l:"Машина",v:"VM-0003",b:""},{l:"Статус",v:"Расследование",b:"yellow"},{l:"Назначен",v:"Бобур К.",b:""},{l:"Стоимость ремонта",v:"350,000 UZS",b:""},{l:"Дата",v:"04.04.2026",b:""}],
+tableFields:[],filters:["Тип","Статус","Приоритет","Машина"],
+formFields:["Тип: vandalism / theft / water_damage / power_failure / network_failure / mechanical_failure / other","Машина *","Описание *","Приоритет","Стоимость ремонта"],cardButtons:["Назначить","Решить","Закрыть"]},
+
 {id:"alerts",name:"Алерты",icon:"⚠️",path:"/dashboard/alerts",section:"Операции",roles:["owner","admin","manager","operator"],status:"works",
-desc:"Правила алертов: метрика → условие → порог. INFO/WARNING/CRITICAL.",
-actions:["CRUD правил алертов","Подтвердить / Решить / Отклонить","Фильтр по severity","История алертов"],
-scenarios:["[+Правило] → Метрика → Условие → Порог → Severity → Машина → Сохранить","Алерт сработал → [Подтвердить] → [Решить]"],
-related:["machines","incidents"],improve:[],diagram:""},
+desc:"Правила алертов: метрика → условие → порог. 3 уровня severity.",
+actions:["CRUD правил","Подтвердить / Решить / Отклонить","Фильтр","История"],
+scenarios:["[+Правило] → Метрика → Условие → Порог → Severity → Машина","Алерт → [Подтвердить] → [Решить]"],
+related:["machines","incidents"],improve:[],
+stats:[{n:"3",l:"Активных"},{n:"1",l:"Критических"},{n:"15",l:"Правил"},{n:"12",l:"Активных правил"}],
+cardFields:[],
+tableFields:["Название правила","Метрика: temperature / stock_level / sales_drop / revenue / error_rate / offline_duration / collection_needed / maintenance_due","Условие: greater_than / less_than / equals / between","Порог","Severity: INFO / WARNING / CRITICAL","Машина","Активно (вкл/выкл)"],
+filters:["Severity","Статус","Машина"],
+formFields:["Название *","Метрика *","Условие *","Порог *","Severity *","Cooldown (мин)","Машина","Описание","Email уведомления"],cardButtons:["Вкл/Выкл","Редактировать","Удалить"]},
+
 {id:"vehicles",name:"Транспорт",icon:"🚛",path:"/dashboard/vehicles",section:"Операции",roles:["owner","admin","manager","operator"],status:"works",
-desc:"Транспортные средства: CRUD, одометр, служебный/личный.",
-actions:["CRUD транспорта","Обновление одометра","Фильтр: тип и статус"],
+desc:"Транспорт: CRUD, одометр, служебный/личный.",
+actions:["CRUD транспорта","Обновление одометра","Фильтр"],
 scenarios:["[+Транспорт] → Марка → Модель → Номер → Тип → Сохранить"],
-related:["trips","routes","employees"],improve:[],diagram:""},
+related:["trips","routes","employees"],improve:[],
+stats:[{n:"8",l:"Всего"},{n:"6",l:"Активных"},{n:"1",l:"На ТО"}],
+cardFields:[],
+tableFields:["Госномер","Марка / Модель","Тип: COMPANY / PERSONAL","Статус: ACTIVE / INACTIVE / MAINTENANCE","Одометр (км)","Владелец (сотрудник)"],
+filters:["Тип","Статус"],
+formFields:["Марка *","Модель *","Госномер *","Тип: company / personal","Статус","Владелец (сотрудник)","Примечание"],cardButtons:["Одометр","Редактировать","Удалить"]},
+
 {id:"operator-ratings",name:"Рейтинги операторов",icon:"⭐",path:"/dashboard/operator-ratings",section:"Операции",roles:["owner","admin","manager"],status:"works",
-desc:"Рейтинги и лидерборд операторов по эффективности.",
-actions:["Расчёт рейтинга","Лидерборд","Сводка по периоду","История рейтингов"],
-scenarios:["Выбрать период → Рассчитать → Лидерборд → Детали оператора"],
-related:["employees","tasks","trips"],improve:[],diagram:""},
+desc:"Рейтинги и лидерборд операторов.",actions:["Расчёт рейтинга","Лидерборд","Сводка","История"],scenarios:["Период → Расчёт → Лидерборд → Детали"],
+related:["employees","tasks","trips"],improve:[],stats:[],cardFields:[],tableFields:["Оператор","Рейтинг","Задач выполнено","Ср. время","Период"],filters:["Период"],formFields:[],cardButtons:["Пересчитать"]},
+
 {id:"transactions",name:"Транзакции",icon:"💳",path:"/dashboard/transactions",section:"Финансы",roles:["owner","admin","manager","accountant"],status:"works",
-desc:"Все продажи, инкассации, дневные сводки, комиссии.",
-actions:["Просмотр продаж","Инкассации","Дневные сводки","Пересчёт сводки","Комиссии"],
-scenarios:["Список → Фильтр → Детали транзакции"],
-related:["orders","payments","machines","finance"],improve:[],diagram:""},
+desc:"Все продажи, инкассации, дневные сводки, комиссии.",actions:["Просмотр продаж","Инкассации","Дневные сводки","Комиссии"],scenarios:["Список → Фильтр → Детали"],
+related:["orders","payments","machines","finance"],improve:[],stats:[],cardFields:[],tableFields:["ID","Машина","Продукт","Сумма","Метод оплаты","Статус","Дата"],filters:["Период","Машина","Метод оплаты"],formFields:[],cardButtons:[]},
+
 {id:"payments",name:"Платежи",icon:"💸",path:"/dashboard/payments",section:"Финансы",roles:["owner","admin","accountant"],status:"works",
-desc:"Платёжные транзакции Payme/Click/Uzum. Статистика и возвраты.",
-actions:["Просмотр транзакций","Статистика","Инициация возврата (refund)"],
-scenarios:["Список платежей → Фильтр → Детали → [Возврат]"],
-related:["transactions","orders","finance"],improve:[],diagram:""},
+desc:"Payme/Click/Uzum транзакции. Статистика и возвраты.",actions:["Просмотр","Статистика","Возврат"],scenarios:["Список → Фильтр → Детали → [Возврат]"],
+related:["transactions","orders","finance"],improve:[],stats:[],cardFields:[],tableFields:["ID","Провайдер: Payme / Click / Uzum","Сумма","Статус","External ID","Дата"],filters:["Провайдер","Статус","Период"],formFields:[],cardButtons:["Возврат"]},
+
 {id:"finance",name:"Финансы",icon:"💵",path:"/dashboard/finance",section:"Финансы",roles:["owner","admin","accountant"],status:"partial",
 desc:"10 вкладок: Обзор, P&L, Денежный поток, Транзакции, Счета, Платежи, Сверка, Фискализация, Бюджет, Отчёты.",
-actions:["Обзор: выручка, расходы, прибыль","P&L: EBITDA","Денежный поток: операционный/инвестиционный","Счета: входящие/исходящие","Платёжные системы: балансы","Сверка расхождений","Бюджет: план vs факт"],
-scenarios:["Выбор периода → Обзор → P&L → Cash Flow → Экспорт"],
+actions:["Обзор: выручка/расходы/прибыль","P&L: EBITDA","Cash Flow","Счета","Платёжные системы","Сверка","Бюджет: план vs факт"],
+scenarios:["Период → Обзор → P&L → Cash Flow → Экспорт"],
 related:["transactions","payments","collections","reconciliation","fiscal"],improve:["P&L, Cash Flow, бюджет — моковые данные"],
-diagram:"┌────────┬──────┬──────────┬───────────┬────────┐\n│ Обзор  │ P&L  │Ден.поток │Транзакции │ Счета  │\n├────────┼──────┼──────────┼───────────┼────────┤\n│Платежи │Сверка│Фискализ. │  Бюджет   │ Отчёты │\n└────────┴──────┴──────────┴───────────┴────────┘"},
+stats:[{n:"12.4M",l:"Выручка"},{n:"4.1M",l:"Расходы"},{n:"8.3M",l:"Прибыль"},{n:"67%",l:"Маржа"}],
+cardFields:[],tableFields:[],filters:["Период: Сегодня / Неделя / Месяц / Квартал / Год"],formFields:[],cardButtons:["Экспорт","Создать транзакцию"]},
+
+{id:"counterparty",name:"Контрагенты",icon:"🏢",path:"/dashboard/counterparty",section:"Финансы",roles:["owner","admin","manager","accountant"],status:"stub",
+desc:"Список контрагентов: клиенты, поставщики, партнёры, арендодатели.",actions:["Список","Фильтр по типу"],scenarios:["Список → Фильтр → Просмотр"],
+related:["finance","contractors"],improve:["CRUD","Привязка к договорам"],
+stats:[],cardFields:[{l:"Название",v:"ООО Навои Плаза",b:""},{l:"Тип",v:"Арендодатель",b:"blue"},{l:"ИНН",v:"301234567",b:""},{l:"Телефон",v:"+99871 234 56 78",b:""},{l:"Email",v:"info@navoiplaza.uz",b:""},{l:"Контакт",v:"Шухрат А.",b:""},{l:"Договоров",v:"2",b:""}],
+tableFields:[],filters:["Тип: client / supplier / partner / location_owner"],formFields:[],cardButtons:[]},
+
+{id:"fiscal",name:"Фискализация",icon:"🧾",path:"/dashboard/fiscal",section:"Финансы",roles:["owner","admin","accountant"],status:"works",
+desc:"Multikassa: аппараты, смены, чеки, X/Z-отчёты.",
+actions:["Управление аппаратами","Смены","X/Z-отчёты","Чеки","Очередь"],
+scenarios:["Регистрация → Активация → Открыть смену → Продажи → X-отчёт → Z-отчёт → Закрыть"],
+related:["payments","transactions","machines"],improve:[],
+stats:[{n:"5",l:"Аппаратов"},{n:"3",l:"Активных"},{n:"124",l:"Чеков сегодня"},{n:"1.8M",l:"Сегодня (UZS)"}],
+cardFields:[{l:"Устройство",v:"MK-001",b:""},{l:"Статус",v:"Активен",b:"green"},{l:"Текущая смена",v:"#47 (Азиз Т.)",b:""},{l:"Открыта в",v:"09:00",b:""},{l:"Продажи смены",v:"1,240,000 UZS",b:""},{l:"Чеков в смене",v:"42",b:""}],
+tableFields:[],filters:["Статус устройства","Период","Смена"],
+formFields:["Имя устройства","Серийный номер","Локация","Модель"],cardButtons:["Открыть смену","Закрыть смену","X-отчёт","Z-отчёт"]},
+
+{id:"reconciliation",name:"Сверка",icon:"⚖️",path:"/dashboard/reconciliation",section:"Финансы",roles:["owner","admin","accountant"],status:"works",
+desc:"Сравнение данных машины с ПО. Расхождения и разрешение.",actions:["Создать прогон","Расхождения","Разрешить","Импорт"],scenarios:["[Прогон] → Сравнение → Расхождения → [Разрешить]"],
+related:["transactions","collections","finance"],improve:[],stats:[],cardFields:[],tableFields:["ID прогона","Период","Расхождений","Статус","Дата"],filters:["Период"],formFields:["Период","Источник данных"],cardButtons:["Разрешить"]},
+
+{id:"payment-reports",name:"Отчёты платежей",icon:"📄",path:"/dashboard/payment-reports",section:"Финансы",roles:["owner","admin","accountant"],status:"works",
+desc:"Загрузка и анализ отчётов от платёжных систем.",actions:["Загрузка файла","Парсинг","Аналитика"],scenarios:["[Загрузить] → Файл → Парсинг → Аналитика"],
+related:["payments","reconciliation","finance"],improve:[],stats:[],cardFields:[],tableFields:["Файл","Провайдер","Строк","Статус","Загружен"],filters:["Провайдер"],formFields:["Файл (xlsx/csv)"],cardButtons:["Загрузить","Сверить"]},
+
+{id:"opening-balances",name:"Начальные остатки",icon:"📊",path:"/dashboard/opening-balances",section:"Финансы",roles:["owner","admin","accountant"],status:"works",
+desc:"Ввод начальных остатков при запуске или начале периода.",actions:["Создать","Массовое создание","Применить","Статистика"],scenarios:["[+Запись] → Сущность → Сумма → [Применить]"],
+related:["inventory","finance"],improve:[],
+stats:[{n:"45",l:"Всего"},{n:"38",l:"Применено"},{n:"7",l:"Ожидает"},{n:"2.1M",l:"Сумма"}],
+cardFields:[],tableFields:["Ссылка","Тип","Сумма","Дата","Применено"],filters:["Статус: применено / не применено"],formFields:["Тип сущности","Ссылка","Сумма","Дата"],cardButtons:["Применить","Отменить","Удалить"]},
+
+{id:"purchase-history",name:"История покупок",icon:"🧾",path:"/dashboard/purchase-history",section:"Финансы",roles:["owner","admin","manager","accountant"],status:"works",
+desc:"Журнал закупок: массовое создание, приёмка, возвраты.",actions:["Список","Массовое создание","Приёмка","Возврат"],scenarios:["[+Закупка] → Продукт → Кол-во → Поставщик → Сохранить"],
+related:["inventory","finance"],improve:[],stats:[],cardFields:[],tableFields:["ID","Продукт","Кол-во","Сумма","Поставщик","Статус","Дата"],filters:["Статус","Период"],formFields:["Продукт","Количество","Цена","Поставщик"],cardButtons:["Принять","Вернуть","Удалить"]},
+{id:"containers",name:"Контейнеры",icon:"🫙",path:"/dashboard/containers",section:"Операции",roles:["owner","admin","manager","operator"],status:"partial",
+desc:"Бункеры машин с уровнем заполнения и цветовой индикацией.",
+actions:["Просмотр уровня заполнения","Фильтр по статусу","Поиск"],
+scenarios:["Список → Фильтр (активен/пуст/на ТО) → Карточки с уровнем"],
+related:["machines","products","inventory"],improve:["Кнопка пополнения бункера"],
+stats:[{n:"186",l:"Всего"},{n:"174",l:"Активных"},{n:"8",l:"Пустых"},{n:"4",l:"На ТО"}],
+cardFields:[{l:"Название",v:"Бункер #1",b:""},{l:"Номер",v:"CNT-0042",b:""},{l:"Статус",v:"Активен",b:"green"},{l:"Продукт",v:"Americano (зёрна)",b:""},{l:"Машина",v:"VM-0001",b:""},{l:"Уровень",v:"████████░░ 78%",b:""},{l:"Макс. ёмкость",v:"2000 г",b:""},{l:"Посл. заправка",v:"03.04.2026",b:""}],
+tableFields:[],filters:["🔍 Поиск","Статус: активен / пуст / на ТО / отключен"],formFields:[],cardButtons:["Детали"]},
+
+{id:"equipment",name:"Оборудование",icon:"⚙️",path:"/dashboard/equipment",section:"Операции",roles:["owner","admin","manager","operator"],status:"works",
+desc:"4 раздела: компоненты, типы бункеров, запчасти, графики мойки.",
+actions:["CRUD оборудования","Типы бункеров","Запчасти (склад)","Графики мойки"],
+scenarios:["Вкладки: Оборудование → Типы бункеров → Запчасти → Графики мойки"],
+related:["machines","maintenance"],improve:[],
+stats:[],
+cardFields:[],
+tableFields:["Серийный номер","Тип компонента","Статус: working / needs_maintenance","Машина","Дата посл. ТО","Локация"],
+filters:["Тип","Статус","Машина"],
+formFields:["Серийный номер *","Тип *","Машина","Дата покупки","Гарантия до","Примечание"],cardButtons:["Детали","ТО","Удалить"]},
+
+{id:"material-requests",name:"Запросы материалов",icon:"📋",path:"/dashboard/material-requests",section:"Операции",roles:["owner","admin","manager","operator","warehouse"],status:"works",
+desc:"Заявки на материалы. Workflow: черновик → подан → утверждён → отправлен → оплачен → доставлен → завершён.",
+actions:["Создать запрос","Подать / Утвердить / Отклонить","Отправить / Оплатить / Доставить / Завершить"],
+scenarios:["Черновик→Подан→Утверждён→Отправлен→Оплачен→Доставлен→Завершён"],
+related:["warehouse","maintenance"],improve:[],stats:[],cardFields:[],tableFields:["Номер","Статус","Материал","Кол-во","Приоритет","Заявитель","Дата"],filters:["Статус","Приоритет"],formFields:["Материал *","Кол-во *","Приоритет","Описание"],cardButtons:["Подать","Утвердить","Отправить"]},
+
+{id:"complaints",name:"Жалобы",icon:"📢",path:"/dashboard/complaints",section:"Операции",roles:["owner","admin","manager"],status:"works",
+desc:"Жалобы клиентов с SLA трекингом, 7 типов, возвраты.",
+actions:["Просмотр жалоб","Назначить","Комментарии","Возврат","Решить / Отклонить"],
+scenarios:["Клиент → Жалоба → Менеджер: [Назначить] → Сотрудник → [Решено]/[Отклонено] → [Возврат]"],
+related:["machines","tasks"],improve:[],
+stats:[{n:"48",l:"Всего"},{n:"5",l:"Ожидают"},{n:"3",l:"В работе"},{n:"1",l:"Просрочено"}],
+cardFields:[{l:"Номер",v:"CMP-0048",b:""},{l:"Тип",v:"Товар не выдан",b:"red"},{l:"Статус",v:"В работе",b:"yellow"},{l:"SLA",v:"до 06.04 18:00",b:"yellow"},{l:"Машина",v:"VM-0012",b:""},{l:"Телефон клиента",v:"+998 90 123 4567",b:""},{l:"Назначен",v:"Малика К.",b:""},{l:"Возврат",v:"Нет",b:"gray"},{l:"Дата создания",v:"04.04.2026",b:""}],
+tableFields:[],filters:["🔍 Поиск","Статус: ожидает / назначена / в работе / решена / закрыта / отклонена"],
+formFields:["Тип *","Машина *","Описание *","Телефон клиента","Приоритет","Вложения"],cardButtons:["Назначить","Комментарий","Возврат","Решить","Отклонить"]},
+
+{id:"incidents",name:"Инциденты",icon:"🚨",path:"/dashboard/incidents",section:"Операции",roles:["owner","admin","manager","operator"],status:"works",
+desc:"Инциденты: вандализм, кража, поломки. Расследование и закрытие.",
+actions:["Создать","Назначить","Расследование","Решить / Закрыть","Статистика"],
+scenarios:["[+Инцидент] → Тип → Машина → [Назначить] → Расследование → [Закрыть]"],
+related:["machines","alerts","maintenance"],improve:[],stats:[],
+cardFields:[{l:"Тип",v:"Механическая поломка",b:"red"},{l:"Статус",v:"Открыт",b:"yellow"},{l:"Машина",v:"VM-0003",b:""},{l:"Приоритет",v:"Высокий",b:"red"},{l:"Описание",v:"Не работает кнопка выдачи",b:""},{l:"Назначен",v:"Бобур К.",b:""},{l:"Стоимость ремонта",v:"150,000 UZS",b:""}],
+tableFields:[],filters:["Тип","Статус","Машина","Приоритет"],formFields:["Тип *","Машина *","Описание *","Приоритет","Стоимость ремонта"],cardButtons:["Назначить","Решить","Закрыть"]},
+
+{id:"alerts",name:"Алерты",icon:"⚠️",path:"/dashboard/alerts",section:"Операции",roles:["owner","admin","manager","operator"],status:"works",
+desc:"Правила алертов: метрика → условие → порог. INFO/WARNING/CRITICAL.",
+actions:["CRUD правил","Подтвердить / Решить / Отклонить","Фильтр по severity","История"],
+scenarios:["[+Правило] → Метрика → Условие → Порог → Severity → Машина","Алерт сработал → [Подтвердить] → [Решить]"],
+related:["machines","incidents"],improve:[],
+stats:[{n:"3",l:"Активных"},{n:"1",l:"Критических"},{n:"15",l:"Правил"},{n:"12",l:"Акт. правил"}],
+cardFields:[],
+tableFields:["Название правила","Метрика: temperature / stock_level / sales_drop / revenue / error_rate / offline_duration","Условие: > / < / = / != / between","Порог","Severity: INFO / WARNING / CRITICAL","Машина","Активно (вкл/выкл)"],
+filters:["Severity","Статус","Машина","Тип метрики"],
+formFields:["Название *","Метрика *","Условие *","Порог *","Severity *","Cooldown (мин)","Машина","Описание","Email для уведомлений"],cardButtons:["Вкл/Выкл","Редактировать","Удалить"]},
+
+{id:"vehicles",name:"Транспорт",icon:"🚛",path:"/dashboard/vehicles",section:"Операции",roles:["owner","admin","manager","operator"],status:"works",
+desc:"CRUD транспорта: марка, модель, номер, одометр.",
+actions:["CRUD транспорта","Обновление одометра","Фильтр: тип и статус"],
+scenarios:["[+Транспорт] → Марка → Модель → Номер → Тип → Сохранить"],
+related:["trips","routes","employees"],improve:[],
+stats:[{n:"8",l:"Всего"},{n:"6",l:"Активных"},{n:"1",l:"На ТО"}],
+cardFields:[],
+tableFields:["Гос. номер","Марка / Модель","Тип: COMPANY / PERSONAL","Статус: ACTIVE / INACTIVE / MAINTENANCE","Одометр (км)","Владелец (сотрудник)","Последнее обновление"],
+filters:["Тип","Статус"],
+formFields:["Марка *","Модель *","Гос. номер *","Тип: служебный / личный","Статус","ID сотрудника-владельца","Примечание"],cardButtons:["Редактировать","Одометр","Удалить"]},
+
+{id:"operator-ratings",name:"Рейтинги",icon:"⭐",path:"/dashboard/operator-ratings",section:"Операции",roles:["owner","admin","manager"],status:"works",
+desc:"Рейтинги и лидерборд операторов.",actions:["Расчёт рейтинга","Лидерборд","Сводка по периоду","История"],
+scenarios:["Период → Рассчитать → Лидерборд → Детали"],related:["employees","tasks","trips"],improve:[],stats:[],
+cardFields:[],tableFields:["Оператор","Рейтинг","Задач выполнено","Поездок","Период"],filters:["Период"],formFields:[],cardButtons:[]},
+
+{id:"transactions",name:"Транзакции",icon:"💳",path:"/dashboard/transactions",section:"Финансы",roles:["owner","admin","manager","accountant"],status:"works",
+desc:"Продажи, инкассации, дневные сводки, комиссии.",actions:["Продажи","Инкассации","Дневные сводки","Пересчёт","Комиссии"],
+scenarios:["Список → Фильтр → Детали"],related:["orders","payments","machines","finance"],improve:[],stats:[],
+cardFields:[],tableFields:["ID транзакции","Машина","Продукт","Сумма (UZS)","Способ оплаты: cash / payme / click / uzum","Статус","Дата/время"],filters:["Способ оплаты","Статус","Период"],formFields:[],cardButtons:[]},
+
+{id:"payments",name:"Платежи",icon:"💸",path:"/dashboard/payments",section:"Финансы",roles:["owner","admin","accountant"],status:"works",
+desc:"Payme/Click/Uzum транзакции. Статистика и возвраты.",actions:["Просмотр","Статистика","Возврат (refund)"],
+scenarios:["Список → Фильтр → Детали → [Возврат]"],related:["transactions","orders","finance"],improve:[],stats:[],
+cardFields:[],tableFields:["ID платежа","Провайдер: Payme / Click / Uzum","Сумма","Статус: pending / completed / failed / refunded","Внешний ID","Дата"],filters:["Провайдер","Статус","Период"],formFields:[],cardButtons:["Возврат"]},
+
+{id:"finance",name:"Финансы",icon:"💵",path:"/dashboard/finance",section:"Финансы",roles:["owner","admin","accountant"],status:"partial",
+desc:"10 вкладок: Обзор, P&L, Денежный поток, Транзакции, Счета, Платежи, Сверка, Фискализация, Бюджет, Отчёты.",
+actions:["Обзор: выручка, расходы, прибыль","P&L: EBITDA","Денежный поток","Счета: входящие/исходящие","Платёжные системы: балансы","Сверка","Бюджет: план vs факт"],
+scenarios:["Период → Обзор → P&L → Cash Flow → Экспорт"],
+related:["transactions","payments","collections","reconciliation","fiscal"],improve:["P&L, Cash Flow, бюджет — моковые данные"],
+stats:[{n:"12.4M",l:"Выручка"},{n:"4.8M",l:"Расходы"},{n:"7.6M",l:"Прибыль"},{n:"89%",l:"Маржа"}],
+cardFields:[],tableFields:[],filters:["Период: Сегодня / Неделя / Месяц / Квартал / Год"],formFields:[],cardButtons:["Экспорт","Новая транзакция"]},
+
 {id:"counterparty",name:"Контрагенты",icon:"🏢",path:"/dashboard/counterparty",section:"Финансы",roles:["owner","admin","manager","accountant"],status:"stub",
 desc:"Список контрагентов: клиенты, поставщики, партнёры, арендодатели.",
-actions:["Список контрагентов","Фильтр по типу","Просмотр: ИНН, телефон, email"],
-scenarios:["Список → Фильтр по типу → Просмотр"],
-related:["finance","contractors"],improve:["CRUD для контрагентов","Привязка к договорам и счетам"],diagram:""},
+actions:["Список","Фильтр по типу"],scenarios:["Список → Фильтр → Просмотр"],
+related:["finance","contractors"],improve:["Нет CRUD","Нет привязки к договорам"],stats:[],
+cardFields:[{l:"Название",v:"ООО «Кофе Ташкент»",b:""},{l:"Краткое",v:"Кофе Ташкент",b:""},{l:"Тип",v:"Поставщик",b:"blue"},{l:"ИНН",v:"301234567",b:""},{l:"Телефон",v:"+998 71 123 4567",b:""},{l:"Email",v:"info@coffee.uz",b:""},{l:"Контактное лицо",v:"Рустам А.",b:""},{l:"Договоров",v:"2",b:""}],
+tableFields:[],filters:["Тип: client / supplier / partner / location_owner"],formFields:[],cardButtons:[]},
+
 {id:"fiscal",name:"Фискализация",icon:"🧾",path:"/dashboard/fiscal",section:"Финансы",roles:["owner","admin","accountant"],status:"works",
-desc:"Multikassa: аппараты, смены, чеки, X/Z-отчёты, очередь отправки.",
-actions:["Управление аппаратами","Открытие/закрытие смен","X-отчёт и Z-отчёт","Журнал чеков","Очередь отправки"],
+desc:"Multikassa: аппараты, смены, чеки, X/Z-отчёты.",
+actions:["Управление аппаратами","Открытие/закрытие смен","X-отчёт / Z-отчёт","Журнал чеков","Очередь"],
 scenarios:["Регистрация → Активация → Открыть смену → Продажи → X-отчёт → Z-отчёт → Закрыть"],
-related:["payments","transactions","machines"],improve:[],diagram:""},
+related:["payments","transactions","machines"],improve:[],
+stats:[{n:"5",l:"Аппаратов"},{n:"3",l:"Активных"},{n:"847",l:"Чеков сегодня"},{n:"4.2M",l:"Сумма"}],
+cardFields:[{l:"Устройство",v:"MK-001",b:""},{l:"Статус",v:"Активно",b:"green"},{l:"Текущая смена",v:"#47 (Азиз Т.)",b:""},{l:"Открыта",v:"09:00",b:""},{l:"Продажи смены",v:"1,247,000 UZS",b:""},{l:"Чеков",v:"156",b:""},{l:"НДС",v:"155,875 UZS",b:""}],
+tableFields:[],filters:["Статус аппарата","Период","Смена"],formFields:["Название *","Серийный номер *","Локация","Модель"],cardButtons:["Открыть смену","Закрыть смену","X-отчёт","Z-отчёт"]},
+
 {id:"reconciliation",name:"Сверка",icon:"⚖️",path:"/dashboard/reconciliation",section:"Финансы",roles:["owner","admin","accountant"],status:"works",
-desc:"Сверка данных машины с данными ПО. Поиск и разрешение расхождений.",
-actions:["Создать прогон сверки","Просмотр расхождений","Разрешение расхождений","Импорт аппаратных данных"],
-scenarios:["[Новый прогон] → Сравнение → Расхождения → [Разрешить]"],
-related:["transactions","collections","finance"],improve:[],diagram:""},
+desc:"Сверка данных машин vs ПО. Расхождения.",actions:["Создать прогон","Расхождения","Разрешить","Импорт"],
+scenarios:["[Новый прогон] → Сравнение → Расхождения → [Разрешить]"],related:["transactions","collections","finance"],improve:[],stats:[],
+cardFields:[],tableFields:["ID прогона","Период","Расхождений","Статус","Сумма разницы"],filters:["Статус","Период"],formFields:["Период *","Источник данных"],cardButtons:["Создать","Разрешить"]},
+
 {id:"payment-reports",name:"Отчёты платежей",icon:"📄",path:"/dashboard/payment-reports",section:"Финансы",roles:["owner","admin","accountant"],status:"works",
-desc:"Загрузка и анализ отчётов от платёжных систем.",
-actions:["Загрузка файла отчёта","Парсинг и сопоставление","Аналитика"],
-scenarios:["[Загрузить] → Файл → Парсинг → Сопоставление → Аналитика"],
-related:["payments","reconciliation","finance"],improve:[],diagram:""},
+desc:"Загрузка отчётов от Payme/Click/Uzum. Парсинг и аналитика.",actions:["Загрузить отчёт","Парсинг","Аналитика"],
+scenarios:["[Загрузить] → Файл → Парсинг → Сопоставление"],related:["payments","reconciliation"],improve:[],stats:[],
+cardFields:[],tableFields:["Файл","Провайдер","Записей","Совпало","Расхождений","Дата загрузки"],filters:["Провайдер","Период"],formFields:["Файл (xlsx/csv) *"],cardButtons:["Загрузить","Аналитика"]},
+
 {id:"opening-balances",name:"Начальные остатки",icon:"📊",path:"/dashboard/opening-balances",section:"Финансы",roles:["owner","admin","accountant"],status:"works",
-desc:"Ввод начальных остатков. Массовое создание и применение.",
-actions:["Создать записи","Массовое создание","Применить / Отменить","Статистика"],
-scenarios:["[+Запись] → Сущность → Тип → Сумма → [Применить]"],
-related:["inventory","finance"],improve:[],diagram:""},
-{id:"promotions",name:"Акции и Промо",icon:"🎯",path:"/dashboard/promotions",section:"Маркетинг",roles:["owner","admin","manager"],status:"works",
-desc:"Акции с расписанием, A/B тесты, купоны, аналитика, гео-ограничения.",
-actions:["Создание акций","Сегментация аудитории","A/B тестирование","Система купонов","Аналитика эффективности"],
-scenarios:["[+Акция] → Название → Период → Аудитория → Условия → Запуск"],
-related:["loyalty","promo-codes"],improve:[],diagram:""},
+desc:"Ввод начальных остатков. Массовое создание.",actions:["Создать","Массово","Применить","Статистика"],
+scenarios:["[+Запись] → Сущность → Тип → Сумма → [Применить]"],related:["inventory","finance"],improve:[],
+stats:[{n:"45",l:"Всего"},{n:"38",l:"Применено"},{n:"7",l:"Ожидают"},{n:"8.5M",l:"Сумма"}],
+cardFields:[],tableFields:["Ссылка на сущность","Тип","Сумма","Дата","Применено"],filters:["Статус: применено / не применено"],formFields:["Сущность *","Тип *","Сумма *","Дата"],cardButtons:["Применить","Удалить"]},
+
+{id:"purchase-history",name:"История покупок",icon:"🧾",path:"/dashboard/purchase-history",section:"Финансы",roles:["owner","admin","manager","accountant"],status:"works",
+desc:"Журнал закупок: массовое создание, приёмка, возврат.",actions:["Список","Массовое создание","Приёмка","Возврат"],
+scenarios:["[+Закупка] → Продукт → Кол-во → Цена → [Приёмка]"],related:["inventory","finance"],improve:[],stats:[],
+cardFields:[],tableFields:["ID","Продукт","Кол-во","Цена","Статус","Дата"],filters:["Статус","Период"],formFields:["Продукт *","Кол-во *","Цена *"],cardButtons:["Принять","Возврат"]},
+{id:"promotions",name:"Акции",icon:"🎯",path:"/dashboard/promotions",section:"Маркетинг",roles:["owner","admin","manager"],status:"works",
+desc:"Акции, A/B тесты, купоны, аналитика, гео-ограничения.",actions:["Создание акций","Сегментация","A/B тесты","Купоны","Аналитика"],
+scenarios:["[+Акция] → Условия → Аудитория → Период → Запуск"],related:["loyalty","promo-codes"],improve:[],stats:[],cardFields:[],tableFields:[],filters:[],formFields:[],cardButtons:[]},
+
 {id:"investor",name:"Инвестор",icon:"📈",path:"/dashboard/investor",section:"Маркетинг",roles:["owner","admin","manager"],status:"partial",
-desc:"Дашборд инвестора: ROI, IRR, окупаемость, топ локации, тепловая карта.",
-actions:["Просмотр KPI инвестора","Графики доходности","Топ локаций и машин","Скачивание отчётов"],
-scenarios:["Дашборд → KPI → Графики → Топ локации → Экспорт"],
-related:["finance","analytics","machines"],improve:["Demo/seed данные — нужны реальные"],diagram:""},
+desc:"Дашборд инвестора: ROI, IRR, окупаемость, топ локации.",actions:["KPI инвестора","Графики","Топ локации","Экспорт"],
+scenarios:["Дашборд → KPI → Графики → Топ → Экспорт"],related:["finance","analytics","machines"],improve:["Demo данные — нужны реальные"],
+stats:[{n:"33%",l:"Доля"},{n:"150M",l:"Вложено"},{n:"40%",l:"ROI"},{n:"18",l:"Мес. окуп."}],
+cardFields:[],tableFields:[],filters:[],formFields:[],cardButtons:["Экспорт"]},
+
 {id:"loyalty",name:"Лояльность",icon:"🏆",path:"/dashboard/loyalty",section:"Маркетинг",roles:["owner","admin","manager"],status:"works",
-desc:"Программа лояльности: уровни, достижения, квесты, промокоды, транзакции очков.",
-actions:["Уровни: Bronze/Silver/Gold/Platinum","Достижения (badges)","Квесты (daily/weekly/monthly)","Промокоды + статистика","Транзакции очков","Настройки правил"],
-scenarios:["Уровни → Настроить пороги","Достижения → [+Badge] → Условия","Квесты → [+Квест] → Награда","Промокоды → [+Код] → Лимиты"],
-related:["achievements","quests","promo-codes","referrals"],improve:[],diagram:""},
+desc:"7 под-страниц: уровни, достижения, квесты, промокоды, транзакции, настройки.",
+actions:["Уровни: Bronze/Silver/Gold/Platinum","Достижения (badges)","Квесты","Промокоды","Транзакции очков","Настройки"],
+scenarios:["Уровни → Пороги","[+Badge] → Условия","[+Квест] → Награда","[+Промокод] → Лимиты"],
+related:["achievements","quests","promo-codes","referrals"],improve:[],stats:[],cardFields:[],tableFields:[],filters:[],formFields:[],cardButtons:[]},
+
 {id:"employees",name:"Сотрудники",icon:"👥",path:"/dashboard/employees",section:"HR",roles:["owner","admin","manager"],status:"works",
 desc:"6 вкладок: сотрудники, отделы, посещаемость, отпуска, зарплата, оценки.",
-actions:["CRUD сотрудников","Отделы и должности","Check-in / Check-out","Заявки на отпуск","Расчёт зарплаты","Performance review"],
-scenarios:["[+Сотрудник] → Форма → Привязать к пользователю","Зарплата: [Рассчитать] → [Утвердить] → [Выплатить]","Отпуска: Заявка → [Утвердить]/[Отклонить]","Оценки: [Создать ревью] → Заполнить → [Отправить]"],
-related:["tasks","trips","team","work-logs"],improve:[],diagram:""},
+actions:["CRUD сотрудников","Отделы","Check-in/out","Отпуска","Зарплата","Review"],
+scenarios:["[+Сотрудник] → Форма → Link User","Зарплата: [Рассчитать] → [Утвердить] → [Выплатить]","Отпуска: Заявка → [Утвердить]"],
+related:["tasks","trips","team","work-logs"],improve:[],
+stats:[{n:"24",l:"Всего"},{n:"21",l:"Активных"},{n:"2",l:"В отпуске"},{n:"1",l:"Неактивен"}],
+cardFields:[{l:"Имя",v:"Азиз Турсунов",b:""},{l:"Отдел",v:"Операции",b:""},{l:"Должность",v:"Старший техник",b:""},{l:"Роль",v:"operator",b:"blue"},{l:"Телефон",v:"+998 90 123 4567",b:""},{l:"Email",v:"aziz@vendhub.uz",b:""},{l:"Статус",v:"Активен",b:"green"},{l:"Дата найма",v:"15.01.2025",b:""}],
+tableFields:[],filters:["🔍 Поиск","Статус: active / on_leave / inactive","Роль: admin / manager / operator / warehouse / accountant"],
+formFields:["Имя *","Фамилия *","Email *","Телефон","Должность","Отдел","Роль","Дата найма","Адрес"],cardButtons:["Редактировать","Link User","Уволить","Удалить"]},
+
 {id:"contractors",name:"Подрядчики",icon:"🏗️",path:"/dashboard/contractors",section:"HR",roles:["owner","admin","manager"],status:"works",
-desc:"Управление подрядчиками, счетами, договорами с комиссиями.",
-actions:["CRUD подрядчиков","Счета: создать/утвердить/оплатить","Договоры: активировать/приостановить","Расчёт комиссий"],
-scenarios:["[+Подрядчик] → ИНН → Услуги → Сохранить","Подрядчик → [Счёт] → [Утвердить] → [Оплатить]"],
-related:["counterparty","finance"],improve:[],diagram:""},
+desc:"Подрядчики, счета, договоры с комиссиями.",actions:["CRUD","Счета","Договоры","Комиссии"],
+scenarios:["[+Подрядчик] → ИНН → Услуги → Сохранить","[Счёт] → [Утвердить] → [Оплатить]"],
+related:["counterparty","finance"],improve:[],stats:[],
+cardFields:[{l:"Название",v:"ТехСервис LLC",b:""},{l:"Тип услуг",v:"Ремонт",b:"blue"},{l:"Контакт",v:"Рустам К.",b:""},{l:"Телефон",v:"+998 71 456 7890",b:""},{l:"ИНН",v:"302345678",b:""},{l:"Активных договоров",v:"1",b:""}],
+tableFields:[],filters:["Тип услуг","Статус"],formFields:["Название *","Тип услуг *","Контакт","Телефон","Email","ИНН","Адрес"],cardButtons:["Договор","Счёт","Редактировать"]},
+
 {id:"team",name:"Команда",icon:"👫",path:"/dashboard/team",section:"HR",roles:["owner","admin","manager"],status:"works",
-desc:"6 вкладок: участники, аналитика, расписание, зарплата, роли, активность. 3 вида: сетка/список/дерево.",
-actions:["Просмотр команды (3 режима)","Массовые действия","Приглашение участников","Аналитика команды","Расписание","Управление ролями"],
-scenarios:["Участники → Сетка/Список/Дерево → Массовые действия","Аналитика → Метрики команды → Экспорт"],
-related:["employees","users","tasks"],improve:[],diagram:""},
+desc:"6 вкладок: участники, аналитика, расписание, зарплата, роли, активность. 3 вида отображения.",
+actions:["3 режима: сетка/список/дерево","Массовые действия","Приглашения","Аналитика","Расписание","Роли"],
+scenarios:["Участники → Сетка/Список/Дерево → Массовые действия"],related:["employees","users","tasks"],improve:[],stats:[],cardFields:[],tableFields:[],filters:[],formFields:[],cardButtons:[]},
+
 {id:"work-logs",name:"Журнал работ",icon:"⏱️",path:"/dashboard/work-logs",section:"HR",roles:["owner","admin","manager"],status:"works",
-desc:"Clock-in/out, отгулы, табели, массовое утверждение.",
-actions:["Clock-in / Clock-out","Запрос отгула","Табели","Массовое утверждение"],
-scenarios:["Сотрудник: [Clock In] → Работает → [Clock Out]","Менеджер: Табели → [Утвердить]/[Отклонить]"],
-related:["employees","tasks"],improve:[],diagram:""},
+desc:"Clock-in/out, отгулы, табели, массовое утверждение.",actions:["Clock-in/out","Отгулы","Табели","Массовое утверждение"],
+scenarios:["[Clock In] → Работа → [Clock Out]","Табели → [Утвердить]"],related:["employees","tasks"],improve:[],stats:[],cardFields:[],tableFields:["Сотрудник","Дата","Приход","Уход","Часов","Статус"],filters:["Период","Сотрудник","Статус"],formFields:[],cardButtons:["Утвердить","Отклонить"]},
+
 {id:"users",name:"Пользователи",icon:"👤",path:"/dashboard/users",section:"Администрирование",roles:["owner","admin"],status:"works",
-desc:"Управление пользователями системы. CRUD, RBAC, фильтр по роли.",
-actions:["Список пользователей","Создать / редактировать / удалить","Назначение ролей (RBAC)","Фильтр по роли"],
-scenarios:["[+Пользователь] → Форма → Роль → Сохранить","Клик → Детали → Назначение ролей (RBAC)"],
-related:["organizations","invites","employees"],improve:[],diagram:""},
+desc:"CRUD пользователей. RBAC, 7 ролей.",actions:["Список","Создать / Редактировать / Удалить","RBAC","Фильтр по роли"],
+scenarios:["[+Пользователь] → Форма → Роль → Сохранить","Клик → RBAC"],related:["organizations","invites","employees"],improve:[],
+stats:[{n:"32",l:"Всего"},{n:"28",l:"Активных"},{n:"8",l:"Менеджеров"},{n:"14",l:"Операторов"}],
+cardFields:[{l:"Email",v:"aziz@vendhub.uz",b:""},{l:"Имя",v:"Азиз Турсунов",b:""},{l:"Роль",v:"operator",b:"blue"},{l:"Статус",v:"Активен",b:"green"},{l:"Телефон",v:"+998 90 123 4567",b:""},{l:"Последний вход",v:"Сегодня 09:15",b:""},{l:"Создан",v:"15.01.2025",b:""}],
+tableFields:[],filters:["🔍 Поиск","Роль: owner/admin/manager/operator/warehouse/accountant/viewer"],
+formFields:["Email *","Имя *","Фамилия *","Телефон","Роль *","Пароль *"],cardButtons:["Редактировать","RBAC","Удалить"]},
+
 {id:"organizations",name:"Организации",icon:"🏛️",path:"/dashboard/organizations",section:"Администрирование",roles:["owner"],status:"works",
-desc:"Мульти-тенант: штаб-квартира, франшиза, филиал, оператор, партнёр.",
-actions:["CRUD организаций","Иерархия (parent/child)","Управление подписками"],
-scenarios:["[+Организация] → Тип → Имя → Parent → Сохранить"],
-related:["users","settings"],improve:[],diagram:""},
+desc:"Мульти-тенант: HQ, франшиза, филиал, оператор, партнёр.",actions:["CRUD","Иерархия","Подписки"],
+scenarios:["[+Организация] → Тип → Parent → Сохранить"],related:["users","settings"],improve:[],stats:[],
+cardFields:[{l:"Название",v:"VendHub Ташкент",b:""},{l:"Тип",v:"Франшиза",b:"blue"},{l:"Статус",v:"Активна",b:"green"},{l:"ИНН",v:"300123456",b:""},{l:"Адрес",v:"Ташкент, ул. Навои 100",b:""},{l:"Подписка",v:"Standard",b:""},{l:"Машин",v:"31",b:""}],
+tableFields:[],filters:["Тип","Статус"],formFields:["Название (рус) *","Название (узб)","Тип *","ИНН","Телефон","Email","Адрес","Parent (организация)"],cardButtons:["Редактировать","Удалить"]},
+
 {id:"invites",name:"Приглашения",icon:"✉️",path:"/dashboard/invites",section:"Администрирование",roles:["owner","admin"],status:"works",
-desc:"Приглашения для новых пользователей по коду.",
-actions:["Создать приглашение","Список активных/использованных","Отозвать приглашение"],
-scenarios:["[+Приглашение] → Код → Отправить → Пользователь регистрируется"],
-related:["users","organizations"],improve:[],diagram:""},
+desc:"Приглашения новых пользователей по коду.",actions:["Создать","Список","Отозвать"],
+scenarios:["[+Приглашение] → Код → Роль → Отправить"],related:["users","organizations"],improve:[],stats:[],
+cardFields:[],tableFields:["Код","Роль","Статус: активен / использован / отозван","Создан","Использован (дата)","Приглашённый"],filters:["Статус"],formFields:["Роль *","Email (опцион.)"],cardButtons:["Отозвать"]},
+
 {id:"warehouse",name:"Склад",icon:"🏭",path:"/dashboard/warehouse",section:"Администрирование",roles:["owner","admin","manager","warehouse"],status:"works",
-desc:"3 вкладки: склады, остатки по складу, перемещения (5 типов).",
-actions:["CRUD складов (основной/транзитный/мобильный/виртуальный)","Остатки по выбранному складу","Перемещения: приход/расход/transfer/корректировка/списание"],
-scenarios:["Склады → Выбрать → Остатки → Перемещения","[+Перемещение] → Тип → Продукт → Кол-во → Подтвердить"],
-related:["inventory","products","machines"],improve:[],diagram:""},
+desc:"3 вкладки: склады, остатки, перемещения.",actions:["CRUD складов","Остатки по складу","Перемещения: 5 типов"],
+scenarios:["Склад → Остатки → Перемещения","[+Перемещение] → Тип → Продукт → Кол-во"],related:["inventory","products","machines"],improve:[],stats:[],
+cardFields:[{l:"Название",v:"Основной склад",b:""},{l:"Тип",v:"Основной",b:"blue"},{l:"Адрес",v:"Ташкент, ул. Фурката 5",b:""},{l:"Описание",v:"Центральный склад",b:""},{l:"Активен",v:"Да",b:"green"},{l:"Ёмкость",v:"500 ед.",b:""}],
+tableFields:[],filters:["🔍 Поиск","Тип: основной / транзитный / мобильный / виртуальный","Статус: активен / неактивен"],
+formFields:["Название *","Тип *","Адрес","Описание","Активен","Код"],cardButtons:["Остатки","Перемещения","Редактировать","Удалить"]},
+
 {id:"locations",name:"Локации",icon:"📍",path:"/dashboard/locations",section:"Администрирование",roles:["owner","admin","manager"],status:"works",
-desc:"Точки размещения машин. Сетка/карта, Google Maps, фильтр по типу.",
-actions:["Список (сетка / карта)","CRUD локаций","Поиск по городу/адресу","Ссылка на Google Maps","Фильтр: ТЦ, офис, университет, транспорт"],
+desc:"Точки размещения машин. Сетка/карта, Google Maps.",
+actions:["Список (сетка/карта)","CRUD","Поиск","Google Maps","Фильтр по типу"],
 scenarios:["[+Локация] → Имя → Адрес → Координаты → Сохранить","Переключение Сетка ↔ Карта"],
-related:["machines","routes","trips"],improve:[],diagram:""},
+related:["machines","routes","trips"],improve:[],
+stats:[{n:"18",l:"Всего"},{n:"16",l:"Активных"},{n:"31",l:"Машин"},{n:"5",l:"Городов"}],
+cardFields:[{l:"Название",v:"ТЦ Samarkand Darvoza",b:""},{l:"Город",v:"Ташкент",b:""},{l:"Тип",v:"ТЦ",b:"blue"},{l:"Адрес",v:"ул. Коратош 2А",b:""},{l:"Часы работы",v:"10:00 – 22:00",b:""},{l:"Телефон",v:"+998 71 200 0001",b:""},{l:"Координаты",v:"41.3111, 69.2798",b:""},{l:"Машин",v:"4",b:""}],
+tableFields:[],filters:["🔍 Поиск","Тип: ТЦ / офис / университет / транспорт / другое","Вид: Сетка / Карта"],
+formFields:["Название *","Город","Адрес *","Контактное лицо","Телефон","Широта","Долгота"],cardButtons:["Редактировать","Google Maps","Удалить"]},
+
 {id:"website",name:"Сайт",icon:"🌐",path:"/dashboard/website",section:"Администрирование",roles:["owner","admin","manager"],status:"works",
-desc:"CMS для лендинга: контент, партнёры, аналитика, SEO, настройки.",
-actions:["Редактирование контента","Управление партнёрами","Веб-аналитика","Настройка SEO","История версий"],
-scenarios:["Контент → Выбрать секцию → Редактировать → Сохранить → Версия"],
-related:[],improve:[],diagram:""},
+desc:"CMS: контент, партнёры, аналитика, SEO, настройки.",actions:["Контент","Партнёры","Аналитика","SEO","Версии"],
+scenarios:["Контент → Секция → Редактировать → Сохранить → Версия"],related:[],improve:[],stats:[],cardFields:[],tableFields:[],filters:[],formFields:[],cardButtons:[]},
+
 {id:"map",name:"Карта",icon:"🗺️",path:"/dashboard/map",section:"Администрирование",roles:["owner","admin","manager","operator","warehouse"],status:"works",
-desc:"Leaflet-карта с локациями всех машин. Интерактивные маркеры.",
-actions:["Просмотр карты","Клик на маркер → детали машины"],scenarios:[],related:["machines","locations"],improve:[],diagram:""},
+desc:"Leaflet-карта с маркерами всех машин.",actions:["Просмотр карты","Клик на маркер → детали"],scenarios:[],related:["machines","locations"],improve:[],stats:[],cardFields:[],tableFields:[],filters:[],formFields:[],cardButtons:[]},
+
 {id:"reports",name:"Отчёты",icon:"📊",path:"/dashboard/reports",section:"Отчётность",roles:["owner","admin","manager","accountant"],status:"works",
-desc:"Отчёты по продажам, инвентарю, задачам, финансам.",
-actions:["Дашборд аналитики","Отчёт по продажам","Отчёт по инвентарю","Отчёт по задачам","Финансовый отчёт"],
-scenarios:["Выбрать тип → Период → Сформировать → Экспорт"],
-related:["analytics","finance"],improve:[],diagram:""},
+desc:"Продажи, инвентарь, задачи, финансы.",actions:["По продажам","По инвентарю","По задачам","Финансовый","Определения"],
+scenarios:["Тип → Период → Сформировать → Экспорт"],related:["analytics","finance"],improve:[],stats:[],cardFields:[],tableFields:[],filters:["Тип отчёта","Период"],formFields:[],cardButtons:["Сформировать","Экспорт"]},
+
 {id:"analytics",name:"Аналитика",icon:"📉",path:"/dashboard/analytics",section:"Отчётность",roles:["owner","admin","manager"],status:"works",
-desc:"KPI: выручка, продажи, средний чек. Топ продуктов и машин.",
-actions:["Просмотр KPI","Топ-8 продуктов","Топ-8 машин"],
-scenarios:["Дашборд → KPI → Топ продуктов → Топ машин"],
-related:["reports","machines","products"],improve:[],diagram:""},
-{id:"trip-analytics",name:"Аналитика поездок",icon:"📊",path:"/dashboard/trip-analytics",section:"Отчётность",roles:["owner","admin","manager"],status:"works",
-desc:"Статистика, активность, аналитика по сотрудникам, транспорту, аномалии.",
-actions:["Основная статистика","Активность по периодам","По сотрудникам","По транспорту","Аномалии","Такси-расходы"],
-scenarios:["Выбрать период → Статистика → Сотрудники → Аномалии"],
-related:["trips","routes","vehicles","employees"],improve:[],diagram:""},
+desc:"KPI: выручка, продажи, средний чек. Топ продуктов и машин.",actions:["KPI","Топ-8 продуктов","Топ-8 машин"],
+scenarios:["Дашборд → KPI → Топ продуктов → Топ машин"],related:["reports","machines","products"],improve:[],
+stats:[{n:"12.4M",l:"Выручка"},{n:"2847",l:"Продаж"},{n:"4360",l:"Ср. чек (UZS)"},{n:"28",l:"Машин онлайн"}],
+cardFields:[],tableFields:[],filters:[],formFields:[],cardButtons:[]},
+
+{id:"trip-analytics",name:"Аналит. поездок",icon:"📊",path:"/dashboard/trip-analytics",section:"Отчётность",roles:["owner","admin","manager"],status:"works",
+desc:"Статистика, сотрудники, транспорт, аномалии, такси.",actions:["Статистика","По сотрудникам","По транспорту","Аномалии","Такси"],
+scenarios:["Период → Статистика → Сотрудники → Аномалии"],related:["trips","routes","vehicles","employees"],improve:[],stats:[],cardFields:[],tableFields:[],filters:["Период"],formFields:[],cardButtons:[]},
+
 {id:"directories",name:"Справочники",icon:"📚",path:"/dashboard/directories",section:"Система",roles:["owner","admin","manager"],status:"works",
-desc:"Мастер-данные: CRUD справочников, поля, записи, иерархия, аудит.",
-actions:["CRUD справочников","Динамические поля","Источники синхронизации","Иерархия (дерево)","Аудит изменений"],
-scenarios:["[+Справочник] → Поля → Записи → Источник → Синхронизация"],
-related:[],improve:[],diagram:""},
+desc:"Мастер-данные: CRUD, поля, записи, иерархия, аудит.",actions:["CRUD справочников","Поля","Записи","Иерархия","Аудит"],
+scenarios:["[+Справочник] → Поля → Записи → Синхронизация"],related:[],improve:[],stats:[],cardFields:[],tableFields:[],filters:[],formFields:[],cardButtons:[]},
+
 {id:"references",name:"Справочные данные",icon:"📖",path:"/dashboard/references",section:"Система",roles:["owner","admin"],status:"works",
-desc:"5 табов: MXIK, ИКПУ, НДС, упаковка, платёжные провайдеры.",
-actions:["CRUD по каждому типу","Товарные классификаторы (MXIK)","Коды ИКПУ","Ставки НДС","Типы упаковки","Платёжные провайдеры с комиссиями"],
-scenarios:["Выбрать таб → Список → [+Запись] → Заполнить → Сохранить"],
-related:["fiscal","payments","products"],improve:[],diagram:""},
+desc:"5 табов: MXIK, ИКПУ, НДС, упаковка, платёжные провайдеры.",actions:["MXIK коды","ИКПУ коды","Ставки НДС","Типы упаковки","Платёжные провайдеры с комиссиями"],
+scenarios:["Таб → Список → [+Запись] → Заполнить → Сохранить"],related:["fiscal","payments","products"],improve:[],stats:[],cardFields:[],tableFields:[],filters:[],formFields:[],cardButtons:[]},
+
 {id:"integrations",name:"Интеграции",icon:"🔌",path:"/dashboard/integrations",section:"Система",roles:["owner","admin"],status:"works",
-desc:"Каталог интеграций по категориям. Установка, настройка, тестирование.",
-actions:["Каталог шаблонов","Установить интеграцию","Настроить параметры","Тестировать подключение","Sandbox-режим","Просмотр логов"],
-scenarios:["Каталог → Выбрать → Установить → Настроить → Тестировать → Активировать"],
-related:["payments","fiscal"],improve:[],diagram:""},
+desc:"Каталог интеграций. Настройка, тестирование, sandbox.",actions:["Каталог","Установить","Настроить","Тестировать","Sandbox","Логи"],
+scenarios:["Каталог → Выбрать → Установить → Настроить → [Тест] → Активировать"],related:["payments","fiscal"],improve:[],stats:[],cardFields:[],tableFields:[],filters:["Категория: payments / fiscal / SMS / email / push / analytics / ERP / delivery / loyalty"],formFields:[],cardButtons:[]},
+
 {id:"webhooks",name:"Вебхуки",icon:"🔗",path:"/dashboard/webhooks",section:"Система",roles:["owner","admin"],status:"works",
-desc:"Исходящие вебхуки: CRUD, тестирование, логи, перегенерация секрета.",
-actions:["CRUD вебхуков","Тестирование","Просмотр логов","Перегенерация секрета"],
-scenarios:["[+Вебхук] → URL → События → [Тестировать] → Активировать"],
-related:["integrations"],improve:[],diagram:""},
+desc:"Исходящие вебхуки: CRUD, тесты, логи.",actions:["CRUD","Тестирование","Логи","Перегенерация секрета"],
+scenarios:["[+Вебхук] → URL → События → [Тест] → Активировать"],related:["integrations"],improve:[],stats:[],
+cardFields:[{l:"URL",v:"https://erp.example.com/webhook",b:""},{l:"События",v:"SALE_COMPLETED, INVENTORY_LOW",b:""},{l:"Статус",v:"Активен",b:"green"},{l:"Секрет",v:"whsec_***...***",b:""},{l:"Последний вызов",v:"05.04.2026 14:23",b:""},{l:"Успешность",v:"98.5%",b:"green"}],
+tableFields:[],filters:["Событие","Статус"],formFields:["URL *","События *","Описание"],cardButtons:["Тест","Логи","Секрет","Удалить"]},
+
 {id:"machine-access",name:"Доступ к машинам",icon:"🔑",path:"/dashboard/machine-access",section:"Система",roles:["owner","admin","manager"],status:"works",
-desc:"Управление доступом к машинам: выдача, отзыв, шаблоны.",
-actions:["Выдать / отозвать доступ","Шаблоны доступа","Применить шаблон к группе","Просмотр по машине/пользователю"],
-scenarios:["[+Доступ] → Пользователь → Машины → Сохранить"],
-related:["machines","users"],improve:[],diagram:""},
+desc:"Управление доступом: выдача, отзыв, шаблоны.",actions:["Выдать / Отозвать","Шаблоны","Применить шаблон","По машине / По пользователю"],
+scenarios:["[+Доступ] → Пользователь → Машины → Сохранить"],related:["machines","users"],improve:[],stats:[],cardFields:[],tableFields:["Пользователь","Машина","Уровень доступа","Дата выдачи","Выдал"],filters:["Машина","Пользователь"],formFields:["Пользователь *","Машины *"],cardButtons:["Отозвать"]},
+
 {id:"import",name:"Импорт",icon:"📥",path:"/dashboard/import",section:"Система",roles:["owner","admin"],status:"works",
-desc:"Wizard массового импорта данных: загрузка → классификация → валидация → импорт.",
-actions:["Загрузить файл","Классификация","Валидация","Утверждение","Импорт"],
-scenarios:["[Загрузить] → Файл → Классификация → Валидация → [Утвердить] → Импорт"],
-related:[],improve:[],diagram:""},
+desc:"Wizard массового импорта: загрузка → классификация → валидация → импорт.",actions:["Загрузка","Классификация","Валидация","Утверждение","Импорт"],
+scenarios:["[Загрузить] → Файл → Классификация → Валидация → [Утвердить] → Импорт"],related:[],improve:[],stats:[],cardFields:[],tableFields:[],filters:[],formFields:["Файл *"],cardButtons:["Загрузить","Утвердить"]},
+
 {id:"audit",name:"Аудит",icon:"🔍",path:"/dashboard/audit",section:"Система",roles:["owner","admin"],status:"works",
-desc:"Лог всех действий: кто, что, когда, изменения до/после, IP. 10 категорий.",
-actions:["Статистика по действиям","Детальный лог","Фильтр по сущности/severity","Before/After значения"],
-scenarios:["Фильтр → Поиск → Лог → Детали (до/после)"],
-related:[],improve:[],diagram:""},
+desc:"Лог всех действий: кто, что, когда, до/после, IP. 10 категорий.",actions:["Статистика","Детальный лог","Фильтры","Before/After"],
+scenarios:["Фильтр → Поиск → Лог → Детали (до/после)"],related:[],improve:[],stats:[],
+cardFields:[],tableFields:["Пользователь","Сущность","Действие","Категория","Severity: debug/info/warning/error/critical","Timestamp","IP","Изменения (до/после)"],
+filters:["Сущность","Severity","Действие","Категория","Пользователь","Период"],formFields:[],cardButtons:["Детали"]},
+
 {id:"settings",name:"Настройки",icon:"⚙️",path:"/dashboard/settings",section:"Система",roles:["owner","admin"],status:"works",
-desc:"Системные настройки организации. CRUD по ключам.",
-actions:["Просмотр настроек","Изменение значений","Публичные настройки","CRUD по ключам"],
-scenarios:["Список → Выбрать ключ → Изменить → Сохранить"],
-related:["organizations"],improve:[],diagram:""},
+desc:"Системные настройки. CRUD по ключам.",actions:["Просмотр","Изменение","Публичные","CRUD по ключам"],scenarios:["Ключ → Значение → Сохранить"],related:["organizations"],improve:[],stats:[],cardFields:[],tableFields:["Ключ","Значение","Тип","Публичный"],filters:[],formFields:["Ключ *","Значение *"],cardButtons:["Редактировать","Удалить"]},
+
 {id:"notifications",name:"Уведомления",icon:"🔔",path:"/dashboard/notifications",section:"Общее",roles:["owner","admin","manager","operator","warehouse","accountant","viewer"],status:"works",
-desc:"Все уведомления. Отметить прочитанными, Push/FCM подписка.",
-actions:["Просмотр уведомлений","Отметить прочитанным","Отметить все прочитанными","Push/FCM подписка"],
-scenarios:["Список → [Прочитать] → [Все прочитаны]"],
-related:["alerts","tasks","orders"],improve:[],diagram:""},
+desc:"Уведомления. Прочитать, Push/FCM подписка.",actions:["Просмотр","Прочитать","Все прочитаны","Push подписка"],scenarios:["Список → [Прочитать]"],related:["alerts","tasks","orders"],improve:[],stats:[],cardFields:[],tableFields:[],filters:[],formFields:[],cardButtons:[]},
+
 {id:"help",name:"Помощь",icon:"❓",path:"/dashboard/help",section:"Общее",roles:["owner","admin","manager","operator","warehouse","accountant","viewer"],status:"stub",
-desc:"Документация и FAQ. Контакты поддержки.",
-actions:["Чтение документации","Контакты поддержки"],
-scenarios:[],related:[],improve:["Нет реального FAQ/документации"],diagram:""},
+desc:"Документация и FAQ.",actions:["FAQ","Контакты поддержки"],scenarios:[],related:[],improve:["Нет реального FAQ"],stats:[],cardFields:[],tableFields:[],filters:[],formFields:[],cardButtons:[]},
+
 {id:"achievements",name:"Достижения",icon:"🏅",path:"/dashboard/achievements",section:"Лояльность",roles:["owner","admin","manager"],status:"works",
-desc:"CRUD badges/достижений для клиентов.",actions:["CRUD достижений","Условия получения"],scenarios:[],related:["loyalty"],improve:[],diagram:""},
+desc:"CRUD badges для клиентов.",actions:["CRUD достижений","Условия получения","Сидинг"],scenarios:[],related:["loyalty"],improve:[],stats:[],cardFields:[],tableFields:[],filters:[],formFields:[],cardButtons:[]},
+
 {id:"quests",name:"Квесты",icon:"🎮",path:"/dashboard/quests",section:"Лояльность",roles:["owner","admin","manager"],status:"works",
-desc:"Ежедневные/недельные/месячные вызовы для клиентов.",actions:["CRUD квестов","Награды"],scenarios:[],related:["loyalty"],improve:[],diagram:""},
+desc:"Daily/weekly/monthly вызовы для клиентов.",actions:["CRUD квестов","Награды","Статистика"],scenarios:[],related:["loyalty"],improve:[],stats:[],cardFields:[],tableFields:[],filters:[],formFields:[],cardButtons:[]},
+
 {id:"promo-codes",name:"Промокоды",icon:"🎟️",path:"/dashboard/promo-codes",section:"Лояльность",roles:["owner","admin","manager"],status:"works",
-desc:"Промокоды с лимитами, статистикой использования.",actions:["CRUD промокодов","Статистика использования","Деактивация"],scenarios:[],related:["loyalty","promotions"],improve:[],diagram:""},
+desc:"Промокоды с лимитами и статистикой.",actions:["CRUD","Статистика","Деактивация"],scenarios:[],related:["loyalty","promotions"],improve:[],stats:[],cardFields:[],tableFields:[],filters:[],formFields:[],cardButtons:[]},
+
 {id:"referrals",name:"Рефералы",icon:"🤝",path:"/dashboard/referrals",section:"Лояльность",roles:["owner","admin","manager"],status:"works",
-desc:"Аналитика реферальной программы.",actions:["Аналитика рефералов"],scenarios:[],related:["loyalty"],improve:[],diagram:""},
-{id:"purchase-history",name:"История покупок",icon:"🧾",path:"/dashboard/purchase-history",section:"Финансы",roles:["owner","admin","manager","accountant"],status:"works",
-desc:"Журнал закупок с массовым созданием и возвратами.",actions:["Список закупок","Массовое создание","Приёмка","Возврат"],scenarios:[],related:["inventory","finance"],improve:[],diagram:""},
+desc:"Аналитика реферальной программы.",actions:["Аналитика рефералов"],scenarios:[],related:["loyalty"],improve:[],stats:[],cardFields:[],tableFields:[],filters:[],formFields:[],cardButtons:[]},
+
 {id:"api-docs",name:"API Документация",icon:"📡",path:"/dashboard/api-docs",section:"Система",roles:["owner"],status:"works",
-desc:"Swagger UI для API. Только для владельца.",actions:["Просмотр API документации"],scenarios:[],related:[],improve:[],diagram:""}
+desc:"Swagger UI для API. Только owner.",actions:["Swagger UI"],scenarios:[],related:[],improve:[],stats:[],cardFields:[],tableFields:[],filters:[],formFields:[],cardButtons:[]}
 ];
+const SO=["Главная","Операции","Финансы","Маркетинг","HR","Администрирование","Отчётность","Система","Лояльность","Общее"];
+function si(s){return s==="works"?{l:"Работает",c:"works",d:"green"}:s==="partial"?{l:"Доработать",c:"partial",d:"yellow"}:{l:"Заглушка",c:"stub",d:"red"}}
+function buildNav(){const n=document.getElementById("sidebarNav");let h="";SO.forEach(s=>{const items=T.filter(t=>t.section===s);if(!items.length)return;h+=`<div class="nav-section"><div class="nav-section-title">${s}</div></div>`;items.forEach(t=>{const i=si(t.status);h+=`<div class="nav-item" data-id="${t.id}" data-roles="${t.roles.join(",")}" onclick="show('${t.id}')"><span class="icon">${t.icon}</span><span class="label">${t.name}</span><span class="status-dot ${i.d}"></span></div>`})});n.innerHTML=h}
+function filterTabs(){const q=document.getElementById("search").value.toLowerCase(),r=document.getElementById("roleFilter").value;document.querySelectorAll(".nav-item").forEach(el=>{const t=T.find(x=>x.id===el.dataset.id);if(!t){el.classList.add("hidden");return}const mq=!q||t.name.toLowerCase().includes(q)||t.desc.toLowerCase().includes(q),mr=r==="all"||t.roles.includes(r);el.classList.toggle("hidden",!mq||!mr)});updS()}
+function updS(){const r=document.getElementById("roleFilter").value,v=r==="all"?T:T.filter(t=>t.roles.includes(r));document.getElementById("sT").textContent=v.length;document.getElementById("sW").textContent=v.filter(t=>t.status==="works").length;document.getElementById("sP").textContent=v.filter(t=>t.status==="partial").length;document.getElementById("sR").textContent=v.filter(t=>t.status==="stub").length}
 
-const SECTIONS_ORDER=["Главная","Операции","Финансы","Маркетинг","HR","Администрирование","Отчётность","Система","Лояльность","Общее"];
-
-function getStatusInfo(s){return s==="works"?{label:"Работает",cls:"works",color:"green"}:s==="partial"?{label:"Нужна доработка",cls:"partial",color:"yellow"}:{label:"Заглушка",cls:"stub",color:"red"}}
-
-function buildSidebar(){
-const nav=document.getElementById("sidebarNav");
-let html="";
-SECTIONS_ORDER.forEach(sec=>{
-const items=TABS.filter(t=>t.section===sec);
-if(!items.length)return;
-html+=`<div class="nav-section"><div class="nav-section-title">${sec}</div></div>`;
-items.forEach(t=>{
-const si=getStatusInfo(t.status);
-html+=`<div class="nav-item" data-id="${t.id}" data-roles="${t.roles.join(",")}" onclick="showTab('${t.id}')"><span class="icon">${t.icon}</span><span class="label">${t.name}</span><span class="status-dot ${si.color}"></span></div>`;
-});
-});
-nav.innerHTML=html;
-}
-
-function filterTabs(){
-const q=document.getElementById("search").value.toLowerCase();
-const role=document.getElementById("roleFilter").value;
-document.querySelectorAll(".nav-item").forEach(el=>{
-const id=el.dataset.id;
-const tab=TABS.find(t=>t.id===id);
-if(!tab){el.classList.add("hidden");return}
-const matchQ=!q||tab.name.toLowerCase().includes(q)||tab.desc.toLowerCase().includes(q);
-const matchR=role==="all"||tab.roles.includes(role);
-el.classList.toggle("hidden",!matchQ||!matchR);
-});
-updateStats();
-}
-
-function updateStats(){
-const role=document.getElementById("roleFilter").value;
-const visible=role==="all"?TABS:TABS.filter(t=>t.roles.includes(role));
-const works=visible.filter(t=>t.status==="works").length;
-const partial=visible.filter(t=>t.status==="partial").length;
-const stub=visible.filter(t=>t.status==="stub").length;
-document.getElementById("statTotal").textContent=visible.length;
-document.getElementById("statWorks").textContent=works;
-document.getElementById("statPartial").textContent=partial;
-document.getElementById("statStub").textContent=stub;
-}
-
-function showTab(id){
-const tab=TABS.find(t=>t.id===id);
-if(!tab)return;
+function show(id){const t=T.find(x=>x.id===id);if(!t)return;
 document.querySelectorAll(".nav-item").forEach(el=>el.classList.toggle("active",el.dataset.id===id));
-const si=getStatusInfo(tab.status);
-let html=`<div class="tab-detail">`;
-html+=`<h2>${tab.icon} ${tab.name}</h2>`;
-html+=`<div class="tab-path">${tab.path}</div>`;
-html+=`<div class="tab-roles">${tab.roles.map(r=>`<span class="role-badge">${r}</span>`).join("")}</div>`;
-html+=`<div class="section-block"><h3><span class="ico">ℹ️</span> Описание <span class="status-badge ${si.cls}">${si.label}</span></h3><p>${tab.desc}</p></div>`;
-if(tab.actions.length){
-html+=`<div class="section-block"><h3><span class="ico">⚡</span> Доступные действия</h3><ul class="action-list">${tab.actions.map(a=>`<li>${a}</li>`).join("")}</ul></div>`;
-}
-if(tab.scenarios.length){
-html+=`<div class="section-block"><h3><span class="ico">🎯</span> Сценарии использования</h3>${tab.scenarios.map(s=>`<div class="scenario-card"><strong>Сценарий:</strong>${s}</div>`).join("")}</div>`;
-}
-if(tab.diagram){
-html+=`<div class="section-block"><h3><span class="ico">📐</span> Схема интерфейса</h3><div class="diagram">${tab.diagram}</div></div>`;
-}
-if(tab.related.length){
-html+=`<div class="section-block"><h3><span class="ico">🔗</span> Связанные разделы</h3><div class="related-tags">${tab.related.map(r=>{const rt=TABS.find(t=>t.id===r);return rt?`<span class="related-tag" onclick="showTab('${r}')">${rt.icon} ${rt.name}</span>`:""}).join("")}</div></div>`;
-}
-if(tab.improve.length){
-html+=`<div class="section-block"><h3><span class="ico">🔨</span> Что доработать</h3><ul class="improve-list">${tab.improve.map(i=>`<li> ${i}</li>`).join("")}</ul></div>`;
-}
-html+=`</div>`;
-document.getElementById("mainContent").innerHTML=html;
-document.querySelector(".sidebar").classList.remove("open");
-}
+const s=si(t.status);let h=`<div class="tab-detail"><h2>${t.icon} ${t.name}</h2><div class="tab-path">${t.path}</div><div class="tab-roles">${t.roles.map(r=>`<span class="role-badge">${r}</span>`).join("")}</div>`;
 
-function showWelcome(){
-const works=TABS.filter(t=>t.status==="works").length;
-const partial=TABS.filter(t=>t.status==="partial").length;
-const stub=TABS.filter(t=>t.status==="stub").length;
-let html=`<div class="stats-bar">
-<div class="stat-card"><div class="num">${TABS.length}</div><div class="lbl">Всего вкладок</div></div>
-<div class="stat-card s-green"><div class="num" id="statWorks">${works}</div><div class="lbl">Работают</div></div>
-<div class="stat-card s-yellow"><div class="num" id="statPartial">${partial}</div><div class="lbl">Доработать</div></div>
-<div class="stat-card s-red"><div class="num" id="statStub">${stub}</div><div class="lbl">Заглушки</div></div>
-<div class="stat-card"><div class="num" id="statTotal">${TABS.length}</div><div class="lbl">Доступно</div></div>
-</div>`;
-html+=`<div class="welcome"><h2>☕ Добро пожаловать в гид VendHub OS</h2>
-<p>Выберите вкладку в боковом меню или кликните на секцию ниже. Используйте поиск и фильтр по роли.</p>
-<div class="welcome-grid">`;
-SECTIONS_ORDER.forEach(sec=>{
-const items=TABS.filter(t=>t.section===sec);
-if(!items.length)return;
-const w=items.filter(t=>t.status==="works").length;
-html+=`<div class="welcome-card" onclick="showTab('${items[0].id}')"><div class="cnt">${items.length}</div><h4>${sec}</h4><p>${items.map(t=>t.icon).join(" ")} — ${w}/${items.length} работают</p></div>`;
-});
-html+=`</div>`;
-html+=`<div class="flow-section"><h3>📊 Операционная цепочка</h3><div class="diagram">Утро: Менеджер → Дашборд → Алерты + Задачи
+h+=`<div class="section-block"><h3>ℹ️ Описание <span class="status-badge ${s.c}">${s.l}</span></h3><p style="font-size:15px">${t.desc}</p></div>`;
+
+if(t.stats&&t.stats.length){h+=`<div class="section-block"><h3>📊 Показатели (Stat Cards)</h3><div class="stat-mockup">${t.stats.map(s=>`<div class="stat-mock-card"><div class="sm-num">${s.n}</div><div class="sm-lbl">${s.l}</div></div>`).join("")}</div></div>`}
+
+if(t.cardFields&&t.cardFields.length){h+=`<div class="section-block"><h3>🃏 Карточка элемента</h3><p style="font-size:12px;color:var(--text3);margin-bottom:8px">Так выглядит карточка в списке / при клике на элемент:</p><div class="card-mockup"><div class="card-mockup-header"><span>${t.icon} ${t.name} — Пример карточки</span><span class="status-badge ${s.c}" style="font-size:10px">${s.l}</span></div><div class="card-mockup-body">${t.cardFields.map(f=>`<div class="card-field"><span class="f-label">${f.l}</span>${f.b?`<span class="f-badge ${f.b}">${f.v}</span>`:`<span class="f-value">${f.v}</span>`}</div>`).join("")}</div>`;
+if(t.cardButtons&&t.cardButtons.length){h+=`<div class="card-mockup-footer">${t.cardButtons.map((b,i)=>`<span class="mock-btn ${i===0?'primary':''}">${b}</span>`).join("")}</div>`}
+h+=`</div></div>`}
+
+if(t.tableFields&&t.tableFields.length){h+=`<div class="section-block"><h3>📋 Колонки таблицы</h3><table class="table-mockup"><thead><tr>${t.tableFields.map(f=>`<th>${f}</th>`).join("")}</tr></thead><tbody><tr>${t.tableFields.map(()=>`<td style="color:var(--text3);font-style:italic">данные...</td>`).join("")}</tr></tbody></table></div>`}
+
+if(t.filters&&t.filters.length){h+=`<div class="section-block"><h3>🔍 Фильтры</h3><div class="filter-mockup">${t.filters.map(f=>`<span class="filter-mock ${f.startsWith('🔍')?'search':''}">${f}</span>`).join("")}</div></div>`}
+
+if(t.actions&&t.actions.length){h+=`<div class="section-block"><h3>⚡ Доступные действия</h3><ul class="action-list">${t.actions.map(a=>`<li>${a}</li>`).join("")}</ul></div>`}
+
+if(t.formFields&&t.formFields.length){h+=`<div class="section-block"><h3>📝 Поля формы создания/редактирования</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px">${t.formFields.map(f=>`<div style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:13px">${f.includes('*')?`<strong>${f}</strong>`:f}</div>`).join("")}</div></div>`}
+
+if(t.scenarios&&t.scenarios.length){h+=`<div class="section-block"><h3>🎯 Сценарии</h3>${t.scenarios.map(s=>`<div class="scenario-card"><strong>Сценарий:</strong>${s}</div>`).join("")}</div>`}
+
+if(t.related&&t.related.length){h+=`<div class="section-block"><h3>🔗 Связанные разделы</h3><div class="related-tags">${t.related.map(r=>{const rt=T.find(x=>x.id===r);return rt?`<span class="related-tag" onclick="show('${r}')">${rt.icon} ${rt.name}</span>`:""}).join("")}</div></div>`}
+
+if(t.improve&&t.improve.length){h+=`<div class="section-block"><h3>🔨 Что доработать</h3><ul class="improve-list">${t.improve.map(i=>`<li> ${i}</li>`).join("")}</ul></div>`}
+
+h+=`</div>`;document.getElementById("mainContent").innerHTML=h;document.querySelector(".sidebar").classList.remove("open")}
+
+function home(){const w=T.filter(t=>t.status==="works").length,p=T.filter(t=>t.status==="partial").length,r=T.filter(t=>t.status==="stub").length;
+let h=`<div class="stats-bar"><div class="stat-card"><div class="num">${T.length}</div><div class="lbl">Всего</div></div><div class="stat-card s-green"><div class="num" id="sW">${w}</div><div class="lbl">Работают</div></div><div class="stat-card s-yellow"><div class="num" id="sP">${p}</div><div class="lbl">Доработать</div></div><div class="stat-card s-red"><div class="num" id="sR">${r}</div><div class="lbl">Заглушки</div></div><div class="stat-card"><div class="num" id="sT">${T.length}</div><div class="lbl">Доступно</div></div></div>`;
+h+=`<div class="welcome"><h2>☕ Гид по админ-панели VendHub OS</h2><p>Выберите вкладку слева или кликните на секцию. Используйте поиск и фильтр по роли.</p><div class="welcome-grid">`;
+SO.forEach(s=>{const items=T.filter(t=>t.section===s);if(!items.length)return;h+=`<div class="welcome-card" onclick="show('${items[0].id}')"><div class="cnt">${items.length}</div><h4>${s}</h4><p>${items.map(t=>t.icon).join(" ")} — ${items.filter(t=>t.status==="works").length}/${items.length} работают</p></div>`});
+h+=`</div><div class="flow-section"><h3>📊 Ежедневная операционная цепочка</h3><div class="diagram">Утро: Менеджер → Дашборд → Алерты + Задачи
   │
   ▼
 Создаёт маршрут → Оператор начинает поездку
   │
-  ├─► Остановка 1: Заправка (фото до → засыпает → фото после)
-  ├─► Остановка 2: Инкассация (считает → записывает сумму)
-  ├─► Остановка 3: Ремонт (описание → запчасти → завершение)
+  ├─► Остановка 1: VM-0005 → Задача: Заправка
+  │   └── Фото до → Засыпает кофе → Фото после → ✓ Готово
+  │
+  ├─► Остановка 2: VM-0012 → Задача: Инкассация
+  │   └── Считает наличные → Записывает сумму → ✓ Собрано
+  │
+  ├─► Остановка 3: VM-0003 → Задача: Ремонт
+  │   └── Описание → Запчасти → Завершение → ✓ Готово
   │
   ▼
-Завершает поездку → Аналитика
+Завершает поездку → Аналитика (км, время, задачи)
   │
   ▼
 Бухгалтер: Принимает инкассацию → Сверяет → Финансы</div></div>`;
-html+=`<div class="flow-section"><h3>💰 Финансовая цепочка</h3><div class="diagram">Продажа на машине
+h+=`<div class="flow-section"><h3>💰 Финансовая цепочка</h3><div class="diagram">Продажа на машине
   │
   ▼
 Транзакция ────► Платёж (Payme / Click / Uzum)
@@ -555,13 +686,8 @@ html+=`<div class="flow-section"><h3>💰 Финансовая цепочка</h
 Сверка ◄──────── Отчёт платёжной системы
   │
   ▼
-Финансы (P&L, Cash Flow, Бюджет) → Отчёты → Инвестор</div></div>`;
-html+=`</div>`;
-document.getElementById("mainContent").innerHTML=html;
-}
+Финансы (P&L, Cash Flow, Бюджет) → Отчёты → Инвестор</div></div></div>`;
+document.getElementById("mainContent").innerHTML=h}
 
-buildSidebar();
-showWelcome();
-</script>
-</body>
-</html>
+buildNav();home();
+</script></body></html>
