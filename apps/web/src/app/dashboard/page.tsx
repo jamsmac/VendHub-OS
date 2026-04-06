@@ -27,17 +27,20 @@ export default function DashboardPage() {
   // Map from API response { latestStats } to dashboard display
   const stats = dashData?.latestStats || dashData;
 
+  const totalMachines =
+    (stats?.activeMachinesCount ?? 0) + (stats?.offlineMachinesCount ?? 0);
+
   const statCards = [
     {
       title: t("totalMachines"),
-      value: stats?.activeMachinesCount ?? stats?.totalMachines ?? 0,
+      value: totalMachines || stats?.totalMachines || 0,
       icon: Coffee,
       color: "text-blue-600",
       bgColor: "bg-blue-100 dark:bg-blue-900/30",
     },
     {
       title: t("activeMachines"),
-      value: stats?.onlineMachinesCount ?? stats?.activeMachines ?? 0,
+      value: stats?.activeMachinesCount ?? stats?.activeMachines ?? 0,
       icon: CheckCircle,
       color: "text-green-600",
       bgColor: "bg-green-100 dark:bg-green-900/30",
