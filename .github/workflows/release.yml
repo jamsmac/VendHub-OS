@@ -99,16 +99,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Bot Image
-      - name: Build and push Bot image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./apps/bot/Dockerfile
-          push: true
-          tags: vendhub/bot:${{ steps.version.outputs.VERSION }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      # Bot removed — Telegram bots now embedded in API service (telegram-bot module)
 
       # Site Image
       - name: Build and push Site image

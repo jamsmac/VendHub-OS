@@ -221,44 +221,10 @@ services:
         max-size: "50m"
         max-file: "3"
 
-  # ============================================================================
-  # Telegram Bot
-  # ============================================================================
-  bot:
-    build:
-      context: .
-      dockerfile: apps/bot/Dockerfile
-      args:
-        - NODE_ENV=production
-    image: vendhub/bot:${IMAGE_TAG:-latest}
-    container_name: vendhub-bot
-    restart: unless-stopped
-    environment:
-      - NODE_ENV=production
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-      - API_URL=http://api:4000
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - WEBHOOK_URL=${BOT_WEBHOOK_URL}
-    depends_on:
-      - api
-      - redis
-    networks:
-      - vendhub-network
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 512M
-        reservations:
-          cpus: "0.1"
-          memory: 128M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "3"
+  # Telegram Bots — now embedded in API service (telegram-bot module)
+  # Staff Bot: TELEGRAM_BOT_TOKEN
+  # Customer Bot: TELEGRAM_CUSTOMER_BOT_TOKEN
+  # See apps/api/src/modules/telegram-bot/ for implementation
 
   # ============================================================================
   # PostgreSQL Database

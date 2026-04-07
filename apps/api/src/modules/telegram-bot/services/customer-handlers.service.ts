@@ -16,6 +16,9 @@ import { CustomerCatalogService } from "./customer-catalog.service";
 import { CustomerLoyaltyService } from "./customer-loyalty.service";
 import { CustomerOrdersService } from "./customer-orders.service";
 import { CustomerComplaintsService } from "./customer-complaints.service";
+import { CustomerLocationService } from "./customer-location.service";
+import { CustomerCartService } from "./customer-cart.service";
+import { CustomerEngagementService } from "./customer-engagement.service";
 
 @Injectable()
 export class CustomerHandlersService {
@@ -29,6 +32,9 @@ export class CustomerHandlersService {
     private readonly loyaltyService: CustomerLoyaltyService,
     private readonly ordersService: CustomerOrdersService,
     private readonly complaintsService: CustomerComplaintsService,
+    private readonly locationService: CustomerLocationService,
+    private readonly cartService: CustomerCartService,
+    private readonly engagementService: CustomerEngagementService,
   ) {}
 
   setBot(
@@ -64,6 +70,11 @@ export class CustomerHandlersService {
         return;
       }
 
+      if (startParam?.startsWith("ref_")) {
+        // Handle referral — show welcome + note referral
+        // Referral processing happens on first order
+      }
+
       await this.menuService.showMainMenu(ctx);
     });
 
@@ -92,7 +103,7 @@ export class CustomerHandlersService {
       await this.complaintsService.askForMachineCode(ctx);
     });
 
-    // /status
+    // /status — Check purchase status
     this.bot.command("status", async (ctx) => {
       await this.complaintsService.askForTransactionId(ctx);
     });
@@ -105,6 +116,41 @@ export class CustomerHandlersService {
     // /mycomplaints
     this.bot.command("mycomplaints", async (ctx) => {
       await this.complaintsService.showMyComplaints(ctx);
+    });
+
+    // /find — Find nearby machines
+    this.bot.command("find", async (ctx) => {
+      await this.locationService.requestLocation(ctx);
+    });
+
+    // /cart — Shopping cart
+    this.bot.command("cart", async (ctx) => {
+      await this.cartService.showCart(ctx);
+    });
+
+    // /referral — Referral program
+    this.bot.command("referral", async (ctx) => {
+      await this.engagementService.showReferralInfo(ctx);
+    });
+
+    // /quests — Active quests
+    this.bot.command("quests", async (ctx) => {
+      await this.engagementService.showQuests(ctx);
+    });
+
+    // /achievements — User achievements
+    this.bot.command("achievements", async (ctx) => {
+      await this.engagementService.showAchievements(ctx);
+    });
+
+    // /promo — Enter promo code
+    this.bot.command("promo", async (ctx) => {
+      const code = ctx.message.text.split(" ")[1];
+      if (code) {
+        await this.engagementService.handlePromoCode(ctx, code);
+      } else {
+        await this.engagementService.askForPromoCode(ctx);
+      }
     });
   }
 
@@ -129,7 +175,6 @@ export class CustomerHandlersService {
       await this.catalogService.showCategories(ctx);
     });
 
-    // Category with optional page: cat:category or cat:category:page
     this.bot.action(/^cat:([^:]+)(?::(\d+))?$/, async (ctx) => {
       await ctx.answerCbQuery();
       const category = ctx.match[1]!;
@@ -137,16 +182,51 @@ export class CustomerHandlersService {
       await this.catalogService.showCategoryProducts(ctx, category, page);
     });
 
-    // Product details
     this.bot.action(/^product:(.+)$/, async (ctx) => {
       await ctx.answerCbQuery();
       await this.catalogService.showProductDetails(ctx, ctx.match[1]!);
     });
 
-    // Nearby machines
+    // --- Location / Find Machines ---
+    this.bot.action("find_machines", async (ctx) => {
+      await ctx.answerCbQuery();
+      await this.locationService.requestLocation(ctx);
+    });
+
     this.bot.action("machines", async (ctx) => {
       await ctx.answerCbQuery();
       await this.catalogService.showNearbyMachines(ctx);
+    });
+
+    this.bot.action(/^machine:(.+)$/, async (ctx) => {
+      await ctx.answerCbQuery();
+      await this.catalogService.showProductDetails(ctx, ctx.match[1]!);
+    });
+
+    // --- Cart ---
+    this.bot.action("cart", async (ctx) => {
+      await ctx.answerCbQuery();
+      await this.cartService.showCart(ctx);
+    });
+
+    this.bot.action("clear_cart", async (ctx) => {
+      await ctx.answerCbQuery();
+      await this.cartService.clearCart(ctx);
+    });
+
+    this.bot.action("checkout", async (ctx) => {
+      await ctx.answerCbQuery();
+      await this.cartService.startCheckout(ctx);
+    });
+
+    this.bot.action(/^add_to_cart:(.+):(.+)$/, async (ctx) => {
+      await ctx.answerCbQuery();
+      await this.cartService.addToCart(ctx, ctx.match[1]!, ctx.match[2]!);
+    });
+
+    this.bot.action(/^pay:(.+)$/, async (ctx) => {
+      await ctx.answerCbQuery();
+      await this.cartService.processPayment(ctx, ctx.match[1]!);
     });
 
     // --- Loyalty ---
@@ -180,6 +260,27 @@ export class CustomerHandlersService {
     this.bot.action(/^order:(.+)$/, async (ctx) => {
       await ctx.answerCbQuery();
       await this.ordersService.showOrderDetails(ctx, ctx.match[1]!);
+    });
+
+    // --- Engagement (referrals, quests, achievements, promo) ---
+    this.bot.action("referral", async (ctx) => {
+      await ctx.answerCbQuery();
+      await this.engagementService.showReferralInfo(ctx);
+    });
+
+    this.bot.action("quests", async (ctx) => {
+      await ctx.answerCbQuery();
+      await this.engagementService.showQuests(ctx);
+    });
+
+    this.bot.action("achievements", async (ctx) => {
+      await ctx.answerCbQuery();
+      await this.engagementService.showAchievements(ctx);
+    });
+
+    this.bot.action("promo", async (ctx) => {
+      await ctx.answerCbQuery();
+      await this.engagementService.askForPromoCode(ctx);
     });
 
     // --- Complaints ---
@@ -238,7 +339,11 @@ export class CustomerHandlersService {
     // --- Language ---
     this.bot.action(/^lang:(.+)$/, async (ctx) => {
       await ctx.answerCbQuery();
-      const lang = ctx.match[1];
+      const lang = ctx.match[1] as "ru" | "uz" | "en";
+      const session = this.sessions.get(ctx.from!.id);
+      if (session) {
+        session.language = lang;
+      }
       await ctx.reply(
         `✅ Язык изменён на ${lang === "ru" ? "Русский" : lang === "uz" ? "O'zbek" : "English"}`,
       );
@@ -251,7 +356,22 @@ export class CustomerHandlersService {
   // ============================================================================
 
   private registerMessages() {
-    // Photo handler
+    // Location handler — find nearby machines
+    this.bot.on("location", async (ctx) => {
+      const session = this.sessions.get(ctx.from!.id);
+      if (
+        session?.state === CustomerSessionState.AWAITING_LOCATION ||
+        !session
+      ) {
+        await this.locationService.handleLocation(
+          ctx,
+          ctx.message.location.latitude,
+          ctx.message.location.longitude,
+        );
+      }
+    });
+
+    // Photo handler — complaint photos
     this.bot.on("photo", async (ctx) => {
       const session = this.sessions.get(ctx.from!.id);
       if (!session || session.state !== CustomerSessionState.AWAITING_PHOTO)
@@ -276,9 +396,16 @@ export class CustomerHandlersService {
     // Text handler (state machine)
     this.bot.on("text", async (ctx) => {
       const session = this.sessions.get(ctx.from!.id);
-      if (!session) return;
-
       const text = ctx.message.text.trim();
+
+      // Cancel from keyboard
+      if (text === "❌ Отмена") {
+        this.sessions.delete(ctx.from!.id);
+        await this.menuService.showMainMenu(ctx);
+        return;
+      }
+
+      if (!session) return;
 
       switch (session.state) {
         case CustomerSessionState.AWAITING_MACHINE_CODE:
@@ -299,6 +426,10 @@ export class CustomerHandlersService {
 
         case CustomerSessionState.AWAITING_REFUND_DETAILS:
           await this.complaintsService.handleRefundDetails(ctx, text);
+          break;
+
+        case CustomerSessionState.AWAITING_PROMO_CODE:
+          await this.engagementService.handlePromoCode(ctx, text);
           break;
       }
     });

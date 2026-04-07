@@ -22,10 +22,12 @@ type FactoryDefinition<T> = {
   [K in keyof T]: FactoryField<T[K]>;
 };
 
-interface Factory<T> {
+export interface Factory<T> {
   build(overrides?: Partial<T>): T;
   buildMany(count: number, overrides?: Partial<T>): T[];
-  buildCreateDto(overrides?: Partial<T>): Omit<T, "id" | "createdAt" | "updatedAt" | "deletedAt">;
+  buildCreateDto(
+    overrides?: Partial<T>,
+  ): Omit<T, "id" | "createdAt" | "updatedAt" | "deletedAt">;
 }
 
 let globalCounter = 0;
@@ -37,7 +39,7 @@ function resolveField<T>(field: FactoryField<T>, index: number): T {
   return field;
 }
 
-export function createFactory<T extends Record<string, unknown>>(
+export function createFactory<T extends object>(
   definition: FactoryDefinition<T>,
 ): Factory<T> {
   return {
@@ -62,7 +64,10 @@ export function createFactory<T extends Record<string, unknown>>(
 
     buildCreateDto(overrides?: Partial<T>) {
       const entity = this.build(overrides);
-      const { id, createdAt, updatedAt, deletedAt, ...dto } = entity as Record<string, unknown>;
+      const { id, createdAt, updatedAt, deletedAt, ...dto } = entity as Record<
+        string,
+        unknown
+      >;
       return dto as Omit<T, "id" | "createdAt" | "updatedAt" | "deletedAt">;
     },
   };

@@ -38,6 +38,8 @@ import { BotMachineOpsService } from "./services/bot-machine-ops.service";
 import { BotMenuService } from "./services/bot-menu.service";
 import { BotNotificationsService } from "./services/bot-notifications.service";
 import { BotAdminService } from "./services/bot-admin.service";
+import { BotRouteOpsService } from "./services/bot-route-ops.service";
+import { BotStatsService } from "./services/bot-stats.service";
 
 @Injectable()
 export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
@@ -65,6 +67,8 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
     private readonly menuService: BotMenuService,
     private readonly notificationsService: BotNotificationsService,
     private readonly adminService: BotAdminService,
+    private readonly routeOpsService: BotRouteOpsService,
+    private readonly statsService: BotStatsService,
   ) {}
 
   async onModuleInit() {
@@ -107,6 +111,8 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
     this.machineOpsService.setBot(this.bot, this.sessions);
     this.menuService.setBot(this.bot, this.sessions);
     this.notificationsService.setBot(this.bot, this.sessions);
+    this.routeOpsService.setBot(this.bot, this.sessions);
+    this.statsService.setBot(this.bot, this.sessions);
 
     // Wire cross-service callback: task ops needs showMainMenu from menu service
     this.taskOpsService.setShowMainMenuFn(

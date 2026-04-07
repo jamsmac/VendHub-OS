@@ -123,6 +123,22 @@ export class PaymentReportUpload extends BaseEntity {
   @Column({ name: "uploaded_by", length: 255, nullable: true })
   uploadedBy: string;
 
+  /** Количество импортированных строк */
+  @Column({ name: "imported_rows", type: "int", default: 0 })
+  importedRows: number;
+
+  /** Количество ошибок при импорте */
+  @Column({ name: "import_errors", type: "int", default: 0 })
+  importErrors: number;
+
+  /** Когда был выполнен импорт */
+  @Column({ name: "imported_at", type: "timestamp", nullable: true })
+  importedAt: Date;
+
+  /** Кто выполнил импорт */
+  @Column({ name: "imported_by", length: 255, nullable: true })
+  importedBy: string;
+
   @OneToMany("PaymentReportRow", "upload", { cascade: true })
   rows: unknown[];
 }

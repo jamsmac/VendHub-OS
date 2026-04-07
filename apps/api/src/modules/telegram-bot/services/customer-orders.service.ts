@@ -1,15 +1,33 @@
 /**
  * Customer Bot — Orders Sub-Service
  * View order history, order details with items and status.
- *
- * NOTE: The orders tables (client_users, client_orders) do not yet exist
- * in Supabase. All methods show a "coming soon" placeholder until
- * the ordering system is implemented.
+ * Uses TypeORM to query client_orders.
  */
 
 import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import { Telegraf, Markup } from "telegraf";
 import { CustomerBotContext, CustomerSession } from "./customer-types";
+import {
+  ClientOrder,
+  ClientOrderStatus,
+} from "../../client/entities/client-order.entity";
+import { ClientUser } from "../../client/entities/client-user.entity";
+
+function formatPrice(price: number): string {
+  return Number(price).toLocaleString("ru-RU");
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  [ClientOrderStatus.PENDING]: "⏳ Ожидает оплаты",
+  [ClientOrderStatus.PAID]: "✅ Оплачен",
+  [ClientOrderStatus.DISPENSING]: "🔄 Выдача",
+  [ClientOrderStatus.COMPLETED]: "✅ Выполнен",
+  [ClientOrderStatus.FAILED]: "❌ Ошибка",
+  [ClientOrderStatus.CANCELLED]: "🚫 Отменён",
+  [ClientOrderStatus.REFUNDED]: "💸 Возврат",
+};
 
 @Injectable()
 export class CustomerOrdersService {
@@ -17,7 +35,12 @@ export class CustomerOrdersService {
   private bot: Telegraf<CustomerBotContext>;
   private sessions: Map<number, CustomerSession>;
 
-  constructor() {}
+  constructor(
+    @InjectRepository(ClientUser)
+    private readonly clientUserRepo: Repository<ClientUser>,
+    @InjectRepository(ClientOrder)
+    private readonly orderRepo: Repository<ClientOrder>,
+  ) {}
 
   setBot(
     bot: Telegraf<CustomerBotContext>,
@@ -27,21 +50,13 @@ export class CustomerOrdersService {
     this.sessions = sessions;
   }
 
-  // ---------- Order History ----------
+  // ---------- Helpers ----------
 
-  async showOrderHistory(ctx: CustomerBotContext, _page = 1) {
-    const keyboard = Markup.inlineKeyboard([
-      [Markup.button.callback("📋 Наше меню", "catalog")],
-      [Markup.button.callback("🏠 В меню", "menu")],
-    ]);
-
-    const message =
-      "📋 История заказов\n\n" +
-      "🚧 Эта функция скоро будет доступна!\n\n" +
-      "Совершайте покупки через наши автоматы, " +
-      "и здесь появится полная история ваших заказов.\n\n" +
-      "📍 Найти ближайший автомат → /start";
-
+  private async replyOrEdit(
+    ctx: CustomerBotContext,
+    message: string,
+    keyboard: ReturnType<typeof Markup.inlineKeyboard>,
+  ) {
     if (ctx.callbackQuery) {
       try {
         await ctx.editMessageText(message, keyboard);
@@ -53,17 +68,152 @@ export class CustomerOrdersService {
     }
   }
 
+  // ---------- Order History ----------
+
+  async showOrderHistory(ctx: CustomerBotContext, page = 1) {
+    const telegramId = ctx.from?.id?.toString();
+    if (!telegramId) return;
+
+    const limit = 5;
+    const offset = (page - 1) * limit;
+
+    let orders: ClientOrder[] = [];
+    let total = 0;
+
+    try {
+      const clientUser = await this.clientUserRepo.findOne({
+        where: { telegramId },
+      });
+
+      if (clientUser) {
+        [orders, total] = await this.orderRepo.findAndCount({
+          where: { clientUserId: clientUser.id },
+          order: { createdAt: "DESC" },
+          take: limit,
+          skip: offset,
+        });
+      }
+    } catch {
+      // Tables may not exist yet
+    }
+
+    if (orders.length === 0 && page === 1) {
+      const keyboard = Markup.inlineKeyboard([
+        [Markup.button.callback("📋 Наше меню", "catalog")],
+        [Markup.button.callback("🏠 В меню", "menu")],
+      ]);
+      await this.replyOrEdit(
+        ctx,
+        "📋 История заказов\n\n" +
+          "У вас пока нет заказов. Совершите первую покупку " +
+          "через автомат VendHub!",
+        keyboard,
+      );
+      return;
+    }
+
+    let message = `📋 Заказы (стр. ${page})\n\n`;
+
+    for (const order of orders) {
+      const date = order.createdAt
+        ? new Date(order.createdAt).toLocaleDateString("ru-RU")
+        : "";
+      const statusLabel = STATUS_LABELS[order.status] ?? order.status;
+      message +=
+        `#${order.orderNumber} — ${formatPrice(order.totalAmount)} сум\n` +
+        `${statusLabel} | ${date}\n\n`;
+    }
+
+    const buttons: ReturnType<typeof Markup.button.callback>[][] = [];
+
+    // Order detail buttons
+    for (const order of orders) {
+      buttons.push([
+        Markup.button.callback(`📦 #${order.orderNumber}`, `order:${order.id}`),
+      ]);
+    }
+
+    // Pagination
+    const totalPages = Math.ceil(total / limit);
+    const navButtons: ReturnType<typeof Markup.button.callback>[] = [];
+    if (page > 1) {
+      navButtons.push(Markup.button.callback("« Назад", `orders:${page - 1}`));
+    }
+    if (page < totalPages) {
+      navButtons.push(Markup.button.callback("Вперёд »", `orders:${page + 1}`));
+    }
+    if (navButtons.length > 0) {
+      buttons.push(navButtons);
+    }
+
+    buttons.push([Markup.button.callback("🏠 В меню", "menu")]);
+
+    await this.replyOrEdit(ctx, message, Markup.inlineKeyboard(buttons));
+  }
+
   // ---------- Order Details ----------
 
-  async showOrderDetails(ctx: CustomerBotContext, _orderId: string) {
-    const keyboard = Markup.inlineKeyboard([
+  async showOrderDetails(ctx: CustomerBotContext, orderId: string) {
+    let order: ClientOrder | null = null;
+
+    try {
+      order = await this.orderRepo.findOne({
+        where: { id: orderId },
+      });
+    } catch {
+      // Table may not exist
+    }
+
+    if (!order) {
+      const keyboard = Markup.inlineKeyboard([
+        [Markup.button.callback("« Мои заказы", "orders")],
+        [Markup.button.callback("🏠 В меню", "menu")],
+      ]);
+      await this.replyOrEdit(ctx, "❌ Заказ не найден.", keyboard);
+      return;
+    }
+
+    const statusLabel = STATUS_LABELS[order.status] ?? order.status;
+    const date = order.createdAt
+      ? new Date(order.createdAt).toLocaleString("ru-RU")
+      : "";
+
+    let message =
+      `📦 Заказ #${order.orderNumber}\n\n` +
+      `Статус: ${statusLabel}\n` +
+      `Дата: ${date}\n` +
+      `Сумма: ${formatPrice(order.totalAmount)} сум\n`;
+
+    if (order.loyaltyPointsUsed > 0) {
+      message += `Использовано баллов: ${order.loyaltyPointsUsed}\n`;
+    }
+
+    // Show items if available (JSONB column)
+    const items = order.items as
+      | { productName: string; quantity: number; unitPrice: number }[]
+      | null;
+    if (items && items.length > 0) {
+      message += "\nТовары:\n";
+      for (const item of items) {
+        message += `  • ${item.productName} x${item.quantity} — ${formatPrice(item.unitPrice * item.quantity)} сум\n`;
+      }
+    }
+
+    const buttons: ReturnType<typeof Markup.button.callback>[][] = [
       [Markup.button.callback("« Мои заказы", "orders")],
       [Markup.button.callback("🏠 В меню", "menu")],
-    ]);
+    ];
 
-    await ctx.reply(
-      "📋 Детали заказа\n\n🚧 Функция скоро будет доступна.",
-      keyboard,
-    );
+    // Show complaint button for completed/failed orders
+    if (
+      order.status === ClientOrderStatus.FAILED ||
+      order.status === ClientOrderStatus.COMPLETED
+    ) {
+      buttons.unshift([
+        Markup.button.callback("⚠️ Сообщить о проблеме", "new_complaint"),
+      ]);
+    }
+
+    await this.replyOrEdit(ctx, message, Markup.inlineKeyboard(buttons));
   }
 }

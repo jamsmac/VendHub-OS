@@ -9,6 +9,8 @@ import { BotContext, TelegramSession, SessionState } from "./bot-types";
 import { BotTaskOpsService } from "./bot-task-ops.service";
 import { BotMachineOpsService } from "./bot-machine-ops.service";
 import { BotMenuService } from "./bot-menu.service";
+import { BotRouteOpsService } from "./bot-route-ops.service";
+import { BotStatsService } from "./bot-stats.service";
 
 @Injectable()
 export class BotHandlersService {
@@ -20,6 +22,8 @@ export class BotHandlersService {
     private readonly taskOpsService: BotTaskOpsService,
     private readonly machineOpsService: BotMachineOpsService,
     private readonly menuService: BotMenuService,
+    private readonly routeOpsService: BotRouteOpsService,
+    private readonly statsService: BotStatsService,
   ) {}
 
   setBot(bot: Telegraf<BotContext>, sessions: Map<number, TelegramSession>) {
@@ -80,7 +84,7 @@ export class BotHandlersService {
     // /stats - My statistics
     this.bot.command("stats", async (ctx) => {
       if (!ctx.user) return;
-      await this.menuService.showMyStats(ctx);
+      await this.statsService.showDayStats(ctx);
     });
 
     // /profile - My profile
@@ -93,6 +97,24 @@ export class BotHandlersService {
     this.bot.command("overdue", async (ctx) => {
       if (!ctx.user) return;
       await this.menuService.showOverdueTasks(ctx);
+    });
+
+    // /route - Route management
+    this.bot.command("route", async (ctx) => {
+      if (!ctx.user) return;
+      await this.routeOpsService.showActiveRoute(ctx);
+    });
+
+    // /alerts - Staff alerts
+    this.bot.command("alerts", async (ctx) => {
+      if (!ctx.user) return;
+      await this.statsService.showAlerts(ctx);
+    });
+
+    // /report - Day report
+    this.bot.command("report", async (ctx) => {
+      if (!ctx.user) return;
+      await this.statsService.showDayStats(ctx);
     });
   }
 
@@ -145,6 +167,43 @@ export class BotHandlersService {
     this.bot.action("material_requests", async (ctx) => {
       await ctx.answerCbQuery();
       await this.menuService.showMaterialRequests(ctx);
+    });
+
+    // --- Route / Trip actions ---
+    this.bot.action("routes", async (ctx) => {
+      await ctx.answerCbQuery();
+      await this.routeOpsService.showActiveRoute(ctx);
+    });
+
+    this.bot.action("route_start", async (ctx) => {
+      await ctx.answerCbQuery();
+      await this.routeOpsService.showVehicleSelection(ctx);
+    });
+
+    this.bot.action(/^route_vehicle:(.+)$/, async (ctx) => {
+      await ctx.answerCbQuery();
+      await this.routeOpsService.selectVehicleAndStart(ctx, ctx.match[1]!);
+    });
+
+    this.bot.action(/^route_end:(.+)$/, async (ctx) => {
+      await ctx.answerCbQuery();
+      await this.routeOpsService.endRoute(ctx, ctx.match[1]!);
+    });
+
+    this.bot.action("route_history", async (ctx) => {
+      await ctx.answerCbQuery();
+      await this.routeOpsService.showRouteHistory(ctx);
+    });
+
+    // --- Stats & Alerts ---
+    this.bot.action("day_stats", async (ctx) => {
+      await ctx.answerCbQuery();
+      await this.statsService.showDayStats(ctx);
+    });
+
+    this.bot.action("alerts", async (ctx) => {
+      await ctx.answerCbQuery();
+      await this.statsService.showAlerts(ctx);
     });
 
     // Task actions
@@ -240,7 +299,7 @@ export class BotHandlersService {
       const session = this.getSession(ctx.from!.id);
       if (!session || !session.data.taskId) return;
 
-      const photo = ctx.message.photo[ctx.message.photo.length - 1]!; // Largest size
+      const photo = ctx.message.photo[ctx.message.photo.length - 1]!;
       const fileId = photo.file_id;
 
       if (session.state === SessionState.AWAITING_PHOTO_BEFORE) {
@@ -291,23 +350,28 @@ export class BotHandlersService {
       }
     });
 
-    // Location handler
+    // Location handler — GPS tracking for routes
     this.bot.on("location", async (ctx) => {
-      const session = this.getSession(ctx.from!.id);
-      if (!session?.data.taskId) return;
-
       const { latitude, longitude } = ctx.message.location;
-      await this.taskOpsService.saveTaskLocation(
-        ctx,
-        session.data.taskId as string,
-        latitude,
-        longitude,
-      );
+
+      // Try route GPS tracking first
+      await this.routeOpsService.handleGpsPoint(ctx, latitude, longitude);
+
+      // Also handle task location if session has taskId
+      const session = this.getSession(ctx.from!.id);
+      if (session?.data.taskId) {
+        await this.taskOpsService.saveTaskLocation(
+          ctx,
+          session.data.taskId as string,
+          latitude,
+          longitude,
+        );
+      }
     });
   }
 
   // ============================================================================
-  // SESSION HELPERS (delegated from orchestrator)
+  // SESSION HELPERS
   // ============================================================================
 
   private getSession(userId: number): TelegramSession | undefined {

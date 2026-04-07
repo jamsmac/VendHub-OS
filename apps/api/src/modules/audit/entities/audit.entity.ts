@@ -111,8 +111,8 @@ export enum AuditCategory {
 
 export interface AuditChanges {
   field: string;
-  oldValue: Record<string, unknown> | null;
-  newValue: Record<string, unknown> | null;
+  oldValue: unknown;
+  newValue: unknown;
   fieldType?: string;
 }
 

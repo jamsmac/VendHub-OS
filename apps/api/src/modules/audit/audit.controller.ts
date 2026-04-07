@@ -22,7 +22,7 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from "@nestjs/swagger";
-import { AuditService } from "./audit.service";
+import { AuditService, CreateAuditLogInput } from "./audit.service";
 import {
   AuditLog,
   AuditSnapshot,
@@ -124,7 +124,7 @@ export class AuditController {
       description: dto.description,
       oldValues: dto.old_values,
       newValues: dto.new_values,
-      changes: dto.changes,
+      changes: dto.changes as CreateAuditLogInput["changes"],
       affectedFields: dto.affected_fields,
       context: dto.context,
       ipAddress: dto.ip_address,

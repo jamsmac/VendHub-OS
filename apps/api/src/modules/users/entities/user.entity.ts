@@ -160,7 +160,8 @@ export class User extends BaseEntity {
     joinColumn: { name: "user_id", referencedColumnName: "id" },
     inverseJoinColumn: { name: "role_id", referencedColumnName: "id" },
   })
-  roles: unknown[]; // Will be typed as Role[] after RBAC module is created
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  roles: any[];
 
   // ============================================
   // LOYALTY PROGRAM FIELDS

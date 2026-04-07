@@ -85,9 +85,6 @@ jobs:
           - app: site
             context: .
             dockerfile: apps/site/Dockerfile
-          - app: bot
-            context: .
-            dockerfile: apps/bot/Dockerfile
       fail-fast: false
     steps:
       - uses: actions/checkout@v4

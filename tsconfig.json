@@ -7,7 +7,6 @@
     { "path": "apps/api" },
     { "path": "apps/web" },
     { "path": "apps/client" },
-    { "path": "apps/bot" },
     { "path": "apps/mobile" },
     { "path": "packages/shared" }
   ],

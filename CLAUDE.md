@@ -39,7 +39,6 @@ Unified vending machine management platform for Uzbekistan. Turborepo monorepo m
 │   ├── api/              # NestJS backend (82 modules)
 │   ├── web/              # Next.js admin panel
 │   ├── client/           # Vite React PWA (customer-facing)
-│   ├── bot/              # Telegram bot (Telegraf)
 │   ├── mobile/           # React Native Expo app
 │   └── site/             # Next.js landing/marketing site
 ├── packages/
@@ -216,16 +215,15 @@ pnpm docker:logs            # View logs
 
 ## Docker Services
 
-| Service  | Port | Description    |
-| -------- | ---- | -------------- |
-| postgres | 5432 | PostgreSQL 16  |
-| redis    | 6379 | Redis 7        |
-| api      | 4000 | NestJS backend |
-| web      | 3000 | Next.js admin  |
-| client   | 5173 | Vite PWA       |
-| bot      | -    | Telegram bot   |
-| site     | 3100 | Next.js site   |
-| mobile   | -    | Expo dev       |
+| Service  | Port | Description                                     |
+| -------- | ---- | ----------------------------------------------- |
+| postgres | 5432 | PostgreSQL 16                                   |
+| redis    | 6379 | Redis 7                                         |
+| api      | 4000 | NestJS backend (includes Staff + Customer bots) |
+| web      | 3000 | Next.js admin                                   |
+| client   | 5173 | Vite PWA                                        |
+| site     | 3100 | Next.js site                                    |
+| mobile   | -    | Expo dev                                        |
 
 ## VendHub24 Integration Status
 
@@ -735,6 +733,58 @@ Unified Routes module — merged 3 modules (routes, trips, trip-analytics) into 
 | `completed`   | All stops visited, route ended      | terminal                            |
 | `cancelled`   | Manually cancelled                  | terminal                            |
 | `auto_closed` | No GPS updates for 8h (cron)        | terminal                            |
+
+### Telegram Bot Architecture Merge (2026-04-07)
+
+Eliminated standalone `apps/bot/` (mixed staff+customer logic, HTTP proxy to API) in favor of embedded bots inside API module (`apps/api/src/modules/telegram-bot/`). Two separate bots with separate tokens, direct TypeORM DB access, no HTTP overhead.
+
+**Architecture: Two-Bot Orchestrator Pattern**
+
+- **Staff Bot** (`TELEGRAM_BOT_TOKEN`): `TelegramBotService` orchestrator → 8 sub-services via `setBot()` pattern
+- **Customer Bot** (`TELEGRAM_CUSTOMER_BOT_TOKEN`): `TelegramCustomerBotService` orchestrator → 9 sub-services via `setBot()` pattern
+- Both bots share session management (`Map<number, Session>`), run inside NestJS DI container
+- Bot polling disabled when `DISABLE_BOT_POLLING=true` (for webhook mode or send-only)
+
+**Staff Bot Sub-Services** (operators, managers, warehouse):
+
+| Service                   | Purpose                                             |
+| ------------------------- | --------------------------------------------------- |
+| `BotHandlersService`      | Command/callback/message routing                    |
+| `BotMenuService`          | Main menu, navigation                               |
+| `BotTaskOpsService`       | Task management (accept, complete, photo reports)   |
+| `BotMachineOpsService`    | Machine status, inventory checks                    |
+| `BotRouteOpsService`      | Route lifecycle, GPS tracking, vehicle selection    |
+| `BotNotificationsService` | Push notifications (task assigned, overdue, alerts) |
+| `BotStatsService`         | Daily stats, overdue alerts                         |
+| `BotAdminService`         | User management, analytics, message logging         |
+
+**Customer Bot Sub-Services** (end customers):
+
+| Service                     | Purpose                                            |
+| --------------------------- | -------------------------------------------------- |
+| `CustomerHandlersService`   | Command/callback/message routing                   |
+| `CustomerMenuService`       | Main menu, language selection                      |
+| `CustomerCatalogService`    | Product browsing by machine                        |
+| `CustomerCartService`       | Shopping cart, checkout, payment method selection  |
+| `CustomerOrdersService`     | Order history, details, pagination                 |
+| `CustomerLoyaltyService`    | Points balance, tier info, history                 |
+| `CustomerComplaintsService` | File complaints with photos                        |
+| `CustomerLocationService`   | Geolocation machine search (Haversine, 5km radius) |
+| `CustomerEngagementService` | Referrals, promo codes, quests, achievements       |
+
+**Deleted:**
+
+- `apps/bot/` directory (standalone Telegraf app with HTTP proxy — replaced entirely)
+- `bot` service from `docker-compose.yml`, `docker-compose.prod.yml`
+- `bot` Docker image build from CI (`ci.yml`, `deploy.yml`, `release.yml`)
+- `apps/bot` reference from root `tsconfig.json`
+
+**Key files:**
+
+- `apps/api/src/modules/telegram-bot/telegram-bot.module.ts` — NestJS module with all entities/services
+- `apps/api/src/modules/telegram-bot/telegram-bot.service.ts` — Staff bot orchestrator
+- `apps/api/src/modules/telegram-bot/telegram-customer-bot.service.ts` — Customer bot orchestrator
+- `apps/api/src/modules/telegram-bot/services/` — All sub-services (17 files)
 
 ## Skills (AI Agent Tools)
 

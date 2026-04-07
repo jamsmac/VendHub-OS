@@ -426,7 +426,8 @@ export class QuestProgressService {
 
       if (eventType === QuestType.COLLECTOR && metadata?.productIds) {
         const existing = uq.progressDetails?.triedProducts || [];
-        const newProducts = metadata.productIds.filter(
+        const productIds = metadata.productIds as string[];
+        const newProducts = productIds.filter(
           (id: string) => !existing.includes(id),
         );
         incrementValue = newProducts.length;

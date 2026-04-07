@@ -13,6 +13,16 @@ export interface CustomerBotContext extends Context {
 export interface CustomerSession {
   state: CustomerSessionState;
   data: Record<string, unknown>;
+  cart?: CartItem[];
+  language?: "ru" | "uz" | "en";
+}
+
+export interface CartItem {
+  productId: string;
+  productName: string;
+  unitPrice: number;
+  quantity: number;
+  machineId: string;
 }
 
 export enum CustomerSessionState {
@@ -28,4 +38,13 @@ export enum CustomerSessionState {
   AWAITING_TRANSACTION_ID = "awaiting_transaction_id",
   // Order flow
   AWAITING_ORDER_NUMBER = "awaiting_order_number",
+  // Location flow
+  AWAITING_LOCATION = "awaiting_location",
+  // Cart flow
+  AWAITING_PRODUCT_QUANTITY = "awaiting_product_quantity",
+  CONFIRMING_ORDER = "confirming_order",
+  // Feedback
+  AWAITING_FEEDBACK = "awaiting_feedback",
+  // Promo code
+  AWAITING_PROMO_CODE = "awaiting_promo_code",
 }

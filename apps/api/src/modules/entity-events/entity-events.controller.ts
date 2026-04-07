@@ -27,7 +27,10 @@ export class EntityEventsController {
 
   @Post()
   @ApiOperation({ summary: "Create a business event" })
-  async create(@Body() dto: CreateEntityEventDto, @Request() req: AuthenticatedRequest) {
+  async create(
+    @Body() dto: CreateEntityEventDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.entityEventsService.createEvent(
       dto,
       req.user.id,
@@ -37,7 +40,10 @@ export class EntityEventsController {
 
   @Get()
   @ApiOperation({ summary: "Query events with filters" })
-  async query(@Query() dto: QueryEntityEventsDto, @Request() req: AuthenticatedRequest) {
+  async query(
+    @Query() dto: QueryEntityEventsDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.entityEventsService.queryEvents(dto, req.user.organizationId);
   }
 
@@ -51,7 +57,7 @@ export class EntityEventsController {
   ) {
     return this.entityEventsService.getEntityTimeline(
       entityId,
-      req.user.organizationId,
+      req!.user.organizationId,
       page,
       limit,
     );
@@ -66,7 +72,7 @@ export class EntityEventsController {
   ) {
     return this.entityEventsService.getRecentEvents(
       entityId,
-      req.user.organizationId,
+      req!.user.organizationId,
       count || 10,
     );
   }

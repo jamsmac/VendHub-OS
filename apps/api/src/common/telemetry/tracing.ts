@@ -1,3 +1,4 @@
+// @ts-nocheck — OpenTelemetry packages are optional runtime dependencies
 /**
  * OpenTelemetry Tracing Configuration
  *
@@ -26,7 +27,8 @@ const isEnabled = process.env.OTEL_ENABLED === "true";
 
 if (isEnabled) {
   const exporterEndpoint =
-    process.env.OTEL_EXPORTER_OTLP_ENDPOINT || "http://localhost:4318/v1/traces";
+    process.env.OTEL_EXPORTER_OTLP_ENDPOINT ||
+    "http://localhost:4318/v1/traces";
 
   const exporter = new OTLPTraceExporter({
     url: exporterEndpoint,
@@ -61,9 +63,7 @@ if (isEnabled) {
     sdk.shutdown().catch(console.error);
   });
 
-  console.log(
-    `[OpenTelemetry] Tracing enabled → ${exporterEndpoint}`,
-  );
+  console.log(`[OpenTelemetry] Tracing enabled → ${exporterEndpoint}`);
 }
 
 export { isEnabled as tracingEnabled };
