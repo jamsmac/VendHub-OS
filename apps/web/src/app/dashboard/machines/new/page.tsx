@@ -133,7 +133,8 @@ export default function NewMachinePage() {
   // Fetch active templates for template selection
   const { data: allTemplates = [] } = useQuery<MachineTemplateItem[]>({
     queryKey: ["machine-templates", "active"],
-    queryFn: () => machineTemplatesApi.getActive(),
+    queryFn: () =>
+      machineTemplatesApi.getActive().then((res) => res.data?.data ?? res.data),
     staleTime: 60_000,
   });
 

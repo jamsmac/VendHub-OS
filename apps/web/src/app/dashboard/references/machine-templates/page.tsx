@@ -207,7 +207,8 @@ export default function MachineTemplatesPage() {
 
   const { data: templates = [], isLoading } = useQuery<MachineTemplate[]>({
     queryKey: ["machine-templates"],
-    queryFn: () => machineTemplatesApi.getAll(),
+    queryFn: () =>
+      machineTemplatesApi.getAll().then((res) => res.data?.data ?? res.data),
   });
 
   const filtered = templates.filter((t) => {

@@ -6,7 +6,12 @@ export { api, getAccessToken, setTokens, clearTokens } from "./client";
 export type { QueryParams, RequestBody } from "./client";
 
 export { authApi } from "./auth";
-export { machinesApi, machineAccessApi, containersApi } from "./machines";
+export {
+  machinesApi,
+  machineAccessApi,
+  machineTemplatesApi,
+  containersApi,
+} from "./machines";
 export {
   productsApi,
   inventoryApi,

@@ -24,6 +24,17 @@ export const machinesApi = {
   getState: (id: string) => api.get(`/machines/${id}/state`),
   getPnL: (id: string, from: string, to: string) =>
     api.get(`/machines/${id}/pnl`, { params: { from, to } }),
+  getSimUsage: (id: string) => api.get(`/machines/${id}/sim-usage`),
+  addSimUsage: (id: string, data: RequestBody) =>
+    api.post(`/machines/${id}/sim-usage`, data),
+  getConnectivity: (id: string) => api.get(`/machines/${id}/connectivity`),
+  addConnectivity: (id: string, data: RequestBody) =>
+    api.post(`/machines/${id}/connectivity`, data),
+  getExpenses: (id: string) => api.get(`/machines/${id}/expenses`),
+  addExpense: (id: string, data: RequestBody) =>
+    api.post(`/machines/${id}/expenses`, data),
+  installComponent: (id: string, data: RequestBody) =>
+    api.post(`/machines/${id}/components/install`, data),
 };
 
 export const machineAccessApi = {
@@ -44,6 +55,23 @@ export const machineAccessApi = {
   deleteTemplate: (id: string) => api.delete(`/machine-access/templates/${id}`),
   applyTemplate: (data: RequestBody) =>
     api.post("/machine-access/templates/apply", data),
+};
+
+export const machineTemplatesApi = {
+  getAll: (params?: QueryParams) =>
+    api.get("/references/machine-templates", { params }),
+  getActive: (params?: QueryParams) =>
+    api.get("/references/machine-templates", {
+      params: { ...params, isActive: true },
+    }),
+  getById: (id: string) => api.get(`/references/machine-templates/${id}`),
+  create: (data: RequestBody) =>
+    api.post("/references/machine-templates", data),
+  update: (id: string, data: RequestBody) =>
+    api.patch(`/references/machine-templates/${id}`, data),
+  delete: (id: string) => api.delete(`/references/machine-templates/${id}`),
+  createMachineFromTemplate: (data: RequestBody) =>
+    api.post("/references/machine-templates/create-machine", data),
 };
 
 export const containersApi = {
