@@ -99,6 +99,7 @@ export default function AuthPage() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
                   placeholder="••••••••"
                   {...register("password")}
                 />

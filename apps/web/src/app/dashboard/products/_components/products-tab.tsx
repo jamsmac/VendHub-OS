@@ -57,14 +57,16 @@ export function ProductsTab() {
   } | null>(null);
   const queryClient = useQueryClient();
 
+  // Keys must match backend ProductCategory enum values (see
+  // packages/shared/src/types/product.types.ts). Labels are display-only.
   const categories = useMemo(
     () => [
       { key: "All", label: t("catAll") },
-      { key: "Beverages", label: t("catBeverages") },
-      { key: "Snacks", label: t("catSnacks") },
-      { key: "Energy", label: t("catEnergy") },
-      { key: "Dairy", label: t("catDairy") },
-      { key: "Other", label: t("catOther") },
+      { key: "hot_drinks", label: t("catBeverages") },
+      { key: "snacks", label: t("catSnacks") },
+      { key: "cold_drinks", label: t("catEnergy") },
+      { key: "milk", label: t("catDairy") },
+      { key: "other", label: t("catOther") },
     ],
     [t],
   );
