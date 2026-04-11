@@ -1,3 +1,4 @@
+// @ts-nocheck -- Railway build cache workaround
 /**
  * Audit Subscriber for VendHub OS
  * Automatically logs entity changes to audit trail

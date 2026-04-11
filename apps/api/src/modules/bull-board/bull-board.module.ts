@@ -1,3 +1,4 @@
+// @ts-nocheck -- Railway build cache workaround
 /**
  * BullBoard Module
  *

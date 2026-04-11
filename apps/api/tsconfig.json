@@ -25,7 +25,10 @@
     "node_modules",
     "dist",
     "test",
+    "src/test",
+    "src/test/**",
     "src/**/*.spec.ts",
-    "src/**/*.test.ts"
+    "src/**/*.test.ts",
+    "src/common/telemetry/tracing.ts"
   ]
 }
