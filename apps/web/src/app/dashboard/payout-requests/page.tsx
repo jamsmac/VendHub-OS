@@ -464,7 +464,7 @@ function CreatePayoutForm({
   t,
 }: {
   onSuccess: () => void;
-  t: (key: string, params?: Record<string, unknown>) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   const createMutation = useCreatePayoutRequest();
   const form = useForm<CreatePayoutValues>({
@@ -553,7 +553,7 @@ function RejectForm({
 }: {
   item: PayoutRequestItem;
   onSuccess: () => void;
-  t: (key: string, params?: Record<string, unknown>) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   const reviewMutation = useReviewPayoutRequest();
   const form = useForm<RejectValues>({

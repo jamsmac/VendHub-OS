@@ -2,6 +2,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -25,6 +26,7 @@ import { RecipeVersionsTab } from "./tabs/RecipeVersionsTab";
 import { TimelineTab } from "../../machines/[id]/tabs/TimelineTab";
 
 export default function ProductDetailPage() {
+  const t = useTranslations("products");
   const { id } = useParams<{ id: string }>();
 
   const { data: product, isLoading } = useQuery({
@@ -55,7 +57,9 @@ export default function ProductDetailPage() {
   }
 
   const isRecipe = product.isIngredient === false;
-  const typeLabel = product.isIngredient ? "Ингредиент" : "Товар";
+  const typeLabel = product.isIngredient
+    ? t("ingredientType")
+    : t("productType");
 
   return (
     <div className="space-y-0">
@@ -73,7 +77,7 @@ export default function ProductDetailPage() {
                 <h1 className="text-xl font-bold">{product.name}</h1>
                 <Badge variant="outline">{typeLabel}</Badge>
                 <Badge variant={product.isActive ? "default" : "secondary"}>
-                  {product.isActive ? "Активен" : "Неактивен"}
+                  {product.isActive ? t("activeStatus") : t("inactiveStatus")}
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -123,7 +127,7 @@ export default function ProductDetailPage() {
         <div className="mt-4">
           {/* General Info */}
           <TabsContent value="general">
-            <GeneralTab product={product} />
+            <GeneralTab product={product} t={t} />
           </TabsContent>
 
           {/* Recipe Constructor */}
@@ -170,20 +174,26 @@ export default function ProductDetailPage() {
 // General Tab
 // ============================================================================
 
-function GeneralTab({ product }: { product: any }) {
+function GeneralTab({
+  product,
+  t,
+}: {
+  product: any;
+  t: (key: string) => string;
+}) {
   return (
     <div className="space-y-4">
       <Card>
         <CardContent className="pt-4">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-            <Field label="Название" value={product.name} />
-            <Field label="Название (уз)" value={product.nameUz} />
+            <Field label={t("nameLabel")} value={product.name} />
+            <Field label={t("nameUzLabel")} value={product.nameUz} />
             <Field label="SKU" value={product.sku} mono />
-            <Field label="Категория" value={product.category} />
-            <Field label="Единица" value={product.unitOfMeasure} />
-            <Field label="Штрих-код" value={product.barcode} mono />
+            <Field label={t("categoryLabel")} value={product.category} />
+            <Field label={t("unitLabel")} value={product.unitOfMeasure} />
+            <Field label={t("barcodeLabel")} value={product.barcode} mono />
             <Field
-              label="Цена закупки"
+              label={t("purchasePriceLabel")}
               value={
                 product.purchasePrice
                   ? `${Number(product.purchasePrice).toLocaleString("ru-RU")} сум`
@@ -191,7 +201,7 @@ function GeneralTab({ product }: { product: any }) {
               }
             />
             <Field
-              label="Цена продажи"
+              label={t("sellingPriceLabel")}
               value={
                 product.sellingPrice
                   ? `${Number(product.sellingPrice).toLocaleString("ru-RU")} сум`
@@ -199,18 +209,20 @@ function GeneralTab({ product }: { product: any }) {
               }
             />
             <Field
-              label="НДС"
+              label={t("vatLabel")}
               value={product.vatRate ? `${product.vatRate}%` : null}
             />
-            <Field label="IKPU код" value={product.ikpuCode} mono />
+            <Field label={t("ikpuCodeLabel")} value={product.ikpuCode} mono />
             <Field
-              label="Срок годности"
+              label={t("shelfLifeLabel")}
               value={
-                product.shelfLifeDays ? `${product.shelfLifeDays} дней` : null
+                product.shelfLifeDays
+                  ? `${product.shelfLifeDays} ${t("daysUnit")}`
+                  : null
               }
             />
             <Field
-              label="Мин. остаток"
+              label={t("minStockLabel")}
               value={
                 product.minStockLevel > 0 ? String(product.minStockLevel) : null
               }

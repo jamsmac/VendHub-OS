@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Wifi,
@@ -42,50 +43,68 @@ interface PassportTabProps {
 }
 
 // ── Uzbek SIM providers ──
-const SIM_PROVIDERS = [
+const SIM_PROVIDER_KEYS = [
   "Beeline",
   "Ucell",
   "Mobiuz",
   "UMS",
   "Perfectum",
-  "Другой",
-];
+] as const;
 
 // ── Connectivity types ──
-const CONNECTIVITY_TYPES = [
-  { value: "sim", label: "SIM-карта" },
-  { value: "wifi", label: "WiFi (арендатор)" },
-  { value: "fiber", label: "Оптика (арендатор)" },
-  { value: "lan", label: "LAN-кабель" },
-];
-
-// ── Expense categories ──
-const EXPENSE_CATEGORIES = [
-  { value: "transport", label: "Перевозка" },
-  { value: "electrical", label: "Электропроводка" },
-  { value: "socket", label: "Розетка" },
-  { value: "mounting", label: "Монтаж" },
-  { value: "wiring", label: "Кабельная разводка" },
-  { value: "decoration", label: "Оформление" },
-  { value: "signage", label: "Вывеска" },
-  { value: "connectivity", label: "Подключение связи" },
-  { value: "rent_deposit", label: "Залог аренды" },
-  { value: "repair", label: "Ремонт" },
-  { value: "other", label: "Другое" },
-];
-
-const EXPENSE_TYPE_LABELS: Record<string, string> = {
-  capex: "Капитальные",
-  opex: "Операционные",
+const CONNECTIVITY_TYPE_KEYS = ["sim", "wifi", "fiber", "lan"] as const;
+const CONNECTIVITY_TYPE_I18N: Record<string, string> = {
+  sim: "connTypeSim",
+  wifi: "connTypeWifi",
+  fiber: "connTypeFiber",
+  lan: "connTypeLan",
 };
 
-const CONNECTIVITY_STATUS_BADGES: Record<
+// ── Expense categories ──
+const EXPENSE_CATEGORY_KEYS = [
+  "transport",
+  "electrical",
+  "socket",
+  "mounting",
+  "wiring",
+  "decoration",
+  "signage",
+  "connectivity",
+  "rent_deposit",
+  "repair",
+  "other",
+] as const;
+const EXPENSE_CAT_I18N: Record<string, string> = {
+  transport: "expCatTransport",
+  electrical: "expCatElectrical",
+  socket: "expCatSocket",
+  mounting: "expCatMounting",
+  wiring: "expCatWiring",
+  decoration: "expCatDecoration",
+  signage: "expCatSignage",
+  connectivity: "expCatConnectivity",
+  rent_deposit: "expCatRentDeposit",
+  repair: "expCatRepair",
+  other: "expCatOther",
+};
+
+const EXPENSE_TYPE_I18N: Record<string, string> = {
+  capex: "expTypeCapex",
+  opex: "expTypeOpex",
+};
+
+const CONNECTIVITY_STATUS_VARIANTS: Record<
   string,
-  { label: string; variant: "default" | "secondary" | "destructive" }
+  "default" | "secondary" | "destructive"
 > = {
-  active: { label: "Активна", variant: "default" },
-  inactive: { label: "Отключена", variant: "secondary" },
-  suspended: { label: "Приостановлена", variant: "destructive" },
+  active: "default",
+  inactive: "secondary",
+  suspended: "destructive",
+};
+const CONNECTIVITY_STATUS_I18N: Record<string, string> = {
+  active: "simActive",
+  inactive: "simInactive",
+  suspended: "simSuspended",
 };
 
 const CONNECTIVITY_TYPE_ICON: Record<string, typeof Signal> = {
@@ -96,6 +115,7 @@ const CONNECTIVITY_TYPE_ICON: Record<string, typeof Signal> = {
 };
 
 export function PassportTab({ machine }: PassportTabProps) {
+  const t = useTranslations("machineDetail");
   const queryClient = useQueryClient();
   const [simDialogOpen, setSimDialogOpen] = useState(false);
   const [usageDialogOpen, setUsageDialogOpen] = useState(false);
@@ -183,40 +203,40 @@ export function PassportTab({ machine }: PassportTabProps) {
       {/* Acquisition Block */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Приобретение</CardTitle>
+          <CardTitle className="text-base">{t("acquisition")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
             <div>
-              <p className="text-muted-foreground">Производитель</p>
+              <p className="text-muted-foreground">{t("manufacturer")}</p>
               <p className="font-medium">{machine.manufacturer || "—"}</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Модель</p>
+              <p className="text-muted-foreground">{t("model")}</p>
               <p className="font-medium">{machine.model || "—"}</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Год выпуска</p>
+              <p className="text-muted-foreground">{t("yearOfManufacture")}</p>
               <p className="font-medium">{machine.yearOfManufacture || "—"}</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Серийный номер</p>
+              <p className="text-muted-foreground">{t("serialNumber")}</p>
               <p className="font-medium font-mono text-xs">
                 {machine.serialNumber || "—"}
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground">Серийный с шильдика</p>
+              <p className="text-muted-foreground">{t("nameplateSerial")}</p>
               <p className="font-medium font-mono text-xs">
                 {machine.nameplateSerial || "—"}
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground">Дата покупки</p>
+              <p className="text-muted-foreground">{t("purchaseDate")}</p>
               <p className="font-medium">{machine.purchaseDate || "—"}</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Стоимость покупки</p>
+              <p className="text-muted-foreground">{t("purchasePrice")}</p>
               <p className="font-medium">
                 {machine.purchasePrice
                   ? `${Number(machine.purchasePrice).toLocaleString("ru-RU")} UZS`
@@ -230,26 +250,26 @@ export function PassportTab({ machine }: PassportTabProps) {
       {/* Technical Data Block */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Технические данные</CardTitle>
+          <CardTitle className="text-base">{t("technicalData")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <p className="text-muted-foreground">Тип</p>
+              <p className="text-muted-foreground">{t("type")}</p>
               <Badge variant="outline">{machine.type}</Badge>
             </div>
             <div>
-              <p className="text-muted-foreground">Прошивка</p>
+              <p className="text-muted-foreground">{t("firmware")}</p>
               <p className="font-medium font-mono text-xs">
                 {machine.firmwareVersion || "—"}
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground">Слотов</p>
+              <p className="text-muted-foreground">{t("slotsCount")}</p>
               <p className="font-medium">{machine.maxProductSlots || 0}</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Статус связи</p>
+              <p className="text-muted-foreground">{t("connectionStatus")}</p>
               <Badge
                 variant={
                   machine.connectionStatus === "online"
@@ -265,7 +285,7 @@ export function PassportTab({ machine }: PassportTabProps) {
       </Card>
 
       {/* ═══════════════════════════════════════════════
-          CONNECTIVITY (Связь) — SIM, WiFi, Fiber
+          CONNECTIVITY
           ═══════════════════════════════════════════════ */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
@@ -283,10 +303,11 @@ export function PassportTab({ machine }: PassportTabProps) {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Добавить SIM-карту</DialogTitle>
+                  <DialogTitle>{t("addSimCard")}</DialogTitle>
                 </DialogHeader>
                 <AddSimForm
                   machineId={machine.id}
+                  t={t}
                   onSuccess={() => {
                     setSimDialogOpen(false);
                     queryClient.invalidateQueries({
@@ -305,11 +326,12 @@ export function PassportTab({ machine }: PassportTabProps) {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Добавить подключение</DialogTitle>
+                  <DialogTitle>{t("addConnection")}</DialogTitle>
                 </DialogHeader>
                 <AddConnectivityForm
                   machineId={machine.id}
                   simCards={simCards}
+                  t={t}
                   onSuccess={() => {
                     setConnDialogOpen(false);
                     queryClient.invalidateQueries({
@@ -328,14 +350,15 @@ export function PassportTab({ machine }: PassportTabProps) {
               {connectivity.map((conn: any) => {
                 const Icon =
                   CONNECTIVITY_TYPE_ICON[conn.connectivityType] || Globe;
-                const badge = CONNECTIVITY_STATUS_BADGES[conn.status] || {
-                  label: conn.status,
-                  variant: "secondary" as const,
-                };
-                const typeLabel =
-                  CONNECTIVITY_TYPES.find(
-                    (t) => t.value === conn.connectivityType,
-                  )?.label ?? conn.connectivityType;
+                const badgeVariant =
+                  CONNECTIVITY_STATUS_VARIANTS[conn.status] || "secondary";
+                const badgeLabel = t(
+                  CONNECTIVITY_STATUS_I18N[conn.status] || "simActive",
+                );
+                const typeLabel = t(
+                  CONNECTIVITY_TYPE_I18N[conn.connectivityType] ||
+                    "connTypeSim",
+                );
                 return (
                   <div
                     key={conn.id}
@@ -344,39 +367,39 @@ export function PassportTab({ machine }: PassportTabProps) {
                     <Icon className="h-5 w-5 text-blue-500 mt-0.5 shrink-0" />
                     <div className="flex-1 min-w-0 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                       <div>
-                        <p className="text-muted-foreground">Тип</p>
+                        <p className="text-muted-foreground">{t("type")}</p>
                         <p className="font-medium">{typeLabel}</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">Провайдер</p>
+                        <p className="text-muted-foreground">{t("provider")}</p>
                         <p className="font-medium">{conn.providerName}</p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">
                           {conn.connectivityType === "sim"
-                            ? "Номер"
-                            : "Аккаунт"}
+                            ? t("phoneNumber")
+                            : t("account")}
                         </p>
                         <p className="font-medium font-mono text-xs">
                           {conn.accountNumber || "—"}
                         </p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">Ежемесячно</p>
+                        <p className="text-muted-foreground">{t("monthly")}</p>
                         <p className="font-medium">
                           {Number(conn.monthlyCost).toLocaleString("ru-RU")} UZS
                         </p>
                       </div>
                     </div>
-                    <Badge variant={badge.variant} className="shrink-0">
-                      {badge.label}
+                    <Badge variant={badgeVariant} className="shrink-0">
+                      {badgeLabel}
                     </Badge>
                   </div>
                 );
               })}
               {monthlyConnCost > 0 && (
                 <div className="text-right text-sm text-muted-foreground">
-                  Итого ежемесячно:{" "}
+                  {t("totalMonthly")}{" "}
                   <span className="font-medium text-foreground">
                     {monthlyConnCost.toLocaleString("ru-RU")} UZS
                   </span>
@@ -390,8 +413,7 @@ export function PassportTab({ machine }: PassportTabProps) {
                 <Skeleton className="h-16 w-full" />
               ) : simCards.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Подключения не настроены. Добавьте SIM-карту или другое
-                  подключение.
+                  {t("noConnectionsConfigured")}
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -403,13 +425,15 @@ export function PassportTab({ machine }: PassportTabProps) {
                       <Signal className="h-5 w-5 text-blue-500 mt-0.5 shrink-0" />
                       <div className="flex-1 min-w-0 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                         <div>
-                          <p className="text-muted-foreground">Оператор</p>
+                          <p className="text-muted-foreground">
+                            {t("operator")}
+                          </p>
                           <p className="font-medium">
                             {sim.manufacturer || sim.metadata?.provider || "—"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">Номер</p>
+                          <p className="text-muted-foreground">{t("number")}</p>
                           <p className="font-medium font-mono text-xs">
                             {sim.serialNumber ||
                               sim.metadata?.phoneNumber ||
@@ -417,14 +441,16 @@ export function PassportTab({ machine }: PassportTabProps) {
                           </p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">Тариф</p>
+                          <p className="text-muted-foreground">{t("tariff")}</p>
                           <p className="font-medium">
                             {sim.metadata?.tariffPlan || "—"}
                           </p>
                         </div>
                         {sim.installedAt && (
                           <div>
-                            <p className="text-muted-foreground">Установлена</p>
+                            <p className="text-muted-foreground">
+                              {t("installed")}
+                            </p>
                             <p className="font-medium">
                               {new Date(sim.installedAt).toLocaleDateString(
                                 "ru-RU",
@@ -439,7 +465,9 @@ export function PassportTab({ machine }: PassportTabProps) {
                         }
                         className="shrink-0"
                       >
-                        {sim.status === "installed" ? "Активна" : sim.status}
+                        {sim.status === "installed"
+                          ? t("simActive")
+                          : sim.status}
                       </Badge>
                     </div>
                   ))}
@@ -468,11 +496,12 @@ export function PassportTab({ machine }: PassportTabProps) {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Внести расход за период</DialogTitle>
+                  <DialogTitle>{t("addUsageForPeriod")}</DialogTitle>
                 </DialogHeader>
                 <AddUsageForm
                   machineId={machine.id}
                   simCards={simCards}
+                  t={t}
                   onSuccess={() => {
                     setUsageDialogOpen(false);
                     queryClient.invalidateQueries({
@@ -489,21 +518,27 @@ export function PassportTab({ machine }: PassportTabProps) {
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div className="rounded-lg bg-muted/50 p-3 text-center">
                   <p className="text-lg font-bold">{simUsage?.length ?? 0}</p>
-                  <p className="text-xs text-muted-foreground">Записей</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("records")}
+                  </p>
                 </div>
                 <div className="rounded-lg bg-muted/50 p-3 text-center">
                   <p className="text-lg font-bold">
                     {totalDataUsed >= 1024
-                      ? `${(totalDataUsed / 1024).toFixed(1)} ГБ`
-                      : `${totalDataUsed} МБ`}
+                      ? `${(totalDataUsed / 1024).toFixed(1)} GB`
+                      : `${totalDataUsed} MB`}
                   </p>
-                  <p className="text-xs text-muted-foreground">Всего трафика</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("totalTraffic")}
+                  </p>
                 </div>
                 <div className="rounded-lg bg-muted/50 p-3 text-center">
                   <p className="text-lg font-bold">
                     {totalSimCost.toLocaleString("ru-RU")}
                   </p>
-                  <p className="text-xs text-muted-foreground">Всего UZS</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("totalUzs")}
+                  </p>
                 </div>
               </div>
             )}
@@ -511,18 +546,28 @@ export function PassportTab({ machine }: PassportTabProps) {
             {/* History table */}
             {!simUsage || simUsage.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                Нет данных о расходах. Нажмите «Внести данные» для добавления.
+                {t("noUsageData")}
               </p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b text-muted-foreground text-xs">
-                      <th className="text-left py-2 font-medium">Период</th>
-                      <th className="text-right py-2 font-medium">Трафик</th>
-                      <th className="text-right py-2 font-medium">Лимит</th>
-                      <th className="text-right py-2 font-medium">Стоимость</th>
-                      <th className="text-left py-2 font-medium">Примечание</th>
+                      <th className="text-left py-2 font-medium">
+                        {t("period")}
+                      </th>
+                      <th className="text-right py-2 font-medium">
+                        {t("traffic")}
+                      </th>
+                      <th className="text-right py-2 font-medium">
+                        {t("limit")}
+                      </th>
+                      <th className="text-right py-2 font-medium">
+                        {t("cost")}
+                      </th>
+                      <th className="text-left py-2 font-medium">
+                        {t("note")}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -532,11 +577,11 @@ export function PassportTab({ machine }: PassportTabProps) {
                           {formatPeriod(entry.periodStart, entry.periodEnd)}
                         </td>
                         <td className="py-2 text-right font-mono">
-                          {Number(entry.dataUsedMb).toFixed(0)} МБ
+                          {Number(entry.dataUsedMb).toFixed(0)} MB
                         </td>
                         <td className="py-2 text-right text-muted-foreground font-mono">
                           {entry.dataLimitMb
-                            ? `${Number(entry.dataLimitMb).toFixed(0)} МБ`
+                            ? `${Number(entry.dataLimitMb).toFixed(0)} MB`
                             : "—"}
                         </td>
                         <td className="py-2 text-right font-medium">
@@ -556,7 +601,7 @@ export function PassportTab({ machine }: PassportTabProps) {
       )}
 
       {/* ═══════════════════════════════════════════════
-          EXPENSES (Расходы на точку)
+          EXPENSES
           ═══════════════════════════════════════════════ */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
@@ -573,10 +618,11 @@ export function PassportTab({ machine }: PassportTabProps) {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Добавить расход</DialogTitle>
+                <DialogTitle>{t("addExpense")}</DialogTitle>
               </DialogHeader>
               <AddExpenseForm
                 machineId={machine.id}
+                t={t}
                 onSuccess={() => {
                   setExpenseDialogOpen(false);
                   queryClient.invalidateQueries({
@@ -611,7 +657,9 @@ export function PassportTab({ machine }: PassportTabProps) {
                 <p className="text-lg font-bold">
                   {(totalCapex + totalOpex).toLocaleString("ru-RU")}
                 </p>
-                <p className="text-xs text-muted-foreground">Итого (UZS)</p>
+                <p className="text-xs text-muted-foreground">
+                  {t("totalUzsShort")}
+                </p>
               </div>
             </div>
           )}
@@ -619,25 +667,33 @@ export function PassportTab({ machine }: PassportTabProps) {
           {/* Expenses list */}
           {!expenses || expenses.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
-              Расходы не добавлены. Нажмите «Добавить расход» для начала учёта.
+              {t("noExpenses")}
             </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b text-muted-foreground text-xs">
-                    <th className="text-left py-2 font-medium">Дата</th>
-                    <th className="text-left py-2 font-medium">Категория</th>
-                    <th className="text-left py-2 font-medium">Описание</th>
-                    <th className="text-left py-2 font-medium">Тип</th>
-                    <th className="text-right py-2 font-medium">Сумма</th>
+                    <th className="text-left py-2 font-medium">
+                      {t("dateColumn")}
+                    </th>
+                    <th className="text-left py-2 font-medium">
+                      {t("category")}
+                    </th>
+                    <th className="text-left py-2 font-medium">
+                      {t("description")}
+                    </th>
+                    <th className="text-left py-2 font-medium">{t("type")}</th>
+                    <th className="text-right py-2 font-medium">
+                      {t("amount")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {expenses.map((exp: any) => {
-                    const catLabel =
-                      EXPENSE_CATEGORIES.find((c) => c.value === exp.category)
-                        ?.label ?? exp.category;
+                    const catLabel = t(
+                      EXPENSE_CAT_I18N[exp.category] || "expCatOther",
+                    );
                     return (
                       <tr key={exp.id} className="border-b last:border-0">
                         <td className="py-2">
@@ -662,8 +718,10 @@ export function PassportTab({ machine }: PassportTabProps) {
                             }
                             className="text-xs"
                           >
-                            {EXPENSE_TYPE_LABELS[exp.expenseType] ||
-                              exp.expenseType}
+                            {t(
+                              EXPENSE_TYPE_I18N[exp.expenseType] ||
+                                "expTypeCapex",
+                            )}
                           </Badge>
                         </td>
                         <td className="py-2 text-right font-medium">
@@ -682,14 +740,16 @@ export function PassportTab({ machine }: PassportTabProps) {
       {/* Infrastructure Block */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Инфраструктура на точке</CardTitle>
+          <CardTitle className="text-base">
+            {t("infrastructureOnPoint")}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
             <div className="flex items-start gap-2">
               <Camera className="h-4 w-4 text-muted-foreground mt-0.5" />
               <div>
-                <p className="text-muted-foreground">Камера</p>
+                <p className="text-muted-foreground">{t("camera")}</p>
                 {componentsLoading ? (
                   <Skeleton className="h-4 w-20" />
                 ) : cameras.length > 0 ? (
@@ -698,7 +758,7 @@ export function PassportTab({ machine }: PassportTabProps) {
                       <div key={cam.id} className="flex items-center gap-1">
                         <CheckCircle2 className="h-3 w-3 text-green-500" />
                         <span className="font-medium">
-                          {cam.name || cam.model || "Установлена"}
+                          {cam.name || cam.model || t("cameraInstalled")}
                         </span>
                       </div>
                     ))}
@@ -706,7 +766,7 @@ export function PassportTab({ machine }: PassportTabProps) {
                 ) : (
                   <div className="flex items-center gap-1">
                     <XCircle className="h-3 w-3 text-muted-foreground" />
-                    <span>Нет</span>
+                    <span>{t("trashBinNo")}</span>
                   </div>
                 )}
               </div>
@@ -715,17 +775,17 @@ export function PassportTab({ machine }: PassportTabProps) {
             <div className="flex items-start gap-2">
               <Trash2 className="h-4 w-4 text-muted-foreground mt-0.5" />
               <div>
-                <p className="text-muted-foreground">Мусорный бак</p>
+                <p className="text-muted-foreground">{t("trashBin")}</p>
                 <div className="flex items-center gap-1">
                   {machine.hasTrashBin ? (
                     <>
                       <CheckCircle2 className="h-3 w-3 text-green-500" />
-                      <span className="font-medium">Есть</span>
+                      <span className="font-medium">{t("trashBinYes")}</span>
                     </>
                   ) : (
                     <>
                       <XCircle className="h-3 w-3 text-muted-foreground" />
-                      <span>Нет</span>
+                      <span>{t("trashBinNo")}</span>
                     </>
                   )}
                 </div>
@@ -735,21 +795,26 @@ export function PassportTab({ machine }: PassportTabProps) {
             <div className="flex items-start gap-2">
               <Wifi className="h-4 w-4 text-muted-foreground mt-0.5" />
               <div>
-                <p className="text-muted-foreground">Тип интернета</p>
+                <p className="text-muted-foreground">{t("internetType")}</p>
                 <p className="font-medium">
                   {connectivity && connectivity.length > 0
                     ? connectivity
                         .filter((c: any) => c.status === "active")
-                        .map(
-                          (c: any) =>
-                            CONNECTIVITY_TYPES.find(
-                              (t) => t.value === c.connectivityType,
-                            )?.label ?? c.connectivityType,
+                        .map((c: any) =>
+                          t(
+                            CONNECTIVITY_TYPE_I18N[c.connectivityType] ||
+                              "connTypeSim",
+                          ),
                         )
-                        .join(", ") || "Нет активных"
+                        .join(", ") || t("noActiveConnections")
                     : simCards.length > 0
-                      ? `Мобильный (${simCards[0].manufacturer || simCards[0].metadata?.provider || "SIM"})`
-                      : "Не определён"}
+                      ? t("mobileProvider", {
+                          provider:
+                            simCards[0].manufacturer ||
+                            simCards[0].metadata?.provider ||
+                            "SIM",
+                        })
+                      : t("notDetermined")}
                 </p>
               </div>
             </div>
@@ -760,26 +825,30 @@ export function PassportTab({ machine }: PassportTabProps) {
       {/* Ownership Block */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Владение и амортизация</CardTitle>
+          <CardTitle className="text-base">
+            {t("ownershipAndDepreciation")}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
             <div>
-              <p className="text-muted-foreground">Метод амортизации</p>
+              <p className="text-muted-foreground">{t("depreciationMethod")}</p>
               <p className="font-medium">
                 {machine.depreciationMethod || "linear"}
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground">Срок амортизации</p>
+              <p className="text-muted-foreground">{t("depreciationPeriod")}</p>
               <p className="font-medium">
                 {machine.depreciationYears
-                  ? `${machine.depreciationYears} лет`
+                  ? t("yearsCount", { count: machine.depreciationYears })
                   : "—"}
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground">Накопленная амортизация</p>
+              <p className="text-muted-foreground">
+                {t("accumulatedDepreciation")}
+              </p>
               <p className="font-medium">
                 {machine.accumulatedDepreciation
                   ? `${Number(machine.accumulatedDepreciation).toLocaleString("ru-RU")} UZS`
@@ -800,9 +869,11 @@ export function PassportTab({ machine }: PassportTabProps) {
 function AddSimForm({
   machineId,
   onSuccess,
+  t,
 }: {
   machineId: string;
   onSuccess: () => void;
+  t: (key: string, params?: any) => string;
 }) {
   const [provider, setProvider] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -819,11 +890,11 @@ function AddSimForm({
       });
     },
     onSuccess: () => {
-      toast.success("SIM-карта добавлена");
+      toast.success(t("simCardAdded"));
       onSuccess();
     },
     onError: () => {
-      toast.error("Ошибка при добавлении SIM-карты");
+      toast.error(t("simCardAddError"));
     },
   });
 
@@ -836,13 +907,13 @@ function AddSimForm({
       className="space-y-4"
     >
       <div>
-        <label className="text-sm font-medium">Оператор</label>
+        <label className="text-sm font-medium">{t("operatorLabel")}</label>
         <Select value={provider} onValueChange={setProvider}>
           <SelectTrigger>
-            <SelectValue placeholder="Выберите оператора" />
+            <SelectValue placeholder={t("selectProvider")} />
           </SelectTrigger>
           <SelectContent>
-            {SIM_PROVIDERS.map((p) => (
+            {[...SIM_PROVIDER_KEYS, t("simProviderOther")].map((p: string) => (
               <SelectItem key={p} value={p}>
                 {p}
               </SelectItem>
@@ -851,7 +922,7 @@ function AddSimForm({
         </Select>
       </div>
       <div>
-        <label className="text-sm font-medium">Номер телефона</label>
+        <label className="text-sm font-medium">{t("phoneNumberLabel")}</label>
         <Input
           value={phoneNumber}
           onChange={(e) => setPhoneNumber(e.target.value)}
@@ -860,7 +931,7 @@ function AddSimForm({
         />
       </div>
       <div>
-        <label className="text-sm font-medium">Тариф</label>
+        <label className="text-sm font-medium">{t("tariffLabel")}</label>
         <Input
           value={tariffPlan}
           onChange={(e) => setTariffPlan(e.target.value)}
@@ -869,7 +940,7 @@ function AddSimForm({
       </div>
       <div className="flex justify-end pt-2">
         <Button type="submit" disabled={mutation.isPending || !provider}>
-          {mutation.isPending ? "Сохранение..." : "Добавить"}
+          {mutation.isPending ? t("saving") : t("add")}
         </Button>
       </div>
     </form>
@@ -884,10 +955,12 @@ function AddConnectivityForm({
   machineId,
   simCards,
   onSuccess,
+  t,
 }: {
   machineId: string;
   simCards: any[];
   onSuccess: () => void;
+  t: (key: string, params?: any) => string;
 }) {
   const [connectivityType, setConnectivityType] = useState("");
   const [providerName, setProviderName] = useState("");
@@ -914,11 +987,11 @@ function AddConnectivityForm({
       });
     },
     onSuccess: () => {
-      toast.success("Подключение добавлено");
+      toast.success(t("connectionAdded"));
       onSuccess();
     },
     onError: () => {
-      toast.error("Ошибка при добавлении подключения");
+      toast.error(t("connectionAddError"));
     },
   });
 
@@ -931,15 +1004,15 @@ function AddConnectivityForm({
       className="space-y-4"
     >
       <div>
-        <label className="text-sm font-medium">Тип подключения</label>
+        <label className="text-sm font-medium">{t("connection")}</label>
         <Select value={connectivityType} onValueChange={setConnectivityType}>
           <SelectTrigger>
-            <SelectValue placeholder="Выберите тип" />
+            <SelectValue placeholder={t("selectConnectionType")} />
           </SelectTrigger>
           <SelectContent>
-            {CONNECTIVITY_TYPES.map((t) => (
-              <SelectItem key={t.value} value={t.value}>
-                {t.label}
+            {CONNECTIVITY_TYPE_KEYS.map((key) => (
+              <SelectItem key={key} value={key}>
+                {t(CONNECTIVITY_TYPE_I18N[key])}
               </SelectItem>
             ))}
           </SelectContent>
@@ -949,22 +1022,24 @@ function AddConnectivityForm({
       <div>
         <label className="text-sm font-medium">
           {connectivityType === "sim"
-            ? "Оператор"
+            ? t("operatorLabel")
             : connectivityType === "wifi" || connectivityType === "fiber"
-              ? "Арендатор / Провайдер"
-              : "Провайдер"}
+              ? t("tenantOrProvider")
+              : t("providerLabel")}
         </label>
         {connectivityType === "sim" ? (
           <Select value={providerName} onValueChange={setProviderName}>
             <SelectTrigger>
-              <SelectValue placeholder="Выберите оператора" />
+              <SelectValue placeholder={t("selectProvider")} />
             </SelectTrigger>
             <SelectContent>
-              {SIM_PROVIDERS.map((p) => (
-                <SelectItem key={p} value={p}>
-                  {p}
-                </SelectItem>
-              ))}
+              {[...SIM_PROVIDER_KEYS, t("simProviderOther")].map(
+                (p: string) => (
+                  <SelectItem key={p} value={p}>
+                    {p}
+                  </SelectItem>
+                ),
+              )}
             </SelectContent>
           </Select>
         ) : (
@@ -973,8 +1048,8 @@ function AddConnectivityForm({
             onChange={(e) => setProviderName(e.target.value)}
             placeholder={
               connectivityType === "wifi"
-                ? "Имя арендатора или провайдера WiFi"
-                : "Название провайдера"
+                ? t("tenantOrWifiProvider")
+                : t("providerName")
             }
             required
           />
@@ -984,18 +1059,18 @@ function AddConnectivityForm({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="text-sm font-medium">
-            {connectivityType === "sim" ? "Номер телефона" : "Аккаунт / ID"}
+            {connectivityType === "sim" ? t("phoneNumberSim") : t("accountId")}
           </label>
           <Input
             value={accountNumber}
             onChange={(e) => setAccountNumber(e.target.value)}
             placeholder={
-              connectivityType === "sim" ? "+998 90 123 45 67" : "ID аккаунта"
+              connectivityType === "sim" ? "+998 90 123 45 67" : t("accountId")
             }
           />
         </div>
         <div>
-          <label className="text-sm font-medium">Тариф</label>
+          <label className="text-sm font-medium">{t("tariffLabel")}</label>
           <Input
             value={tariffName}
             onChange={(e) => setTariffName(e.target.value)}
@@ -1007,15 +1082,13 @@ function AddConnectivityForm({
       {/* Link to existing SIM component */}
       {connectivityType === "sim" && simCards.length > 0 && (
         <div>
-          <label className="text-sm font-medium">
-            Привязать к SIM-карте (компонент)
-          </label>
+          <label className="text-sm font-medium">{t("linkToSimCard")}</label>
           <Select value={componentId} onValueChange={setComponentId}>
             <SelectTrigger>
-              <SelectValue placeholder="Выберите (необязательно)" />
+              <SelectValue placeholder={t("selectOptional")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Не привязывать</SelectItem>
+              <SelectItem value="">{t("doNotLink")}</SelectItem>
               {simCards.map((sim: any) => (
                 <SelectItem key={sim.id} value={sim.id}>
                   {sim.manufacturer || sim.metadata?.provider || "SIM"}{" "}
@@ -1042,7 +1115,7 @@ function AddConnectivityForm({
           />
         </div>
         <div>
-          <label className="text-sm font-medium">Дата начала</label>
+          <label className="text-sm font-medium">{t("startDate")}</label>
           <Input
             type="date"
             value={startDate}
@@ -1053,11 +1126,11 @@ function AddConnectivityForm({
       </div>
 
       <div>
-        <label className="text-sm font-medium">Примечание</label>
+        <label className="text-sm font-medium">{t("noteLabel")}</label>
         <Input
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Дополнительная информация..."
+          placeholder={t("additionalInfo")}
         />
       </div>
 
@@ -1071,7 +1144,7 @@ function AddConnectivityForm({
             !monthlyCost
           }
         >
-          {mutation.isPending ? "Сохранение..." : "Добавить"}
+          {mutation.isPending ? t("saving") : t("add")}
         </Button>
       </div>
     </form>
@@ -1085,9 +1158,11 @@ function AddConnectivityForm({
 function AddExpenseForm({
   machineId,
   onSuccess,
+  t,
 }: {
   machineId: string;
   onSuccess: () => void;
+  t: (key: string, params?: any) => string;
 }) {
   const [category, setCategory] = useState("");
   const [expenseType, setExpenseType] = useState("capex");
@@ -1112,11 +1187,11 @@ function AddExpenseForm({
       });
     },
     onSuccess: () => {
-      toast.success("Расход добавлен");
+      toast.success(t("expenseAdded"));
       onSuccess();
     },
     onError: () => {
-      toast.error("Ошибка при добавлении расхода");
+      toast.error(t("expenseAddError"));
     },
   });
 
@@ -1130,47 +1205,47 @@ function AddExpenseForm({
     >
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Категория</label>
+          <label className="text-sm font-medium">{t("category")}</label>
           <Select value={category} onValueChange={setCategory}>
             <SelectTrigger>
-              <SelectValue placeholder="Выберите категорию" />
+              <SelectValue placeholder={t("selectCategory")} />
             </SelectTrigger>
             <SelectContent>
-              {EXPENSE_CATEGORIES.map((c) => (
-                <SelectItem key={c.value} value={c.value}>
-                  {c.label}
+              {EXPENSE_CATEGORY_KEYS.map((key) => (
+                <SelectItem key={key} value={key}>
+                  {t(EXPENSE_CAT_I18N[key])}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div>
-          <label className="text-sm font-medium">Тип расхода</label>
+          <label className="text-sm font-medium">{t("expenseTypeLabel")}</label>
           <Select value={expenseType} onValueChange={setExpenseType}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="capex">Капитальный (разовый)</SelectItem>
-              <SelectItem value="opex">Операционный (периодич.)</SelectItem>
+              <SelectItem value="capex">{t("expTypeCapexOneTime")}</SelectItem>
+              <SelectItem value="opex">{t("expTypeOpexRecurring")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
       <div>
-        <label className="text-sm font-medium">Описание</label>
+        <label className="text-sm font-medium">{t("descriptionLabel")}</label>
         <Input
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Перевозка автомата на точку ТТЗ"
+          placeholder={t("descriptionPlaceholder")}
           required
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Сумма (UZS)</label>
+          <label className="text-sm font-medium">{t("amountUzs")}</label>
           <Input
             type="number"
             value={amount}
@@ -1181,7 +1256,7 @@ function AddExpenseForm({
           />
         </div>
         <div>
-          <label className="text-sm font-medium">Дата</label>
+          <label className="text-sm font-medium">{t("date")}</label>
           <Input
             type="date"
             value={expenseDate}
@@ -1192,7 +1267,7 @@ function AddExpenseForm({
       </div>
 
       <div>
-        <label className="text-sm font-medium">Номер чека / накладной</label>
+        <label className="text-sm font-medium">{t("invoiceNumber")}</label>
         <Input
           value={invoiceNumber}
           onChange={(e) => setInvoiceNumber(e.target.value)}
@@ -1201,11 +1276,11 @@ function AddExpenseForm({
       </div>
 
       <div>
-        <label className="text-sm font-medium">Примечание</label>
+        <label className="text-sm font-medium">{t("noteLabel")}</label>
         <Input
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Дополнительная информация..."
+          placeholder={t("additionalInfo")}
         />
       </div>
 
@@ -1214,7 +1289,7 @@ function AddExpenseForm({
           type="submit"
           disabled={mutation.isPending || !category || !description || !amount}
         >
-          {mutation.isPending ? "Сохранение..." : "Добавить"}
+          {mutation.isPending ? t("saving") : t("add")}
         </Button>
       </div>
     </form>
@@ -1229,10 +1304,12 @@ function AddUsageForm({
   machineId,
   simCards,
   onSuccess,
+  t,
 }: {
   machineId: string;
   simCards: any[];
   onSuccess: () => void;
+  t: (key: string, params?: any) => string;
 }) {
   // Default to previous month
   const now = new Date();
@@ -1283,11 +1360,11 @@ function AddUsageForm({
       });
     },
     onSuccess: () => {
-      toast.success("Данные о расходе сохранены");
+      toast.success(t("usageDataSaved"));
       onSuccess();
     },
     onError: () => {
-      toast.error("Ошибка при сохранении");
+      toast.error(t("usageDataSaveError"));
     },
   });
 
@@ -1302,7 +1379,7 @@ function AddUsageForm({
       {/* SIM selection (if multiple) */}
       {simCards.length > 1 && (
         <div>
-          <label className="text-sm font-medium">SIM-карта</label>
+          <label className="text-sm font-medium">{t("simCardLabel")}</label>
           <Select value={componentId} onValueChange={setComponentId}>
             <SelectTrigger>
               <SelectValue />
@@ -1321,7 +1398,7 @@ function AddUsageForm({
 
       {/* Quick month picker */}
       <div>
-        <label className="text-sm font-medium">Период</label>
+        <label className="text-sm font-medium">{t("periodLabel")}</label>
         <Select
           value={`${periodStart}`}
           onValueChange={(val) => {
@@ -1334,7 +1411,7 @@ function AddUsageForm({
           }}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Выберите месяц" />
+            <SelectValue placeholder={t("selectMonth")} />
           </SelectTrigger>
           <SelectContent>
             {months.map((m) => {
@@ -1356,7 +1433,7 @@ function AddUsageForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Использовано (МБ)</label>
+          <label className="text-sm font-medium">{t("dataUsed")}</label>
           <Input
             type="number"
             value={dataUsedMb}
@@ -1367,7 +1444,7 @@ function AddUsageForm({
           />
         </div>
         <div>
-          <label className="text-sm font-medium">Лимит тарифа (МБ)</label>
+          <label className="text-sm font-medium">{t("dataLimit")}</label>
           <Input
             type="number"
             value={dataLimitMb}
@@ -1379,7 +1456,7 @@ function AddUsageForm({
       </div>
 
       <div>
-        <label className="text-sm font-medium">Стоимость (UZS)</label>
+        <label className="text-sm font-medium">{t("costUzs")}</label>
         <Input
           type="number"
           value={cost}
@@ -1391,11 +1468,11 @@ function AddUsageForm({
       </div>
 
       <div>
-        <label className="text-sm font-medium">Примечание</label>
+        <label className="text-sm font-medium">{t("noteLabel")}</label>
         <Input
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Повышенный расход из-за обновления..."
+          placeholder={t("additionalInfo")}
         />
       </div>
 
@@ -1404,7 +1481,7 @@ function AddUsageForm({
           type="submit"
           disabled={mutation.isPending || !dataUsedMb || !cost}
         >
-          {mutation.isPending ? "Сохранение..." : "Сохранить"}
+          {mutation.isPending ? t("saving") : t("save")}
         </Button>
       </div>
     </form>

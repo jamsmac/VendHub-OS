@@ -70,36 +70,36 @@ const COMPONENT_STATUSES = [
   "disposed",
 ] as const;
 
-const COMPONENT_TYPE_LABELS: Record<string, string> = {
-  hopper: "Бункер",
-  grinder: "Кофемолка",
-  brew_unit: "Заварочный блок",
-  mixer: "Миксер",
-  pump: "Помпа",
-  heater: "Нагреватель",
-  dispenser: "Диспенсер",
-  compressor: "Компрессор",
-  board: "Плата",
-  motor: "Мотор",
-  valve: "Клапан",
-  sensor: "Датчик",
-  filter: "Фильтр",
-  tank: "Бак",
-  conveyor: "Конвейер",
-  display: "Дисплей",
-  card_reader: "Картридер",
-  other: "Другое",
+const COMPONENT_TYPE_I18N: Record<string, string> = {
+  hopper: "componentType_hopper",
+  grinder: "componentType_grinder",
+  brew_unit: "componentType_brew_unit",
+  mixer: "componentType_mixer",
+  pump: "componentType_pump",
+  heater: "componentType_heater",
+  dispenser: "componentType_dispenser",
+  compressor: "componentType_compressor",
+  board: "componentType_board",
+  motor: "componentType_motor",
+  valve: "componentType_valve",
+  sensor: "componentType_sensor",
+  filter: "componentType_filter",
+  tank: "componentType_tank",
+  conveyor: "componentType_conveyor",
+  display: "componentType_display",
+  card_reader: "componentType_card_reader",
+  other: "componentType_other",
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  new: "Новый",
-  installed: "Установлен",
-  in_use: "В эксплуатации",
-  needs_maintenance: "Требует обслуживания",
-  in_repair: "В ремонте",
-  repaired: "Отремонтирован",
-  decommissioned: "Списан",
-  disposed: "Утилизирован",
+const STATUS_I18N: Record<string, string> = {
+  new: "status_new",
+  installed: "status_installed",
+  in_use: "status_in_use",
+  needs_maintenance: "status_needs_maintenance",
+  in_repair: "status_in_repair",
+  repaired: "status_repaired",
+  decommissioned: "status_decommissioned",
+  disposed: "status_disposed",
 };
 
 /**
@@ -108,7 +108,7 @@ const STATUS_LABELS: Record<string, string> = {
  * Optional: componentStatus, serialNumber, machineId, notes, purchasePrice
  */
 const componentSchema = z.object({
-  name: z.string().min(1, "Название обязательно").max(200),
+  name: z.string().min(1).max(200),
   componentType: z.enum(COMPONENT_TYPES),
   componentStatus: z.enum(COMPONENT_STATUSES).default("new"),
   serialNumber: z.string().max(100).optional().or(z.literal("")),
@@ -191,7 +191,10 @@ export default function NewComponentPage() {
                     <FormItem>
                       <FormLabel>{t("colName")} *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Название компонента" {...field} />
+                        <Input
+                          placeholder={t("componentNamePlaceholder")}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -216,7 +219,10 @@ export default function NewComponentPage() {
                         <SelectContent>
                           {COMPONENT_TYPES.map((type) => (
                             <SelectItem key={type} value={type}>
-                              {COMPONENT_TYPE_LABELS[type] ?? type}
+                              {t(
+                                COMPONENT_TYPE_I18N[type] ??
+                                  "componentType_other",
+                              )}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -244,7 +250,7 @@ export default function NewComponentPage() {
                         <SelectContent>
                           {COMPONENT_STATUSES.map((s) => (
                             <SelectItem key={s} value={s}>
-                              {STATUS_LABELS[s] ?? s}
+                              {t(STATUS_I18N[s] ?? "status_new")}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -280,18 +286,21 @@ export default function NewComponentPage() {
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="— Не привязан —" />
+                            <SelectValue placeholder={t("notLinked")} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="__none__">— Не привязан —</SelectItem>
-                          {(machines as Array<{ id: string; name: string }> || []).map(
-                            (m: { id: string; name: string }) => (
-                              <SelectItem key={m.id} value={m.id}>
-                                {m.name}
-                              </SelectItem>
-                            ),
-                          )}
+                          <SelectItem value="__none__">
+                            {t("notLinked")}
+                          </SelectItem>
+                          {(
+                            (machines as Array<{ id: string; name: string }>) ||
+                            []
+                          ).map((m: { id: string; name: string }) => (
+                            <SelectItem key={m.id} value={m.id}>
+                              {m.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -329,7 +338,7 @@ export default function NewComponentPage() {
                     <FormLabel>Заметки</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Дополнительная информация о компоненте..."
+                        placeholder={t("notesComponentPlaceholder")}
                         {...field}
                       />
                     </FormControl>
@@ -345,7 +354,7 @@ export default function NewComponentPage() {
                   className="gap-2"
                 >
                   <Save className="h-4 w-4" />
-                  {mutation.isPending ? "Сохранение..." : tCommon("save")}
+                  {mutation.isPending ? t("saving") : tCommon("save")}
                 </Button>
                 <Link href="/dashboard/equipment">
                   <Button type="button" variant="outline">

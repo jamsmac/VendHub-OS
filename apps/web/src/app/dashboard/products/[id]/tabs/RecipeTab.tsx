@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2, Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -19,13 +20,14 @@ import {
 import { InlineCreateSelect } from "@/components/forms/InlineCreateSelect";
 import { productsApi, api } from "@/lib/api";
 
-const UNITS = [
-  { value: "gram", label: "г" },
-  { value: "milliliter", label: "мл" },
-  { value: "piece", label: "шт" },
-  { value: "kilogram", label: "кг" },
-  { value: "liter", label: "л" },
-];
+const UNIT_I18N: Record<string, string> = {
+  gram: "unitG",
+  milliliter: "unitMl",
+  piece: "unitPcs",
+  kilogram: "unitKg",
+  liter: "unitL",
+};
+const UNIT_KEYS = ["gram", "milliliter", "piece", "kilogram", "liter"] as const;
 
 interface RecipeIngredientRow {
   id?: string;
@@ -43,6 +45,7 @@ interface RecipeTabProps {
 }
 
 export function RecipeTab({ productId }: RecipeTabProps) {
+  const t = useTranslations("products");
   const queryClient = useQueryClient();
 
   // Fetch recipes for this product
@@ -109,9 +112,9 @@ export function RecipeTab({ productId }: RecipeTabProps) {
       queryClient.invalidateQueries({
         queryKey: ["recipe-ingredients", activeRecipe?.id],
       });
-      toast.success("Рецепт сохранён");
+      toast.success(t("recipeSaved"));
     },
-    onError: () => toast.error("Ошибка сохранения"),
+    onError: () => toast.error(t("recipeSaveError")),
   });
 
   const addRow = () => {
@@ -176,7 +179,7 @@ export function RecipeTab({ productId }: RecipeTabProps) {
             onClick={() => {
               productsApi
                 .createRecipe(productId, {
-                  name: "Основной рецепт",
+                  name: t("primaryRecipeName"),
                   typeCode: "primary",
                   ingredients: [],
                 })
@@ -184,7 +187,7 @@ export function RecipeTab({ productId }: RecipeTabProps) {
                   queryClient.invalidateQueries({
                     queryKey: ["product-recipes", productId],
                   });
-                  toast.success("Рецепт создан");
+                  toast.success(t("recipeCreated"));
                 });
             }}
           >
@@ -299,9 +302,13 @@ export function RecipeTab({ productId }: RecipeTabProps) {
                     displayField="name"
                     secondaryField="sku"
                     searchParam="search"
-                    placeholder="Ингредиент..."
+                    placeholder={t("ingredientPlaceholder")}
                     createFields={[
-                      { name: "name", label: "Название", required: true },
+                      {
+                        name: "name",
+                        label: t("ingredientNameField"),
+                        required: true,
+                      },
                       { name: "sku", label: "SKU" },
                     ]}
                   />
@@ -331,9 +338,9 @@ export function RecipeTab({ productId }: RecipeTabProps) {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {UNITS.map((u) => (
-                        <SelectItem key={u.value} value={u.value}>
-                          {u.label}
+                      {UNIT_KEYS.map((key) => (
+                        <SelectItem key={key} value={key}>
+                          {t(UNIT_I18N[key])}
                         </SelectItem>
                       ))}
                     </SelectContent>

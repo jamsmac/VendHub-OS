@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import {
@@ -95,7 +96,7 @@ async function uploadFile(file: File): Promise<ReportUpload> {
     headers: { "Content-Type": "multipart/form-data" },
   });
   if (res.status >= 400) {
-    throw new Error(res.data?.message ?? "Ошибка загрузки");
+    throw new Error(res.data?.message ?? "Upload error");
   }
   return res.data as ReportUpload;
 }
@@ -105,8 +106,10 @@ async function uploadFile(file: File): Promise<ReportUpload> {
 // ─────────────────────────────────────────────────────────
 function UploadZone({
   onUploaded,
+  t,
 }: {
   onUploaded: (upload: ReportUpload) => void;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -120,7 +123,7 @@ function UploadZone({
       setUploading(true);
 
       for (const file of arr) {
-        setProgress(`Загружаю: ${file.name}…`);
+        setProgress(t("uploadingFile", { name: file.name }));
         try {
           const result = await uploadFile(file);
           const cfg = REPORT_TYPE_CONFIG[result.reportType];
@@ -130,10 +133,14 @@ function UploadZone({
           onUploaded(result);
         } catch (err: unknown) {
           const msg = err instanceof Error ? err.message : String(err);
-          if (msg.includes("уже загружен") || msg.includes("already")) {
-            toast.warning(`${file.name}: файл уже был загружен ранее`);
+          if (
+            msg.includes("already") ||
+            msg.includes("уже загружен") ||
+            msg.includes("already")
+          ) {
+            toast.warning(t("fileAlreadyUploaded", { name: file.name }));
           } else {
-            toast.error(`Ошибка: ${msg}`);
+            toast.error(t("errorPrefix", { message: msg }));
           }
         }
       }
@@ -194,12 +201,10 @@ function UploadZone({
             <Archive className="h-8 w-8" />
           </div>
           <p className="text-base font-medium">
-            {isDragging
-              ? "Отпустите файл для загрузки"
-              : "Перетащите файл сюда или нажмите"}
+            {isDragging ? t("dropFileHere") : t("dragOrClick")}
           </p>
           <p className="text-xs text-muted-foreground">
-            Поддерживаются: XLSX, XLS, CSV, ZIP • Payme, Click, VendHub, Касса
+            {t("supportedFormats")}
           </p>
           <div className="flex gap-2 mt-1 flex-wrap justify-center">
             {(
@@ -266,7 +271,13 @@ interface ImportStatusData {
   importedBy: string | null;
 }
 
-function ReportDataTable({ upload }: { upload: ReportUpload }) {
+function ReportDataTable({
+  upload,
+  t,
+}: {
+  upload: ReportUpload;
+  t: (key: string, params?: Record<string, string | number>) => string;
+}) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -342,7 +353,7 @@ function ReportDataTable({ upload }: { upload: ReportUpload }) {
               : ""),
         );
       } else if (result.totalRows === 0) {
-        toast.info("Все строки уже импортированы");
+        toast.info(t("allRowsImported"));
       } else {
         toast.warning(
           `Не удалось импортировать: ${result.machineNotFound} строк - машина не найдена`,
@@ -350,7 +361,7 @@ function ReportDataTable({ upload }: { upload: ReportUpload }) {
       }
     },
     onError: (err: Error) => {
-      toast.error(`Ошибка импорта: ${err.message}`);
+      toast.error(t("importError", { message: err.message }));
     },
   });
 
@@ -381,10 +392,10 @@ function ReportDataTable({ upload }: { upload: ReportUpload }) {
         <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-40" />
         <p>
           {upload.status === "FAILED"
-            ? `Ошибка обработки: ${upload.errorMessage}`
+            ? t("processingError", { message: upload.errorMessage ?? "" })
             : upload.status === "DUPLICATE"
-              ? "Файл уже был загружен ранее"
-              : "Обработка..."}
+              ? t("fileDuplicate")
+              : t("processing")}
         </p>
       </div>
     );
@@ -495,7 +506,7 @@ function ReportDataTable({ upload }: { upload: ReportUpload }) {
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Поиск по заказу, товару, машине..."
+            placeholder={t("searchPlaceholder")}
             className="pl-8"
             value={search}
             onChange={(e) => {
@@ -514,10 +525,10 @@ function ReportDataTable({ upload }: { upload: ReportUpload }) {
             }}
           >
             <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Метод оплаты" />
+              <SelectValue placeholder={t("paymentMethodPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Все методы</SelectItem>
+              <SelectItem value="all">{t("allMethods")}</SelectItem>
               {filters.paymentMethods.map((m) => (
                 <SelectItem key={m} value={m}>
                   {m}
@@ -536,10 +547,10 @@ function ReportDataTable({ upload }: { upload: ReportUpload }) {
             }}
           >
             <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Статус" />
+              <SelectValue placeholder={t("statusPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Все статусы</SelectItem>
+              <SelectItem value="all">{t("allStatuses")}</SelectItem>
               {filters.paymentStatuses.map((s) => (
                 <SelectItem key={s} value={s}>
                   {s}
@@ -710,12 +721,14 @@ function UploadHistoryCard({
   onDelete,
   onSelect,
   selected,
+  t,
 }: {
   upload: ReportUpload;
   onView: () => void;
   onDelete: () => void;
   onSelect: () => void;
   selected: boolean;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   const typeCfg = REPORT_TYPE_CONFIG[upload.reportType];
   const statusCfg = UPLOAD_STATUS_CONFIG[upload.status];
@@ -803,7 +816,7 @@ function UploadHistoryCard({
             >
               {upload.importedRows > 0
                 ? `${upload.importedRows}/${upload.newRows || upload.totalRows} импорт`
-                : "не импортирован"}
+                : t("notImported")}
             </span>
           )}
           {upload.periodFrom && (
@@ -821,7 +834,12 @@ function UploadHistoryCard({
         className="flex gap-1 flex-shrink-0"
         onClick={(e) => e.stopPropagation()}
       >
-        <Button variant="ghost" size="sm" onClick={onView} title="Просмотр">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onView}
+          title={t("tabHistory")}
+        >
           <Eye className="h-4 w-4" />
         </Button>
         <Button
@@ -829,7 +847,7 @@ function UploadHistoryCard({
           size="sm"
           className="text-destructive hover:text-destructive"
           onClick={onDelete}
-          title="Удалить"
+          title={t("reportDeleted")}
         >
           <Trash2 className="h-4 w-4" />
         </Button>
@@ -842,6 +860,7 @@ function UploadHistoryCard({
 // ГЛАВНАЯ СТРАНИЦА
 // ─────────────────────────────────────────────────────────
 export default function PaymentReportsPage() {
+  const t = useTranslations("paymentReports");
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<
     "upload" | "history" | "reconcile" | "analytics"
@@ -890,7 +909,7 @@ export default function PaymentReportsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payment-reports"] });
       queryClient.invalidateQueries({ queryKey: ["payment-reports-stats"] });
-      toast.success("Отчёт удалён");
+      toast.success(t("reportDeleted"));
     },
   });
 
@@ -903,7 +922,7 @@ export default function PaymentReportsPage() {
 
   const handleReconcile = async () => {
     if (selectedForReconcile.length !== 2) {
-      toast.error("Выберите ровно 2 отчёта для сверки");
+      toast.error(t("selectExactlyTwo"));
       return;
     }
     setReconcileLoading(true);
@@ -918,7 +937,9 @@ export default function PaymentReportsPage() {
       setReconcileResult(result);
     } catch (e) {
       toast.error(
-        `Ошибка сверки: ${e instanceof Error ? e.message : String(e)}`,
+        t("reconcileError", {
+          message: e instanceof Error ? e.message : String(e),
+        }),
       );
     } finally {
       setReconcileLoading(false);
@@ -1015,7 +1036,7 @@ export default function PaymentReportsPage() {
         <TabsContent value="upload" className="mt-4">
           <Card>
             <CardContent className="pt-6">
-              <UploadZone onUploaded={handleUploaded} />
+              <UploadZone onUploaded={handleUploaded} t={t} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -1084,6 +1105,7 @@ export default function PaymentReportsPage() {
                   onDelete={() => deleteMutation.mutate(u.id)}
                   onSelect={() => toggleSelect(u.id)}
                   selected={selectedForReconcile.includes(u.id)}
+                  t={t}
                 />
               ))}
             </div>
@@ -1171,7 +1193,7 @@ export default function PaymentReportsPage() {
                           { responseType: "blob" },
                         );
                         if (res.status >= 400) {
-                          toast.error("Ошибка экспорта");
+                          toast.error(t("exportError"));
                           return;
                         }
                         const blob = res.data as Blob;
@@ -1191,12 +1213,12 @@ export default function PaymentReportsPage() {
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {[
                       {
-                        label: "Совпадений",
+                        label: t("matched"),
                         value: reconcileResult.summary.matched,
                         color: "text-green-600",
                       },
                       {
-                        label: "Расхождений",
+                        label: t("mismatched"),
                         value: reconcileResult.summary.mismatched,
                         color: "text-red-600",
                       },
@@ -1211,12 +1233,12 @@ export default function PaymentReportsPage() {
                         color: "text-orange-600",
                       },
                       {
-                        label: "Всего А",
+                        label: t("totalA"),
                         value: reconcileResult.summary.totalA,
                         color: "text-muted-foreground",
                       },
                       {
-                        label: "Всего Б",
+                        label: t("totalB"),
                         value: reconcileResult.summary.totalB,
                         color: "text-muted-foreground",
                       },
@@ -1345,7 +1367,7 @@ export default function PaymentReportsPage() {
             </DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-auto">
-            {viewUpload && <ReportDataTable upload={viewUpload} />}
+            {viewUpload && <ReportDataTable upload={viewUpload} t={t} />}
           </div>
         </DialogContent>
       </Dialog>
