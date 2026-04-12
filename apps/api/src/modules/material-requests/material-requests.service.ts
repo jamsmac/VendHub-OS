@@ -169,19 +169,29 @@ export class MaterialRequestsService {
       await this.itemRepo.save(newItems);
     }
 
-    // Update existing items
+    // Update existing items (batch fetch + batch save to avoid N+1)
     if (dto.updateItems?.length) {
+      const updateIds = dto.updateItems.map((u) => u.id);
+      const existingItems = await this.itemRepo.find({
+        where: { id: In(updateIds), requestId: request.id },
+      });
+      const itemMap = new Map(existingItems.map((i) => [i.id, i]));
+
       for (const update of dto.updateItems) {
-        const item = await this.itemRepo.findOne({
-          where: { id: update.id, requestId: request.id },
-        });
+        const item = itemMap.get(update.id);
         if (item) {
           if (update.quantity !== undefined) item.quantity = update.quantity;
           if (update.unitPrice !== undefined) item.unitPrice = update.unitPrice;
           if (update.notes !== undefined) item.notes = update.notes;
           item.totalPrice = item.quantity * item.unitPrice;
-          await this.itemRepo.save(item);
         }
+      }
+
+      const itemsToSave = dto.updateItems
+        .map((u) => itemMap.get(u.id))
+        .filter((item): item is MaterialRequestItem => item !== undefined);
+      if (itemsToSave.length) {
+        await this.itemRepo.save(itemsToSave);
       }
     }
 
