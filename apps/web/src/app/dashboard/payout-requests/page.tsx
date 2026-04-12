@@ -79,37 +79,37 @@ const STATUS_CONFIG: Record<
   { i18nKey: string; variant: string; icon: React.ElementType }
 > = {
   pending: {
-    label: "Ожидает",
+    i18nKey: "statusPending",
     variant: "bg-yellow-500/10 text-yellow-600",
     icon: Clock,
   },
   approved: {
-    label: "Одобрен",
+    i18nKey: "statusApproved",
     variant: "bg-blue-500/10 text-blue-600",
     icon: CheckCircle2,
   },
   processing: {
-    label: "В обработке",
+    i18nKey: "statusProcessing",
     variant: "bg-indigo-500/10 text-indigo-600",
     icon: Loader2,
   },
   completed: {
-    label: "Завершён",
+    i18nKey: "statusCompleted",
     variant: "bg-green-500/10 text-green-600",
     icon: CheckCircle2,
   },
   rejected: {
-    label: "Отклонён",
+    i18nKey: "statusRejected",
     variant: "bg-red-500/10 text-red-600",
     icon: XCircle,
   },
   cancelled: {
-    label: "Отменён",
+    i18nKey: "statusCancelled",
     variant: "bg-gray-500/10 text-gray-500",
     icon: XCircle,
   },
   failed: {
-    label: "Ошибка",
+    i18nKey: "statusFailed",
     variant: "bg-red-500/10 text-red-600",
     icon: AlertCircle,
   },
@@ -222,7 +222,9 @@ export default function PayoutRequestsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{t("title")}</h1>
-          <p className="text-muted-foreground">{t("subtitle")}</p>
+          <p className="text-muted-foreground">
+            Управление запросами на вывод средств
+          </p>
         </div>
         <Button onClick={() => setCreateOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
@@ -525,7 +527,7 @@ function CreatePayoutForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label>{t("reasonLabel")}</Label>
+        <Label>{t("colReason")}</Label>
         <Textarea
           {...form.register("reason")}
           placeholder={t("reasonPlaceholder")}
