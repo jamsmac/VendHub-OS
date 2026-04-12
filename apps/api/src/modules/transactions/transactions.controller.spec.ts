@@ -3,6 +3,7 @@ import { HttpStatus } from "@nestjs/common";
 import {
   createControllerTestApp,
   TEST_UUID,
+  USERS,
 } from "../../common/test-utils/controller-test.helper";
 import { TransactionsController } from "./transactions.controller";
 import { TransactionsService } from "./transactions.service";
@@ -253,6 +254,111 @@ describe("TransactionsController", () => {
       .get("/transactions")
       .set("Authorization", "Bearer viewer-token")
       .expect(HttpStatus.FORBIDDEN);
+  });
+
+  // ============================================================================
+  // TENANT ISOLATION — verify organizationId is passed to service
+  // ============================================================================
+
+  const ADMIN_ORG_ID = USERS["Bearer admin-token"].organizationId;
+
+  it("processPayment passes organizationId to service", async () => {
+    mockService.processPayment.mockResolvedValue({});
+    await request(app.getHttpServer())
+      .post(`/transactions/${TEST_UUID}/payment`)
+      .set("Authorization", "Bearer admin-token")
+      .send({ method: "cash", amount: 5000 })
+      .expect(HttpStatus.OK);
+    expect(mockService.processPayment).toHaveBeenCalledWith(
+      expect.objectContaining({ transactionId: TEST_UUID }),
+      ADMIN_ORG_ID,
+    );
+  });
+
+  it("recordDispense passes organizationId to service", async () => {
+    mockService.recordDispense.mockResolvedValue({});
+    await request(app.getHttpServer())
+      .post(`/transactions/${TEST_UUID}/dispense`)
+      .set("Authorization", "Bearer admin-token")
+      .send({ itemId: TEST_UUID, status: "dispensed", dispensedQuantity: 1 })
+      .expect(HttpStatus.OK);
+    expect(mockService.recordDispense).toHaveBeenCalledWith(
+      expect.objectContaining({ transactionId: TEST_UUID }),
+      ADMIN_ORG_ID,
+    );
+  });
+
+  it("cancel passes organizationId to service", async () => {
+    mockService.cancel.mockResolvedValue({});
+    await request(app.getHttpServer())
+      .post(`/transactions/${TEST_UUID}/cancel`)
+      .set("Authorization", "Bearer admin-token")
+      .send({ reason: "Customer request" })
+      .expect(HttpStatus.OK);
+    expect(mockService.cancel).toHaveBeenCalledWith(
+      TEST_UUID,
+      "Customer request",
+      ADMIN_ORG_ID,
+    );
+  });
+
+  it("createRefund passes organizationId to service", async () => {
+    mockService.createRefund.mockResolvedValue({ id: TEST_UUID });
+    await request(app.getHttpServer())
+      .post(`/transactions/${TEST_UUID}/refund`)
+      .set("Authorization", "Bearer admin-token")
+      .send({ amount: 5000, reason: "Defective product" })
+      .expect(HttpStatus.CREATED);
+    expect(mockService.createRefund).toHaveBeenCalledWith(
+      TEST_UUID,
+      5000,
+      "Defective product",
+      ADMIN_ORG_ID,
+    );
+  });
+
+  it("processRefund passes organizationId to service", async () => {
+    mockService.processRefund.mockResolvedValue({});
+    await request(app.getHttpServer())
+      .post(`/transactions/refunds/${TEST_UUID}/process`)
+      .set("Authorization", "Bearer admin-token")
+      .send({ success: true })
+      .expect(HttpStatus.OK);
+    expect(mockService.processRefund).toHaveBeenCalledWith(
+      TEST_UUID,
+      true,
+      undefined,
+      ADMIN_ORG_ID,
+    );
+  });
+
+  it("fiscalize passes organizationId to service", async () => {
+    mockService.fiscalize.mockResolvedValue({});
+    await request(app.getHttpServer())
+      .post(`/transactions/${TEST_UUID}/fiscalize`)
+      .set("Authorization", "Bearer admin-token")
+      .send({ receiptNumber: "FP-001" })
+      .expect(HttpStatus.OK);
+    expect(mockService.fiscalize).toHaveBeenCalledWith(
+      TEST_UUID,
+      expect.objectContaining({ receiptNumber: "FP-001" }),
+      ADMIN_ORG_ID,
+    );
+  });
+
+  it("verifyCollection passes organizationId to service", async () => {
+    mockService.verifyCollection.mockResolvedValue({});
+    await request(app.getHttpServer())
+      .patch(`/transactions/collections/${TEST_UUID}/verify`)
+      .set("Authorization", "Bearer admin-token")
+      .send({ notes: "Verified" })
+      .expect(HttpStatus.OK);
+    expect(mockService.verifyCollection).toHaveBeenCalledWith(
+      TEST_UUID,
+      expect.any(String),
+      "Verified",
+      ADMIN_ORG_ID,
+    );
   });
 
   it("POST /transactions/:id/refund rejects viewer", async () => {
