@@ -458,76 +458,80 @@ export default function MachineTemplatesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((t) => (
+              {filtered.map((tpl) => (
                 <TableRow
-                  key={t.id}
+                  key={tpl.id}
                   className="cursor-pointer"
                   onClick={() => {
-                    setViewTemplate(t);
+                    setViewTemplate(tpl);
                     setDetailOpen(true);
                   }}
                 >
                   <TableCell className="text-2xl text-center">
-                    {MACHINE_TYPE_ICONS[t.type] ?? "📦"}
+                    {MACHINE_TYPE_ICONS[tpl.type] ?? "📦"}
                   </TableCell>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{t.name}</div>
+                      <div className="font-medium">{tpl.name}</div>
                       <div className="text-xs text-muted-foreground">
-                        {t.manufacturer && t.model
-                          ? `${t.manufacturer} ${t.model}`
-                          : t.manufacturer ||
-                            t.model ||
-                            MACHINE_TYPE_KEYS[t.type]}
+                        {tpl.manufacturer && tpl.model
+                          ? `${tpl.manufacturer} ${tpl.model}`
+                          : tpl.manufacturer ||
+                            tpl.model ||
+                            (MACHINE_TYPE_KEYS[tpl.type]
+                              ? t(MACHINE_TYPE_KEYS[tpl.type])
+                              : tpl.type)}
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <Badge
                       className={
-                        CONTENT_MODEL_COLORS[t.contentModel] ?? "bg-gray-100"
+                        CONTENT_MODEL_COLORS[tpl.contentModel] ?? "bg-gray-100"
                       }
                     >
-                      {CONTENT_MODEL_KEYS[t.contentModel] ?? t.contentModel}
+                      {CONTENT_MODEL_KEYS[tpl.contentModel]
+                        ? t(CONTENT_MODEL_KEYS[tpl.contentModel])
+                        : tpl.contentModel}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center font-mono">
-                    {t.defaultContainers?.length ?? 0}
+                    {tpl.defaultContainers?.length ?? 0}
                   </TableCell>
                   <TableCell className="text-center font-mono">
-                    {t.defaultSlots?.length ?? 0}
+                    {tpl.defaultSlots?.length ?? 0}
                   </TableCell>
                   <TableCell className="text-center font-mono">
-                    {t.defaultComponents?.length ?? 0}
+                    {tpl.defaultComponents?.length ?? 0}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      {t.acceptsCash && (
+                      {tpl.acceptsCash && (
                         <Banknote className="w-4 h-4 text-green-600" />
                       )}
-                      {t.acceptsCard && (
+                      {tpl.acceptsCard && (
                         <CreditCard className="w-4 h-4 text-blue-600" />
                       )}
-                      {t.acceptsQr && (
+                      {tpl.acceptsQr && (
                         <QrCode className="w-4 h-4 text-purple-600" />
                       )}
-                      {t.acceptsNfc && (
+                      {tpl.acceptsNfc && (
                         <Smartphone className="w-4 h-4 text-orange-600" />
                       )}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1.5">
-                      {t.isSystem && (
+                      {tpl.isSystem && (
                         <Lock className="w-3.5 h-3.5 text-muted-foreground" />
                       )}
-                      {t.isActive ? (
+                      {tpl.isActive ? (
                         <Badge className="bg-green-500/10 text-green-600 text-xs">
-                          Активен
+                          {t("statusActive")}
                         </Badge>
                       ) : (
                         <Badge className="bg-red-500/10 text-red-500 text-xs">
-                          Неактивен
+                          {t("statusInactive")}
                         </Badge>
                       )}
                     </div>
@@ -540,25 +544,19 @@ export default function MachineTemplatesPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => openEdit(t)}
-                        disabled={t.isSystem}
-                        title={
-                          t.isSystem
-                            ? "Системный шаблон нельзя редактировать"
-                            : "Редактировать"
-                        }
+                        onClick={() => openEdit(tpl)}
+                        disabled={tpl.isSystem}
+                        title={tpl.isSystem ? t("systemCannotEdit") : t("edit")}
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => setDeleteId(t.id)}
-                        disabled={t.isSystem}
+                        onClick={() => setDeleteId(tpl.id)}
+                        disabled={tpl.isSystem}
                         title={
-                          t.isSystem
-                            ? "Системный шаблон нельзя удалить"
-                            : "Удалить"
+                          tpl.isSystem ? t("systemCannotDelete") : t("delete")
                         }
                         className="text-destructive hover:text-destructive"
                       >
@@ -850,7 +848,7 @@ export default function MachineTemplatesPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Модель</Label>
+                <Label>{t("modelLabel")}</Label>
                 <Input
                   value={form.model}
                   onChange={(e) =>
@@ -862,20 +860,20 @@ export default function MachineTemplatesPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Описание</Label>
+              <Label>{t("descriptionLabel")}</Label>
               <Textarea
                 value={form.description}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, description: e.target.value }))
                 }
-                placeholder="Описание шаблона..."
+                placeholder={t("descriptionPlaceholder")}
                 rows={2}
               />
             </div>
 
             {/* Payment methods */}
             <div>
-              <Label className="mb-3 block">Способы оплаты</Label>
+              <Label className="mb-3 block">{t("paymentMethodsLabel")}</Label>
               <div className="flex flex-wrap gap-4">
                 <div className="flex items-center gap-2">
                   <Switch
@@ -884,7 +882,7 @@ export default function MachineTemplatesPage() {
                       setForm((f) => ({ ...f, acceptsCash: v }))
                     }
                   />
-                  <span className="text-sm">Наличные</span>
+                  <span className="text-sm">{t("paymentCash")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch
@@ -893,7 +891,7 @@ export default function MachineTemplatesPage() {
                       setForm((f) => ({ ...f, acceptsCard: v }))
                     }
                   />
-                  <span className="text-sm">Карта</span>
+                  <span className="text-sm">{t("paymentCard")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch
@@ -930,12 +928,12 @@ export default function MachineTemplatesPage() {
                     size="sm"
                     onClick={addContainer}
                   >
-                    <Plus className="w-3 h-3 mr-1" /> Добавить
+                    <Plus className="w-3 h-3 mr-1" /> {t("addButton")}
                   </Button>
                 </div>
                 {form.defaultContainers.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    Нет бункеров. Нажмите «Добавить» для создания.
+                    {t("noContainersHint")}
                   </p>
                 ) : (
                   <div className="space-y-2">
@@ -949,7 +947,7 @@ export default function MachineTemplatesPage() {
                         </span>
                         <Input
                           className="flex-1"
-                          placeholder="Название бункера"
+                          placeholder={t("containerNamePlaceholder")}
                           value={c.name}
                           onChange={(e) =>
                             updateContainer(i, { name: e.target.value })
@@ -959,7 +957,7 @@ export default function MachineTemplatesPage() {
                           className="w-20"
                           type="number"
                           min={1}
-                          placeholder="Ёмкость"
+                          placeholder={t("capacityPlaceholder")}
                           value={c.capacity}
                           onChange={(e) =>
                             updateContainer(i, {
@@ -975,9 +973,13 @@ export default function MachineTemplatesPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="g">г</SelectItem>
-                            <SelectItem value="ml">мл</SelectItem>
-                            <SelectItem value="pcs">шт</SelectItem>
+                            <SelectItem value="g">{t("unitGrams")}</SelectItem>
+                            <SelectItem value="ml">
+                              {t("unitMilliliters")}
+                            </SelectItem>
+                            <SelectItem value="pcs">
+                              {t("unitPieces")}
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <Button
@@ -1010,12 +1012,12 @@ export default function MachineTemplatesPage() {
                     size="sm"
                     onClick={addSlot}
                   >
-                    <Plus className="w-3 h-3 mr-1" /> Добавить
+                    <Plus className="w-3 h-3 mr-1" /> {t("addButton")}
                   </Button>
                 </div>
                 {form.defaultSlots.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    Нет ячеек. Нажмите «Добавить» для создания.
+                    {t("noSlotsHint")}
                   </p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
@@ -1071,12 +1073,12 @@ export default function MachineTemplatesPage() {
                   size="sm"
                   onClick={addComponent}
                 >
-                  <Plus className="w-3 h-3 mr-1" /> Добавить
+                  <Plus className="w-3 h-3 mr-1" /> {t("addButton")}
                 </Button>
               </div>
               {form.defaultComponents.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Нет компонентов. Нажмите «Добавить» для создания.
+                  {t("noComponentsHint")}
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -1095,29 +1097,47 @@ export default function MachineTemplatesPage() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="grinder">Кофемолка</SelectItem>
-                          <SelectItem value="brew_unit">
-                            Заварочный блок
+                          <SelectItem value="grinder">
+                            {t("componentGrinder")}
                           </SelectItem>
-                          <SelectItem value="pump">Насос</SelectItem>
-                          <SelectItem value="heater">Нагреватель</SelectItem>
-                          <SelectItem value="mixer">Миксер</SelectItem>
-                          <SelectItem value="compressor">Компрессор</SelectItem>
+                          <SelectItem value="brew_unit">
+                            {t("componentBrewUnit")}
+                          </SelectItem>
+                          <SelectItem value="pump">
+                            {t("componentPump")}
+                          </SelectItem>
+                          <SelectItem value="heater">
+                            {t("componentHeater")}
+                          </SelectItem>
+                          <SelectItem value="mixer">
+                            {t("componentMixer")}
+                          </SelectItem>
+                          <SelectItem value="compressor">
+                            {t("componentCompressor")}
+                          </SelectItem>
                           <SelectItem value="coin_acceptor">
-                            Монетоприёмник
+                            {t("componentCoinAcceptor")}
                           </SelectItem>
                           <SelectItem value="bill_acceptor">
-                            Купюроприёмник
+                            {t("componentBillAcceptor")}
                           </SelectItem>
-                          <SelectItem value="card_reader">Картридер</SelectItem>
-                          <SelectItem value="display">Дисплей</SelectItem>
-                          <SelectItem value="modem">Модем</SelectItem>
-                          <SelectItem value="other">Другое</SelectItem>
+                          <SelectItem value="card_reader">
+                            {t("componentCardReader")}
+                          </SelectItem>
+                          <SelectItem value="display">
+                            {t("componentDisplay")}
+                          </SelectItem>
+                          <SelectItem value="modem">
+                            {t("componentModem")}
+                          </SelectItem>
+                          <SelectItem value="other">
+                            {t("componentOther")}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                       <Input
                         className="flex-1"
-                        placeholder="Название компонента"
+                        placeholder={t("componentNamePlaceholder")}
                         value={c.name}
                         onChange={(e) =>
                           updateComponent(i, { name: e.target.value })
@@ -1144,20 +1164,20 @@ export default function MachineTemplatesPage() {
                 checked={form.isActive}
                 onCheckedChange={(v) => setForm((f) => ({ ...f, isActive: v }))}
               />
-              <Label>Активен (доступен для выбора)</Label>
+              <Label>{t("activeToggle")}</Label>
             </div>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={closeDialog}>
-              Отмена
+              {t("cancel")}
             </Button>
             <Button onClick={handleSave} disabled={isPending}>
               {isPending
-                ? "Сохранение..."
+                ? t("saving")
                 : editingTemplate
-                  ? "Сохранить"
-                  : "Создать"}
+                  ? t("save")
+                  : t("create")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1170,19 +1190,18 @@ export default function MachineTemplatesPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Удалить шаблон?</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteConfirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Шаблон будет деактивирован. Уже созданные по нему автоматы не
-              пострадают.
+              {t("deleteConfirmDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogCancel>{t("deleteCancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteId && deleteMutation.mutate(deleteId)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Удалить
+              {t("deleteConfirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

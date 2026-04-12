@@ -39,14 +39,7 @@ interface BuilderStop {
   sequenceNumber: number;
 }
 
-function pluralizeStops(n: number): string {
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  if (mod10 === 1 && mod100 !== 11) return "остановка";
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20))
-    return "остановки";
-  return "остановок";
-}
+// pluralizeStops removed — replaced by ICU plural syntax in i18n
 
 function MachineCardSkeleton() {
   return (
@@ -270,7 +263,7 @@ export default function RouteBuilderPage() {
                       <div className="min-w-0">
                         <p className="font-medium truncate">{machine.name}</p>
                         <p className="text-sm text-muted-foreground truncate">
-                          {machine.address || "Адрес не указан"}
+                          {machine.address || t("addressNotSpecified")}
                         </p>
                       </div>
                       <Button

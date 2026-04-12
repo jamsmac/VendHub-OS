@@ -14,16 +14,12 @@ import {
   TrendingUp,
   Receipt,
   Globe,
-  Truck,
-  Zap,
-  Pencil,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -46,7 +42,14 @@ interface PassportTabProps {
 }
 
 // ── Uzbek SIM providers ──
-const SIM_PROVIDERS = ["Beeline", "Ucell", "Mobiuz", "UMS", "Perfectum", "Другой"];
+const SIM_PROVIDERS = [
+  "Beeline",
+  "Ucell",
+  "Mobiuz",
+  "UMS",
+  "Perfectum",
+  "Другой",
+];
 
 // ── Connectivity types ──
 const CONNECTIVITY_TYPES = [
@@ -76,7 +79,10 @@ const EXPENSE_TYPE_LABELS: Record<string, string> = {
   opex: "Операционные",
 };
 
-const CONNECTIVITY_STATUS_BADGES: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
+const CONNECTIVITY_STATUS_BADGES: Record<
+  string,
+  { label: string; variant: "default" | "secondary" | "destructive" }
+> = {
   active: { label: "Активна", variant: "default" },
   inactive: { label: "Отключена", variant: "secondary" },
   suspended: { label: "Приостановлена", variant: "destructive" },
@@ -191,9 +197,7 @@ export function PassportTab({ machine }: PassportTabProps) {
             </div>
             <div>
               <p className="text-muted-foreground">Год выпуска</p>
-              <p className="font-medium">
-                {machine.yearOfManufacture || "—"}
-              </p>
+              <p className="font-medium">{machine.yearOfManufacture || "—"}</p>
             </div>
             <div>
               <p className="text-muted-foreground">Серийный номер</p>
@@ -358,12 +362,9 @@ export function PassportTab({ machine }: PassportTabProps) {
                         </p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">
-                          Ежемесячно
-                        </p>
+                        <p className="text-muted-foreground">Ежемесячно</p>
                         <p className="font-medium">
-                          {Number(conn.monthlyCost).toLocaleString("ru-RU")}{" "}
-                          UZS
+                          {Number(conn.monthlyCost).toLocaleString("ru-RU")} UZS
                         </p>
                       </div>
                     </div>
@@ -404,13 +405,11 @@ export function PassportTab({ machine }: PassportTabProps) {
                         <div>
                           <p className="text-muted-foreground">Оператор</p>
                           <p className="font-medium">
-                            {sim.manufacturer ||
-                              sim.metadata?.provider ||
-                              "—"}
+                            {sim.manufacturer || sim.metadata?.provider || "—"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">Номер</p>
+                          <p className="text-muted-foreground">{t("number")}</p>
                           <p className="font-medium font-mono text-xs">
                             {sim.serialNumber ||
                               sim.metadata?.phoneNumber ||
@@ -418,7 +417,7 @@ export function PassportTab({ machine }: PassportTabProps) {
                           </p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">Тариф</p>
+                          <p className="text-muted-foreground">{t("tariff")}</p>
                           <p className="font-medium">
                             {sim.metadata?.tariffPlan || "—"}
                           </p>
@@ -426,7 +425,7 @@ export function PassportTab({ machine }: PassportTabProps) {
                         {sim.installedAt && (
                           <div>
                             <p className="text-muted-foreground">
-                              Установлена
+                              {t("installed")}
                             </p>
                             <p className="font-medium">
                               {new Date(sim.installedAt).toLocaleDateString(
@@ -442,7 +441,9 @@ export function PassportTab({ machine }: PassportTabProps) {
                         }
                         className="shrink-0"
                       >
-                        {sim.status === "installed" ? "Активна" : sim.status}
+                        {sim.status === "installed"
+                          ? t("simActive")
+                          : sim.status}
                       </Badge>
                     </div>
                   ))}
@@ -454,23 +455,24 @@ export function PassportTab({ machine }: PassportTabProps) {
       </Card>
 
       {/* SIM Usage History */}
-      {(simCards.length > 0 || (connectivity?.some((c: any) => c.connectivityType === "sim"))) && (
+      {(simCards.length > 0 ||
+        connectivity?.some((c: any) => c.connectivityType === "sim")) && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
-              Расход трафика и стоимость
+              {t("trafficAndCost")}
             </CardTitle>
             <Dialog open={usageDialogOpen} onOpenChange={setUsageDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
                   <Plus className="h-3.5 w-3.5 mr-1" />
-                  Внести данные
+                  {t("addData")}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Внести расход за период</DialogTitle>
+                  <DialogTitle>{t("addUsageForPeriod")}</DialogTitle>
                 </DialogHeader>
                 <AddUsageForm
                   machineId={machine.id}
@@ -491,23 +493,27 @@ export function PassportTab({ machine }: PassportTabProps) {
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div className="rounded-lg bg-muted/50 p-3 text-center">
                   <p className="text-lg font-bold">{simUsage?.length ?? 0}</p>
-                  <p className="text-xs text-muted-foreground">Записей</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("records")}
+                  </p>
                 </div>
                 <div className="rounded-lg bg-muted/50 p-3 text-center">
                   <p className="text-lg font-bold">
                     {totalDataUsed >= 1024
-                      ? `${(totalDataUsed / 1024).toFixed(1)} ГБ`
-                      : `${totalDataUsed} МБ`}
+                      ? `${(totalDataUsed / 1024).toFixed(1)} GB`
+                      : `${totalDataUsed} MB`}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Всего трафика
+                    {t("totalTraffic")}
                   </p>
                 </div>
                 <div className="rounded-lg bg-muted/50 p-3 text-center">
                   <p className="text-lg font-bold">
                     {totalSimCost.toLocaleString("ru-RU")}
                   </p>
-                  <p className="text-xs text-muted-foreground">Всего UZS</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("totalUzs")}
+                  </p>
                 </div>
               </div>
             )}
@@ -525,12 +531,8 @@ export function PassportTab({ machine }: PassportTabProps) {
                       <th className="text-left py-2 font-medium">Период</th>
                       <th className="text-right py-2 font-medium">Трафик</th>
                       <th className="text-right py-2 font-medium">Лимит</th>
-                      <th className="text-right py-2 font-medium">
-                        Стоимость
-                      </th>
-                      <th className="text-left py-2 font-medium">
-                        Примечание
-                      </th>
+                      <th className="text-right py-2 font-medium">Стоимость</th>
+                      <th className="text-left py-2 font-medium">Примечание</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -572,10 +574,7 @@ export function PassportTab({ machine }: PassportTabProps) {
             <Receipt className="h-4 w-4" />
             Расходы на точку
           </CardTitle>
-          <Dialog
-            open={expenseDialogOpen}
-            onOpenChange={setExpenseDialogOpen}
-          >
+          <Dialog open={expenseDialogOpen} onOpenChange={setExpenseDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">
                 <Plus className="h-3.5 w-3.5 mr-1" />
@@ -647,14 +646,10 @@ export function PassportTab({ machine }: PassportTabProps) {
                 <tbody>
                   {expenses.map((exp: any) => {
                     const catLabel =
-                      EXPENSE_CATEGORIES.find(
-                        (c) => c.value === exp.category,
-                      )?.label ?? exp.category;
+                      EXPENSE_CATEGORIES.find((c) => c.value === exp.category)
+                        ?.label ?? exp.category;
                     return (
-                      <tr
-                        key={exp.id}
-                        className="border-b last:border-0"
-                      >
+                      <tr key={exp.id} className="border-b last:border-0">
                         <td className="py-2">
                           {new Date(exp.expenseDate).toLocaleDateString(
                             "ru-RU",
@@ -1044,7 +1039,9 @@ function AddConnectivityForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">Ежемесячная стоимость (UZS)</label>
+          <label className="text-sm font-medium">
+            Ежемесячная стоимость (UZS)
+          </label>
           <Input
             type="number"
             value={monthlyCost}
@@ -1078,7 +1075,10 @@ function AddConnectivityForm({
         <Button
           type="submit"
           disabled={
-            mutation.isPending || !connectivityType || !providerName || !monthlyCost
+            mutation.isPending ||
+            !connectivityType ||
+            !providerName ||
+            !monthlyCost
           }
         >
           {mutation.isPending ? "Сохранение..." : "Добавить"}
@@ -1222,9 +1222,7 @@ function AddExpenseForm({
       <div className="flex justify-end pt-2">
         <Button
           type="submit"
-          disabled={
-            mutation.isPending || !category || !description || !amount
-          }
+          disabled={mutation.isPending || !category || !description || !amount}
         >
           {mutation.isPending ? "Сохранение..." : "Добавить"}
         </Button>
