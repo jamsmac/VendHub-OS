@@ -1,5 +1,4 @@
 // VendHub.uz TypeScript interfaces
-// Matches Supabase schema in supabase/schema.sql
 
 export interface ProductOption {
   name: string;

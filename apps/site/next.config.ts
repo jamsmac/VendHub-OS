@@ -20,13 +20,7 @@ const nextConfig: NextConfig = {
   // reactCompiler: true,
 
   images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "*.supabase.co",
-        pathname: "/storage/v1/object/public/**",
-      },
-    ],
+    remotePatterns: [],
   },
 
   async headers() {
@@ -66,8 +60,8 @@ const nextConfig: NextConfig = {
               "script-src 'self' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline' fonts.googleapis.com unpkg.com",
               "font-src 'self' fonts.gstatic.com",
-              "img-src 'self' data: blob: *.supabase.co *.tile.openstreetmap.org unpkg.com",
-              "connect-src 'self' *.supabase.co wss://*.supabase.co *.tile.openstreetmap.org",
+              "img-src 'self' data: blob: *.tile.openstreetmap.org unpkg.com",
+              "connect-src 'self' *.tile.openstreetmap.org",
               "frame-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
