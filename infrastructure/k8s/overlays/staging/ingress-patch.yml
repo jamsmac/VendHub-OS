@@ -13,7 +13,6 @@ spec:
         - api-staging.vendhub.uz
         - admin-staging.vendhub.uz
         - app-staging.vendhub.uz
-        - bot-staging.vendhub.uz
       secretName: vendhub-staging-tls
 
   rules:
@@ -49,14 +48,3 @@ spec:
                 name: staging-vendhub-client
                 port:
                   number: 80
-
-    - host: bot-staging.vendhub.uz
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: staging-vendhub-bot
-                port:
-                  number: 3001

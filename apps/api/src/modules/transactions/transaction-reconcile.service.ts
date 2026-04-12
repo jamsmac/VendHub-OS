@@ -188,10 +188,11 @@ export class TransactionReconcileService {
     collectionId: string,
     userId: string,
     notes?: string,
+    organizationId?: string,
   ): Promise<CollectionRecord> {
-    const record = await this.collectionRecordRepo.findOne({
-      where: { id: collectionId },
-    });
+    const where: Record<string, unknown> = { id: collectionId };
+    if (organizationId) where.organizationId = organizationId;
+    const record = await this.collectionRecordRepo.findOne({ where });
 
     if (!record) {
       throw new NotFoundException(

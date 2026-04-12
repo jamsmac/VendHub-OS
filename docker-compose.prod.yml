@@ -7,8 +7,6 @@
 #   docker-compose -f docker-compose.prod.yml down
 # ==============================================================================
 
-version: "3.8"
-
 services:
   # ============================================================================
   # API Service
@@ -28,12 +26,12 @@ services:
       - DB_PORT=5432
       - DB_NAME=${DB_NAME:-vendhub}
       - DB_USER=${DB_USER:-vendhub}
-      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD is required}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET is required}
       - API_PORT=4000
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - PAYME_MERCHANT_ID=${PAYME_MERCHANT_ID}
@@ -145,7 +143,7 @@ services:
   client:
     build:
       context: .
-      dockerfile: apps/client/Dockerfile.dev
+      dockerfile: apps/client/Dockerfile
       args:
         - NODE_ENV=production
         - VITE_API_URL=${API_URL:-https://vendhubapi-production.up.railway.app}

@@ -84,10 +84,3 @@ scrape_configs:
     static_configs:
       - targets: ["cadvisor:8080"]
     scrape_interval: 30s
-
-  # Telegram Bot
-  - job_name: "vendhub-bot"
-    static_configs:
-      - targets: ["bot:3001"]
-    metrics_path: /metrics
-    scrape_interval: 30s

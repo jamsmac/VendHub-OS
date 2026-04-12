@@ -90,11 +90,15 @@ export class TransactionsController {
   async processPayment(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: ProcessPaymentBodyDto,
+    @CurrentOrganizationId() orgId: string,
   ) {
-    return this.transactionsService.processPayment({
-      ...dto,
-      transactionId: id,
-    });
+    return this.transactionsService.processPayment(
+      {
+        ...dto,
+        transactionId: id,
+      },
+      orgId,
+    );
   }
 
   @Post(":id/dispense")
@@ -104,11 +108,15 @@ export class TransactionsController {
   async recordDispense(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: DispenseResultBodyDto,
+    @CurrentOrganizationId() orgId: string,
   ) {
-    return this.transactionsService.recordDispense({
-      ...dto,
-      transactionId: id,
-    });
+    return this.transactionsService.recordDispense(
+      {
+        ...dto,
+        transactionId: id,
+      },
+      orgId,
+    );
   }
 
   @Post(":id/cancel")
@@ -118,8 +126,9 @@ export class TransactionsController {
   async cancel(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: CancelTransactionDto,
+    @CurrentOrganizationId() orgId: string,
   ) {
-    return this.transactionsService.cancel(id, dto.reason);
+    return this.transactionsService.cancel(id, dto.reason, orgId);
   }
 
   // ============================================================================
@@ -265,12 +274,14 @@ export class TransactionsController {
   async verifyCollection(
     @Param("collectionId", ParseUUIDPipe) collectionId: string,
     @CurrentUserId() userId: string,
+    @CurrentOrganizationId() orgId: string,
     @Body() dto: VerifyCollectionDto,
   ) {
     return this.transactionsService.verifyCollection(
       collectionId,
       userId,
       dto.notes,
+      orgId,
     );
   }
 
@@ -408,8 +419,14 @@ export class TransactionsController {
   async createRefund(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: CreateRefundDto,
+    @CurrentOrganizationId() orgId: string,
   ) {
-    return this.transactionsService.createRefund(id, dto.amount, dto.reason);
+    return this.transactionsService.createRefund(
+      id,
+      dto.amount,
+      dto.reason,
+      orgId,
+    );
   }
 
   @Post("refunds/:refundId/process")
@@ -419,11 +436,13 @@ export class TransactionsController {
   async processRefund(
     @Param("refundId", ParseUUIDPipe) refundId: string,
     @Body() dto: ProcessRefundDto,
+    @CurrentOrganizationId() orgId: string,
   ) {
     return this.transactionsService.processRefund(
       refundId,
       dto.success,
       dto.referenceNumber,
+      orgId,
     );
   }
 
@@ -438,7 +457,8 @@ export class TransactionsController {
   async fiscalize(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: FiscalDataDto,
+    @CurrentOrganizationId() orgId: string,
   ) {
-    return this.transactionsService.fiscalize(id, dto);
+    return this.transactionsService.fiscalize(id, dto, orgId);
   }
 }

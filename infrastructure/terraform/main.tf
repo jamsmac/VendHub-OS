@@ -366,15 +366,6 @@ resource "helm_release" "vendhub" {
         }
       }
 
-      bot = {
-        enabled  = var.feature_telegram_bot
-        replicas = 1
-        image = {
-          repository = var.bot_image_repository
-          tag        = var.image_tag
-        }
-      }
-
       ingress = {
         enabled   = var.enable_ingress
         className = var.ingress_class
@@ -383,7 +374,6 @@ resource "helm_release" "vendhub" {
           api    = var.api_host
           admin  = var.admin_host
           app    = var.app_host
-          bot    = var.bot_host
         }
 
         tls = {

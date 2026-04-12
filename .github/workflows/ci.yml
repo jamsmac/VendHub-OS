@@ -88,11 +88,6 @@ jobs:
         env:
           CI: true
 
-      - name: Run Bot unit tests
-        run: pnpm --filter bot test --forceExit --passWithNoTests
-        env:
-          CI: true
-
       - name: Run web unit tests
         run: pnpm --filter web test -- --runInBand --forceExit
         env:
@@ -162,9 +157,6 @@ jobs:
         run: pnpm --filter client build
         env:
           VITE_API_URL: http://localhost:4000
-
-      - name: Build Bot
-        run: pnpm --filter bot build
 
       - name: Build Site (Landing Page)
         run: pnpm --filter @vendhub/site build
@@ -644,21 +636,6 @@ jobs:
           sarif_file: "trivy-results-client.sarif"
           category: "client-image"
 
-      - name: Run Trivy vulnerability scanner on Bot
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: vendhub/bot:${{ github.sha }}
-          format: "sarif"
-          output: "trivy-results-bot.sarif"
-          severity: "CRITICAL,HIGH"
-
-      - name: Upload Trivy scan results for Bot
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: "trivy-results-bot.sarif"
-          category: "bot-image"
-
       - name: Extract metadata for Site
         id: meta-site
         uses: docker/metadata-action@v5
@@ -707,9 +684,6 @@ jobs:
 
       - name: Deploy Client PWA
         run: railway up --service "@vendhub/client" --environment production --detach
-
-      - name: Deploy Bot
-        run: railway up --service "@vendhub/bot" --environment production --detach
 
       - name: Run database migrations
         run: |

@@ -127,8 +127,14 @@ export class TransactionCreateService {
   /**
    * Process payment for transaction
    */
-  async processPayment(dto: ProcessPaymentDto): Promise<Transaction> {
-    const transaction = await this.queryService.findById(dto.transactionId);
+  async processPayment(
+    dto: ProcessPaymentDto,
+    organizationId?: string,
+  ): Promise<Transaction> {
+    const transaction = await this.queryService.findById(
+      dto.transactionId,
+      organizationId,
+    );
 
     if (transaction.status !== TransactionStatus.PENDING) {
       throw new BadRequestException("Транзакция уже обработана");
@@ -206,8 +212,14 @@ export class TransactionCreateService {
   /**
    * Record dispense result for an item
    */
-  async recordDispense(dto: DispenseResultDto): Promise<Transaction> {
-    const transaction = await this.queryService.findById(dto.transactionId);
+  async recordDispense(
+    dto: DispenseResultDto,
+    organizationId?: string,
+  ): Promise<Transaction> {
+    const transaction = await this.queryService.findById(
+      dto.transactionId,
+      organizationId,
+    );
 
     if (
       ![TransactionStatus.COMPLETED, TransactionStatus.PROCESSING].includes(
@@ -277,11 +289,17 @@ export class TransactionCreateService {
   /**
    * Cancel transaction
    */
-  async cancel(id: string, reason: string): Promise<Transaction> {
+  async cancel(
+    id: string,
+    reason: string,
+    organizationId?: string,
+  ): Promise<Transaction> {
     return this.dataSource.transaction(async (manager) => {
       const txRepo = manager.getRepository(Transaction);
+      const where: Record<string, unknown> = { id };
+      if (organizationId) where.organizationId = organizationId;
       const transaction = await txRepo.findOne({
-        where: { id },
+        where,
         lock: { mode: "pessimistic_write" },
       });
 
@@ -321,13 +339,16 @@ export class TransactionCreateService {
     transactionId: string,
     amount: number,
     reason: string,
+    organizationId?: string,
   ): Promise<Transaction> {
     return this.dataSource.transaction(async (manager) => {
       const txRepo = manager.getRepository(Transaction);
 
       // Lock original transaction to prevent concurrent refunds
+      const where: Record<string, unknown> = { id: transactionId };
+      if (organizationId) where.organizationId = organizationId;
       const transaction = await txRepo.findOne({
-        where: { id: transactionId },
+        where,
         lock: { mode: "pessimistic_write" },
       });
 
@@ -377,10 +398,14 @@ export class TransactionCreateService {
     refundId: string,
     success: boolean,
     referenceNumber?: string,
+    organizationId?: string,
   ): Promise<Transaction> {
-    const refund = await this.transactionRepo.findOne({
-      where: { id: refundId, type: TransactionType.REFUND },
-    });
+    const where: Record<string, unknown> = {
+      id: refundId,
+      type: TransactionType.REFUND,
+    };
+    if (organizationId) where.organizationId = organizationId;
+    const refund = await this.transactionRepo.findOne({ where });
     if (!refund) {
       throw new NotFoundException("Возврат не найден");
     }
@@ -410,8 +435,12 @@ export class TransactionCreateService {
       qrCode: string;
       ofdName: string;
     }>,
+    organizationId?: string,
   ): Promise<Transaction> {
-    const transaction = await this.queryService.findById(transactionId);
+    const transaction = await this.queryService.findById(
+      transactionId,
+      organizationId,
+    );
 
     transaction.isFiscalized = true;
     if (fiscalData.receiptNumber)

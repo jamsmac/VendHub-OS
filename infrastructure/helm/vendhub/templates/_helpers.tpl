@@ -88,19 +88,6 @@ app.kubernetes.io/component: client
 {{- end }}
 
 {{/*
-Bot labels
-*/}}
-{{- define "vendhub.bot.labels" -}}
-{{ include "vendhub.labels" . }}
-app.kubernetes.io/component: bot
-{{- end }}
-
-{{- define "vendhub.bot.selectorLabels" -}}
-{{ include "vendhub.selectorLabels" . }}
-app.kubernetes.io/component: bot
-{{- end }}
-
-{{/*
 Site labels
 */}}
 {{- define "vendhub.site.labels" -}}

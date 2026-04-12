@@ -15,7 +15,6 @@ resources:
   - api-deployment.yml
   - web-deployment.yml
   - client-deployment.yml
-  - bot-deployment.yml
   - site-deployment.yml
   - ingress.yml
   - network-policies.yml

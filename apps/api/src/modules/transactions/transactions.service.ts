@@ -130,8 +130,11 @@ export class TransactionsService {
     return this.createService.create(dto);
   }
 
-  async processPayment(dto: ProcessPaymentDto): Promise<Transaction> {
-    return this.createService.processPayment(dto);
+  async processPayment(
+    dto: ProcessPaymentDto,
+    organizationId?: string,
+  ): Promise<Transaction> {
+    return this.createService.processPayment(dto, organizationId);
   }
 
   async confirmPayment(
@@ -148,12 +151,19 @@ export class TransactionsService {
     );
   }
 
-  async recordDispense(dto: DispenseResultDto): Promise<Transaction> {
-    return this.createService.recordDispense(dto);
+  async recordDispense(
+    dto: DispenseResultDto,
+    organizationId?: string,
+  ): Promise<Transaction> {
+    return this.createService.recordDispense(dto, organizationId);
   }
 
-  async cancel(id: string, reason: string): Promise<Transaction> {
-    return this.createService.cancel(id, reason);
+  async cancel(
+    id: string,
+    reason: string,
+    organizationId?: string,
+  ): Promise<Transaction> {
+    return this.createService.cancel(id, reason, organizationId);
   }
 
   // ============================================================================
@@ -164,16 +174,28 @@ export class TransactionsService {
     transactionId: string,
     amount: number,
     reason: string,
+    organizationId?: string,
   ): Promise<Transaction> {
-    return this.createService.createRefund(transactionId, amount, reason);
+    return this.createService.createRefund(
+      transactionId,
+      amount,
+      reason,
+      organizationId,
+    );
   }
 
   async processRefund(
     refundId: string,
     success: boolean,
     referenceNumber?: string,
+    organizationId?: string,
   ): Promise<Transaction> {
-    return this.createService.processRefund(refundId, success, referenceNumber);
+    return this.createService.processRefund(
+      refundId,
+      success,
+      referenceNumber,
+      organizationId,
+    );
   }
 
   // ============================================================================
@@ -188,8 +210,13 @@ export class TransactionsService {
       qrCode: string;
       ofdName: string;
     }>,
+    organizationId?: string,
   ): Promise<Transaction> {
-    return this.createService.fiscalize(transactionId, fiscalData);
+    return this.createService.fiscalize(
+      transactionId,
+      fiscalData,
+      organizationId,
+    );
   }
 
   // ============================================================================
@@ -308,8 +335,14 @@ export class TransactionsService {
     collectionId: string,
     userId: string,
     notes?: string,
+    organizationId?: string,
   ): Promise<CollectionRecord> {
-    return this.reconcileService.verifyCollection(collectionId, userId, notes);
+    return this.reconcileService.verifyCollection(
+      collectionId,
+      userId,
+      notes,
+      organizationId,
+    );
   }
 
   // ============================================================================

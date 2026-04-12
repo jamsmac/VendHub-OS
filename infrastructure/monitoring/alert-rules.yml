@@ -103,16 +103,6 @@ groups:
           summary: "VendHub Web is down"
           description: "The web service has been unavailable for more than 1 minute"
 
-      # Bot service down
-      - alert: BotServiceDown
-        expr: up{job="vendhub-bot"} == 0
-        for: 2m
-        labels:
-          severity: warning
-        annotations:
-          summary: "VendHub Bot is down"
-          description: "The Telegram bot has been unavailable for more than 2 minutes"
-
   # ============================================
   # Database Alerts
   # ============================================

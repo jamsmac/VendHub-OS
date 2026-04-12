@@ -36,11 +36,9 @@ app_url     = "https://app-staging.vendhub.uz"
 api_host    = "api-staging.vendhub.uz"
 admin_host  = "admin-staging.vendhub.uz"
 app_host    = "app-staging.vendhub.uz"
-bot_host    = "bot-staging.vendhub.uz"
 cors_origins = "https://admin-staging.vendhub.uz,https://app-staging.vendhub.uz"
 
 # Feature Flags
-feature_telegram_bot = true
 feature_sms          = false  # Disabled in staging
 feature_ai           = true
 feature_ofd          = false

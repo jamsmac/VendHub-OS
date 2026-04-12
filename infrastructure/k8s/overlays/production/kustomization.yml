@@ -128,7 +128,5 @@ images:
     newTag: stable
   - name: vendhub/client
     newTag: stable
-  - name: vendhub/bot
-    newTag: stable
   - name: vendhub/site
     newTag: stable

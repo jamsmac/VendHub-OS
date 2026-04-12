@@ -32,7 +32,6 @@ spec:
         - api.vendhub.uz
         - admin.vendhub.uz
         - app.vendhub.uz
-        - bot.vendhub.uz
         - vendhub.uz
       secretName: vendhub-tls
 
@@ -84,18 +83,6 @@ spec:
                 name: vendhub-site
                 port:
                   number: 3100
-
-    # Telegram Bot Webhook
-    - host: bot.vendhub.uz
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: vendhub-bot
-                port:
-                  number: 3001
 
 ---
 # WebSocket Ingress (separate for sticky sessions)

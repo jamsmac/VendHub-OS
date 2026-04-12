@@ -185,12 +185,6 @@ variable "client_image_repository" {
   default     = "vendhub/client"
 }
 
-variable "bot_image_repository" {
-  description = "Bot Docker image repository"
-  type        = string
-  default     = "vendhub/bot"
-}
-
 variable "api_replicas" {
   description = "Number of API replicas"
   type        = number
@@ -247,12 +241,6 @@ variable "app_host" {
   description = "Client app hostname"
   type        = string
   default     = "app.vendhub.uz"
-}
-
-variable "bot_host" {
-  description = "Bot webhook hostname"
-  type        = string
-  default     = "bot.vendhub.uz"
 }
 
 variable "cors_origins" {
@@ -331,12 +319,6 @@ variable "sentry_dsn" {
 # ==============================================================================
 # Feature Flags
 # ==============================================================================
-
-variable "feature_telegram_bot" {
-  description = "Enable Telegram bot"
-  type        = bool
-  default     = true
-}
 
 variable "feature_sms" {
   description = "Enable SMS notifications"

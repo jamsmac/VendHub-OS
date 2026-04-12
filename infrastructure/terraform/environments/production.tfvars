@@ -39,11 +39,9 @@ app_url     = "https://app.vendhub.uz"
 api_host    = "api.vendhub.uz"
 admin_host  = "admin.vendhub.uz"
 app_host    = "app.vendhub.uz"
-bot_host    = "bot.vendhub.uz"
 cors_origins = "https://admin.vendhub.uz,https://app.vendhub.uz"
 
 # Feature Flags
-feature_telegram_bot = true
 feature_sms          = true
 feature_ai           = true
 feature_ofd          = true  # Fiscal integration enabled
