@@ -10,7 +10,6 @@ import {
   Query,
   ParseUUIDPipe,
   NotFoundException,
-  ForbiddenException,
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
@@ -88,14 +87,9 @@ export class VehiclesController {
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
   ) {
-    const vehicle = await this.vehiclesService.findById(id);
+    const orgId = resolveOrganizationId(user);
+    const vehicle = await this.vehiclesService.findById(id, orgId);
     if (!vehicle) throw new NotFoundException("Vehicle not found");
-    if (
-      vehicle.organizationId !== user.organizationId &&
-      user.role !== UserRole.OWNER
-    ) {
-      throw new ForbiddenException();
-    }
     return vehicle;
   }
 
@@ -147,13 +141,8 @@ export class VehiclesController {
     vehicleId: string,
     user: User,
   ): Promise<void> {
-    const vehicle = await this.vehiclesService.findById(vehicleId);
+    const orgId = resolveOrganizationId(user);
+    const vehicle = await this.vehiclesService.findById(vehicleId, orgId);
     if (!vehicle) throw new NotFoundException("Vehicle not found");
-    if (
-      vehicle.organizationId !== user.organizationId &&
-      user.role !== UserRole.OWNER
-    ) {
-      throw new ForbiddenException("Access denied to this vehicle");
-    }
   }
 }

@@ -9,7 +9,6 @@ import {
   UseGuards,
   Query,
   ParseUUIDPipe,
-  ForbiddenException,
   NotFoundException,
   HttpCode,
   HttpStatus,
@@ -314,14 +313,9 @@ export class MachinesController {
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
   ) {
-    const machine = await this.machinesService.findById(id);
-
-    if (machine && machine.organizationId !== user.organizationId) {
-      if (user.role !== UserRole.OWNER) {
-        throw new ForbiddenException("Access denied to this machine");
-      }
-    }
-
+    const orgId = resolveOrganizationId(user);
+    const machine = await this.machinesService.findById(id, orgId);
+    if (!machine) throw new NotFoundException("Machine not found");
     return machine;
   }
 
@@ -366,13 +360,7 @@ export class MachinesController {
     @Body() telemetry: UpdateTelemetryDto,
     @CurrentUser() user: User,
   ) {
-    const machine = await this.machinesService.findById(id);
-    if (machine && machine.organizationId !== user.organizationId) {
-      if (user.role !== UserRole.OWNER) {
-        throw new ForbiddenException("Access denied to this machine");
-      }
-    }
-
+    await this.verifyMachineAccess(id, user);
     return this.machinesService.updateTelemetry(id, telemetry);
   }
 
@@ -727,7 +715,12 @@ export class MachinesController {
     UserRole.VIEWER,
   )
   @ApiOperation({ summary: "Get SIM usage history for a machine" })
-  @ApiParam({ name: "id", description: "Machine UUID", type: "string", format: "uuid" })
+  @ApiParam({
+    name: "id",
+    description: "Machine UUID",
+    type: "string",
+    format: "uuid",
+  })
   @ApiResponse({ status: 200, description: "SIM usage log list" })
   async getSimUsage(
     @Param("id", ParseUUIDPipe) id: string,
@@ -740,7 +733,12 @@ export class MachinesController {
   @Post(":id/sim-usage")
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Record SIM usage for a period" })
-  @ApiParam({ name: "id", description: "Machine UUID", type: "string", format: "uuid" })
+  @ApiParam({
+    name: "id",
+    description: "Machine UUID",
+    type: "string",
+    format: "uuid",
+  })
   @ApiResponse({ status: 201, description: "SIM usage logged" })
   async addSimUsage(
     @Param("id", ParseUUIDPipe) id: string,
@@ -964,12 +962,7 @@ export class MachinesController {
   // ============================================================================
 
   @Get(":id/expenses")
-  @Roles(
-    UserRole.OWNER,
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.ACCOUNTANT,
-  )
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.ACCOUNTANT)
   @ApiOperation({ summary: "Get all expenses for a machine" })
   @ApiParam({ name: "id", description: "Machine UUID" })
   @ApiResponse({ status: 200, description: "List of expenses" })
@@ -1027,12 +1020,7 @@ export class MachinesController {
   }
 
   @Get(":id/tco")
-  @Roles(
-    UserRole.OWNER,
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.ACCOUNTANT,
-  )
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.ACCOUNTANT)
   @ApiOperation({ summary: "Get total cost of ownership for a machine" })
   @ApiParam({ name: "id", description: "Machine UUID" })
   @ApiResponse({ status: 200, description: "TCO breakdown" })
@@ -1050,17 +1038,16 @@ export class MachinesController {
 
   /**
    * Verify that the current user has access to the machine's organization.
-   * Throws ForbiddenException if the user does not have access.
+   * Throws NotFoundException if the machine doesn't exist or user has no access.
    */
   private async verifyMachineAccess(
     machineId: string,
     user: User,
   ): Promise<void> {
-    const machine = await this.machinesService.findById(machineId);
-    if (machine && machine.organizationId !== user.organizationId) {
-      if (user.role !== UserRole.OWNER) {
-        throw new ForbiddenException("Access denied to this machine");
-      }
+    const orgId = resolveOrganizationId(user);
+    const machine = await this.machinesService.findById(machineId, orgId);
+    if (!machine) {
+      throw new NotFoundException("Machine not found");
     }
   }
 }

@@ -174,7 +174,7 @@ jobs:
             PREV_TAG=$(cat /tmp/vendhub_prev_version.txt)
             if [ "$PREV_TAG" != "none" ]; then
               docker compose up -d --no-deps api
-              psql -U vendhub -d vendhub < "$BACKUP_FILE"
+              pg_restore -U vendhub -d vendhub --clean --if-exists "$BACKUP_FILE"
               echo "ROLLBACK completed to $PREV_TAG"
             fi
             exit 1

@@ -24,8 +24,16 @@ export class MetricsController {
   @ApiExcludeEndpoint()
   @ApiOkResponse({ description: "Prometheus metrics in text/plain format" })
   async getMetrics(@Res() res: Response): Promise<void> {
-    // Validate metrics token if configured
+    // Validate metrics token — required in production (fail-closed)
     const metricsToken = this.configService.get<string>("METRICS_TOKEN");
+    const nodeEnv = this.configService.get<string>("NODE_ENV");
+
+    if (!metricsToken && nodeEnv === "production") {
+      throw new UnauthorizedException(
+        "METRICS_TOKEN not configured — metrics disabled in production",
+      );
+    }
+
     if (metricsToken) {
       const request = res.req;
       const providedToken =

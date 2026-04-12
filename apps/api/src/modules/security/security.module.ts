@@ -2,9 +2,7 @@ import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import {
   SecurityEvent,
-  AuditLog,
   SessionLog,
-  TwoFactorAuth,
   AccessControlLog,
 } from "./entities/security-event.entity";
 import { DataEncryption } from "./entities/data-encryption.entity";
@@ -17,9 +15,7 @@ import { SecurityController } from "./security.controller";
     TypeOrmModule.forFeature([
       SecurityEvent,
       DataEncryption,
-      AuditLog,
       SessionLog,
-      TwoFactorAuth,
       AccessControlLog,
     ]),
   ],
