@@ -4,14 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  ArrowLeft,
-  QrCode,
-  Download,
-  Plus,
-  Copy,
-  ExternalLink,
-} from "lucide-react";
+import { ArrowLeft, QrCode, Plus, Copy, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,7 +37,6 @@ interface QrCodeItem {
 
 export default function ComplaintsQrCodesPage() {
   const t = useTranslations("complaints");
-  const tCommon = useTranslations("common");
   const [selectedMachineId, setSelectedMachineId] = useState<string>("");
   const queryClient = useQueryClient();
 
@@ -53,10 +45,7 @@ export default function ComplaintsQrCodesPage() {
     queryFn: () => machinesApi.getAll().then((res) => res.data?.data || []),
   });
 
-  const {
-    data: qrCodes,
-    isLoading,
-  } = useQuery({
+  const { data: qrCodes, isLoading } = useQuery({
     queryKey: ["complaint-qr-codes", selectedMachineId],
     queryFn: () =>
       selectedMachineId
@@ -71,15 +60,15 @@ export default function ComplaintsQrCodesPage() {
     mutationFn: (machineId: string) =>
       complaintsApi.create({ machineId, type: "qr-generate" }),
     onSuccess: () => {
-      toast.success("QR-код сгенерирован");
+      toast.success(t("toastQrGenerated"));
       queryClient.invalidateQueries({ queryKey: ["complaint-qr-codes"] });
     },
-    onError: () => toast.error("Ошибка генерации QR-кода"),
+    onError: () => toast.error(t("toastQrGenerateError")),
   });
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success("Скопировано в буфер обмена");
+    toast.success(t("toastCopied"));
   };
 
   return (
@@ -92,9 +81,7 @@ export default function ComplaintsQrCodesPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold">{t("qrCodes")}</h1>
-          <p className="text-muted-foreground">
-            QR-коды для подачи жалоб через автоматы
-          </p>
+          <p className="text-muted-foreground">{t("qrCodesSubtitle")}</p>
         </div>
       </div>
 
@@ -103,20 +90,20 @@ export default function ComplaintsQrCodesPage() {
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
               <QrCode className="h-5 w-5" />
-              Управление QR-кодами
+              {t("qrManagement")}
             </span>
             <Button
               onClick={() => {
                 if (selectedMachineId)
                   generateMutation.mutate(selectedMachineId);
-                else toast.error("Выберите автомат");
+                else toast.error(t("selectMachine"));
               }}
               disabled={generateMutation.isPending || !selectedMachineId}
               size="sm"
               className="gap-2"
             >
               <Plus className="h-4 w-4" />
-              Сгенерировать
+              {t("generate")}
             </Button>
           </CardTitle>
         </CardHeader>
@@ -127,10 +114,10 @@ export default function ComplaintsQrCodesPage() {
               onValueChange={setSelectedMachineId}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Выберите автомат..." />
+                <SelectValue placeholder={t("selectMachinePlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                {(machines as Array<{ id: string; name: string }> || []).map(
+                {((machines as Array<{ id: string; name: string }>) || []).map(
                   (m: { id: string; name: string }) => (
                     <SelectItem key={m.id} value={m.id}>
                       {m.name}
@@ -149,19 +136,17 @@ export default function ComplaintsQrCodesPage() {
           ) : !selectedMachineId ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <QrCode className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium">Выберите автомат</p>
-              <p className="text-muted-foreground">
-                QR-коды отображаются для выбранного автомата
-              </p>
+              <p className="text-lg font-medium">{t("selectMachine")}</p>
+              <p className="text-muted-foreground">{t("qrCodesForMachine")}</p>
             </div>
           ) : (qrCodes as QrCodeItem[] | undefined)?.length ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Код</TableHead>
-                  <TableHead>URL</TableHead>
-                  <TableHead>Создан</TableHead>
-                  <TableHead>Действия</TableHead>
+                  <TableHead>{t("colCode")}</TableHead>
+                  <TableHead>{t("colUrl")}</TableHead>
+                  <TableHead>{t("colCreatedAt")}</TableHead>
+                  <TableHead>{t("colActions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -184,7 +169,7 @@ export default function ComplaintsQrCodesPage() {
                           variant="ghost"
                           size="icon"
                           onClick={() => copyToClipboard(qr.url || qr.code)}
-                          title="Копировать"
+                          title={t("copyTooltip")}
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
@@ -194,7 +179,7 @@ export default function ComplaintsQrCodesPage() {
                               href={qr.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              title="Открыть"
+                              title={t("openTooltip")}
                             >
                               <ExternalLink className="h-4 w-4" />
                             </a>
@@ -209,10 +194,8 @@ export default function ComplaintsQrCodesPage() {
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <QrCode className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium">QR-коды не найдены</p>
-              <p className="text-muted-foreground">
-                Нажмите &quot;Сгенерировать&quot; для создания QR-кода
-              </p>
+              <p className="text-lg font-medium">{t("qrNotFound")}</p>
+              <p className="text-muted-foreground">{t("qrGenerateHint")}</p>
             </div>
           )}
         </CardContent>

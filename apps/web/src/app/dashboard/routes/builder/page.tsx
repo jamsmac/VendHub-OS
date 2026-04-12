@@ -363,7 +363,7 @@ export default function RouteBuilderPage() {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div className="text-sm text-muted-foreground whitespace-nowrap">
-              {stops.length} {pluralizeStops(stops.length)} в маршруте
+              {t("stopsInRouteText", { count: stops.length })}
             </div>
             <div className="flex gap-2">
               <Button

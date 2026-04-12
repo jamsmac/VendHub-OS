@@ -409,7 +409,7 @@ export function PassportTab({ machine }: PassportTabProps) {
                           </p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">{t("number")}</p>
+                          <p className="text-muted-foreground">Номер</p>
                           <p className="font-medium font-mono text-xs">
                             {sim.serialNumber ||
                               sim.metadata?.phoneNumber ||
@@ -417,16 +417,14 @@ export function PassportTab({ machine }: PassportTabProps) {
                           </p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">{t("tariff")}</p>
+                          <p className="text-muted-foreground">Тариф</p>
                           <p className="font-medium">
                             {sim.metadata?.tariffPlan || "—"}
                           </p>
                         </div>
                         {sim.installedAt && (
                           <div>
-                            <p className="text-muted-foreground">
-                              {t("installed")}
-                            </p>
+                            <p className="text-muted-foreground">Установлена</p>
                             <p className="font-medium">
                               {new Date(sim.installedAt).toLocaleDateString(
                                 "ru-RU",
@@ -441,9 +439,7 @@ export function PassportTab({ machine }: PassportTabProps) {
                         }
                         className="shrink-0"
                       >
-                        {sim.status === "installed"
-                          ? t("simActive")
-                          : sim.status}
+                        {sim.status === "installed" ? "Активна" : sim.status}
                       </Badge>
                     </div>
                   ))}
@@ -461,18 +457,18 @@ export function PassportTab({ machine }: PassportTabProps) {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
-              {t("trafficAndCost")}
+              Расход трафика и стоимость
             </CardTitle>
             <Dialog open={usageDialogOpen} onOpenChange={setUsageDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
                   <Plus className="h-3.5 w-3.5 mr-1" />
-                  {t("addData")}
+                  Внести данные
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>{t("addUsageForPeriod")}</DialogTitle>
+                  <DialogTitle>Внести расход за период</DialogTitle>
                 </DialogHeader>
                 <AddUsageForm
                   machineId={machine.id}
@@ -493,27 +489,21 @@ export function PassportTab({ machine }: PassportTabProps) {
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div className="rounded-lg bg-muted/50 p-3 text-center">
                   <p className="text-lg font-bold">{simUsage?.length ?? 0}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {t("records")}
-                  </p>
+                  <p className="text-xs text-muted-foreground">Записей</p>
                 </div>
                 <div className="rounded-lg bg-muted/50 p-3 text-center">
                   <p className="text-lg font-bold">
                     {totalDataUsed >= 1024
-                      ? `${(totalDataUsed / 1024).toFixed(1)} GB`
-                      : `${totalDataUsed} MB`}
+                      ? `${(totalDataUsed / 1024).toFixed(1)} ГБ`
+                      : `${totalDataUsed} МБ`}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    {t("totalTraffic")}
-                  </p>
+                  <p className="text-xs text-muted-foreground">Всего трафика</p>
                 </div>
                 <div className="rounded-lg bg-muted/50 p-3 text-center">
                   <p className="text-lg font-bold">
                     {totalSimCost.toLocaleString("ru-RU")}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    {t("totalUzs")}
-                  </p>
+                  <p className="text-xs text-muted-foreground">Всего UZS</p>
                 </div>
               </div>
             )}

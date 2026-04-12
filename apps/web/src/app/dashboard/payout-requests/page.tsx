@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -59,7 +60,7 @@ import {
 const PAYOUT_METHODS = ["bank_transfer", "card", "cash"] as const;
 
 const createPayoutSchema = z.object({
-  amount: z.coerce.number().min(1, "Сумма должна быть больше 0"),
+  amount: z.coerce.number().min(1),
   payoutMethod: z.enum(PAYOUT_METHODS).default("bank_transfer"),
   reason: z.string().max(1000).optional().default(""),
   payoutDestination: z.string().max(255).optional().default(""),
@@ -67,7 +68,7 @@ const createPayoutSchema = z.object({
 type CreatePayoutValues = z.infer<typeof createPayoutSchema>;
 
 const rejectSchema = z.object({
-  comment: z.string().min(1, "Укажите причину отклонения").max(1000),
+  comment: z.string().min(1).max(1000),
 });
 type RejectValues = z.infer<typeof rejectSchema>;
 
@@ -75,7 +76,7 @@ type RejectValues = z.infer<typeof rejectSchema>;
 
 const STATUS_CONFIG: Record<
   string,
-  { label: string; variant: string; icon: React.ElementType }
+  { i18nKey: string; variant: string; icon: React.ElementType }
 > = {
   pending: {
     label: "Ожидает",
@@ -114,13 +115,15 @@ const STATUS_CONFIG: Record<
   },
 };
 
-const METHOD_LABELS: Record<
-  string,
-  { label: string; icon: React.ElementType }
-> = {
-  bank_transfer: { label: "Банковский перевод", icon: BanknoteIcon },
-  card: { label: "На карту", icon: CreditCard },
-  cash: { label: "Наличные", icon: Wallet },
+const METHOD_I18N: Record<string, string> = {
+  bank_transfer: "methodBankTransfer",
+  card: "methodCard",
+  cash: "methodCash",
+};
+const METHOD_ICONS: Record<string, React.ElementType> = {
+  bank_transfer: BanknoteIcon,
+  card: CreditCard,
+  cash: Wallet,
 };
 
 function formatUZS(amount: number) {
@@ -137,13 +140,19 @@ function formatDate(dateStr: string) {
   });
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({
+  status,
+  t,
+}: {
+  status: string;
+  t: (key: string) => string;
+}) {
   const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
   const Icon = config.icon;
   return (
     <Badge className={`${config.variant} gap-1`}>
       <Icon className="w-3 h-3" />
-      {config.label}
+      {t(config.i18nKey)}
     </Badge>
   );
 }
@@ -165,6 +174,8 @@ function extractErrorMessage(error: unknown, fallback: string): string {
 // ─── Main Page ──────────────────────────────────────────────────────────────
 
 export default function PayoutRequestsPage() {
+  const t = useTranslations("payoutRequests");
+  const tCommon = useTranslations("common");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
   const [createOpen, setCreateOpen] = useState(false);
@@ -189,20 +200,19 @@ export default function PayoutRequestsPage() {
       { id: item.id, action: "approve" },
       {
         onSuccess: () => {
-          toast.success("Запрос одобрен");
+          toast.success(t("requestApproved"));
           setReviewTarget(null);
         },
         onError: (err) =>
-          toast.error(extractErrorMessage(err, "Ошибка при одобрении")),
+          toast.error(extractErrorMessage(err, t("approveError"))),
       },
     );
   };
 
   const handleCancel = (item: PayoutRequestItem) => {
     cancelMutation.mutate(item.id, {
-      onSuccess: () => toast.success("Запрос отменён"),
-      onError: (err) =>
-        toast.error(extractErrorMessage(err, "Ошибка при отмене")),
+      onSuccess: () => toast.success(t("requestCancelled")),
+      onError: (err) => toast.error(extractErrorMessage(err, t("cancelError"))),
     });
   };
 
@@ -211,26 +221,24 @@ export default function PayoutRequestsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Запросы на выплату</h1>
-          <p className="text-muted-foreground">
-            Управление запросами на вывод средств
-          </p>
+          <h1 className="text-2xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Button onClick={() => setCreateOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
-          Новый запрос
+          {t("newRequest")}
         </Button>
       </div>
 
       {/* Filters */}
       <div className="flex gap-2 flex-wrap">
         {[
-          { value: "all", label: "Все" },
-          { value: "pending", label: "Ожидают" },
-          { value: "approved", label: "Одобрены" },
-          { value: "processing", label: "В обработке" },
-          { value: "completed", label: "Завершены" },
-          { value: "rejected", label: "Отклонены" },
+          { value: "all", label: t("filterAll") },
+          { value: "pending", label: t("filterPending") },
+          { value: "approved", label: t("filterApproved") },
+          { value: "processing", label: t("filterProcessing") },
+          { value: "completed", label: t("filterCompleted") },
+          { value: "rejected", label: t("filterRejected") },
         ].map((f) => (
           <Button
             key={f.value}
@@ -251,12 +259,12 @@ export default function PayoutRequestsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Дата</TableHead>
-              <TableHead>Сумма</TableHead>
-              <TableHead>Метод</TableHead>
-              <TableHead>Статус</TableHead>
-              <TableHead>Причина</TableHead>
-              <TableHead className="text-right">Действия</TableHead>
+              <TableHead>{t("colDate")}</TableHead>
+              <TableHead>{t("colAmount")}</TableHead>
+              <TableHead>{t("colMethod")}</TableHead>
+              <TableHead>{t("colStatus")}</TableHead>
+              <TableHead>{t("colReason")}</TableHead>
+              <TableHead className="text-right">{t("colActions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -270,10 +278,10 @@ export default function PayoutRequestsPage() {
               ))
             ) : data?.data?.length ? (
               data.data.map((item) => {
-                const method =
-                  METHOD_LABELS[item.payoutMethod] ||
-                  METHOD_LABELS.bank_transfer;
-                const MethodIcon = method.icon;
+                const methodKey =
+                  METHOD_I18N[item.payoutMethod] || METHOD_I18N.bank_transfer;
+                const MethodIcon =
+                  METHOD_ICONS[item.payoutMethod] || METHOD_ICONS.bank_transfer;
                 return (
                   <TableRow key={item.id}>
                     <TableCell className="text-sm text-muted-foreground">
@@ -285,11 +293,11 @@ export default function PayoutRequestsPage() {
                     <TableCell>
                       <div className="flex items-center gap-1.5 text-sm">
                         <MethodIcon className="w-4 h-4 text-muted-foreground" />
-                        {method.label}
+                        {t(methodKey)}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <StatusBadge status={item.status} />
+                      <StatusBadge status={item.status} t={t} />
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
                       {item.reason || "—"}
@@ -305,7 +313,7 @@ export default function PayoutRequestsPage() {
                               onClick={() => setReviewTarget(item)}
                             >
                               <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                              Одобрить
+                              {t("approve")}
                             </Button>
                             <Button
                               size="sm"
@@ -314,7 +322,7 @@ export default function PayoutRequestsPage() {
                               onClick={() => setRejectTarget(item)}
                             >
                               <XCircle className="w-3.5 h-3.5 mr-1" />
-                              Отклонить
+                              {t("reject")}
                             </Button>
                             <Button
                               size="sm"
@@ -322,7 +330,7 @@ export default function PayoutRequestsPage() {
                               onClick={() => handleCancel(item)}
                               disabled={cancelMutation.isPending}
                             >
-                              Отменить
+                              {t("cancel")}
                             </Button>
                           </>
                         )}
@@ -341,9 +349,7 @@ export default function PayoutRequestsPage() {
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-10">
                   <ArrowUpRight className="w-12 h-12 mx-auto mb-3 text-muted-foreground/40" />
-                  <p className="text-muted-foreground">
-                    Нет запросов на выплату
-                  </p>
+                  <p className="text-muted-foreground">{t("noRequests")}</p>
                 </TableCell>
               </TableRow>
             )}
@@ -355,8 +361,11 @@ export default function PayoutRequestsPage() {
       {data?.meta && data.meta.totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Страница {data.meta.page} из {data.meta.totalPages} (
-            {data.meta.total} записей)
+            {t("pageOf", {
+              page: data.meta.page,
+              totalPages: data.meta.totalPages,
+              total: data.meta.total,
+            })}
           </p>
           <div className="flex gap-2">
             <Button
@@ -365,7 +374,7 @@ export default function PayoutRequestsPage() {
               disabled={page <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
             >
-              Назад
+              {tCommon("back")}
             </Button>
             <Button
               variant="outline"
@@ -373,7 +382,7 @@ export default function PayoutRequestsPage() {
               disabled={page >= data.meta.totalPages}
               onClick={() => setPage((p) => p + 1)}
             >
-              Далее
+              {tCommon("next")}
             </Button>
           </div>
         </div>
@@ -383,12 +392,13 @@ export default function PayoutRequestsPage() {
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Новый запрос на выплату</DialogTitle>
+            <DialogTitle>{t("newRequestTitle")}</DialogTitle>
           </DialogHeader>
           <CreatePayoutForm
+            t={t}
             onSuccess={() => {
               setCreateOpen(false);
-              toast.success("Запрос создан");
+              toast.success(t("requestCreated"));
             }}
           />
         </DialogContent>
@@ -398,23 +408,24 @@ export default function PayoutRequestsPage() {
       <Dialog open={!!reviewTarget} onOpenChange={() => setReviewTarget(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Подтвердите одобрение</DialogTitle>
+            <DialogTitle>{t("confirmApproval")}</DialogTitle>
           </DialogHeader>
           {reviewTarget && (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Одобрить выплату{" "}
-                <strong>{formatUZS(reviewTarget.amount)}</strong>?
+                {t("confirmApprovalText", {
+                  amount: formatUZS(reviewTarget.amount),
+                })}
               </p>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setReviewTarget(null)}>
-                  Отмена
+                  {tCommon("cancel")}
                 </Button>
                 <Button
                   onClick={() => handleApprove(reviewTarget)}
                   disabled={reviewMutation.isPending}
                 >
-                  {reviewMutation.isPending ? "Одобряю..." : "Одобрить"}
+                  {reviewMutation.isPending ? t("approving") : t("approve")}
                 </Button>
               </DialogFooter>
             </div>
@@ -426,14 +437,15 @@ export default function PayoutRequestsPage() {
       <Dialog open={!!rejectTarget} onOpenChange={() => setRejectTarget(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Отклонить запрос</DialogTitle>
+            <DialogTitle>{t("rejectRequest")}</DialogTitle>
           </DialogHeader>
           {rejectTarget && (
             <RejectForm
+              t={t}
               item={rejectTarget}
               onSuccess={() => {
                 setRejectTarget(null);
-                toast.success("Запрос отклонён");
+                toast.success(t("requestRejected"));
               }}
             />
           )}
@@ -445,7 +457,13 @@ export default function PayoutRequestsPage() {
 
 // ─── Create Form ────────────────────────────────────────────────────────────
 
-function CreatePayoutForm({ onSuccess }: { onSuccess: () => void }) {
+function CreatePayoutForm({
+  onSuccess,
+  t,
+}: {
+  onSuccess: () => void;
+  t: (key: string, params?: Record<string, unknown>) => string;
+}) {
   const createMutation = useCreatePayoutRequest();
   const form = useForm<CreatePayoutValues>({
     resolver: zodResolver(createPayoutSchema),
@@ -460,15 +478,14 @@ function CreatePayoutForm({ onSuccess }: { onSuccess: () => void }) {
   const handleSave = form.handleSubmit((values) => {
     createMutation.mutate(values, {
       onSuccess,
-      onError: (err) =>
-        toast.error(extractErrorMessage(err, "Ошибка при создании запроса")),
+      onError: (err) => toast.error(extractErrorMessage(err, t("createError"))),
     });
   });
 
   return (
     <form onSubmit={handleSave} className="space-y-4">
       <div className="space-y-1.5">
-        <Label>Сумма (UZS) *</Label>
+        <Label>{t("amountLabel")}</Label>
         <Input type="number" min={1} {...form.register("amount")} />
         {form.formState.errors.amount && (
           <p className="text-xs text-destructive">
@@ -478,7 +495,7 @@ function CreatePayoutForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
 
       <div className="space-y-1.5">
-        <Label>Метод выплаты</Label>
+        <Label>{t("payoutMethodLabel")}</Label>
         <Controller
           name="payoutMethod"
           control={form.control}
@@ -489,10 +506,10 @@ function CreatePayoutForm({ onSuccess }: { onSuccess: () => void }) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="bank_transfer">
-                  Банковский перевод
+                  {t("methodBankTransfer")}
                 </SelectItem>
-                <SelectItem value="card">На карту</SelectItem>
-                <SelectItem value="cash">Наличные</SelectItem>
+                <SelectItem value="card">{t("methodCard")}</SelectItem>
+                <SelectItem value="cash">{t("methodCash")}</SelectItem>
               </SelectContent>
             </Select>
           )}
@@ -500,7 +517,7 @@ function CreatePayoutForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
 
       <div className="space-y-1.5">
-        <Label>Реквизиты</Label>
+        <Label>{t("destinationLabel")}</Label>
         <Input
           {...form.register("payoutDestination")}
           placeholder="HUMO **** 1234"
@@ -508,17 +525,17 @@ function CreatePayoutForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
 
       <div className="space-y-1.5">
-        <Label>Причина</Label>
+        <Label>{t("reasonLabel")}</Label>
         <Textarea
           {...form.register("reason")}
-          placeholder="Ежемесячный вывод прибыли"
+          placeholder={t("reasonPlaceholder")}
           className="h-20 resize-none"
         />
       </div>
 
       <div className="flex justify-end pt-2">
         <Button type="submit" disabled={createMutation.isPending}>
-          {createMutation.isPending ? "Создаю..." : "Создать запрос"}
+          {createMutation.isPending ? t("creating") : t("createRequest")}
         </Button>
       </div>
     </form>
@@ -530,9 +547,11 @@ function CreatePayoutForm({ onSuccess }: { onSuccess: () => void }) {
 function RejectForm({
   item,
   onSuccess,
+  t,
 }: {
   item: PayoutRequestItem;
   onSuccess: () => void;
+  t: (key: string, params?: Record<string, unknown>) => string;
 }) {
   const reviewMutation = useReviewPayoutRequest();
   const form = useForm<RejectValues>({
@@ -546,7 +565,7 @@ function RejectForm({
       {
         onSuccess,
         onError: (err) =>
-          toast.error(extractErrorMessage(err, "Ошибка при отклонении")),
+          toast.error(extractErrorMessage(err, t("rejectError"))),
       },
     );
   });
@@ -554,13 +573,13 @@ function RejectForm({
   return (
     <form onSubmit={handleReject} className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Отклонить выплату <strong>{formatUZS(item.amount)}</strong>
+        {t("rejectPaymentText", { amount: formatUZS(item.amount) })}
       </p>
       <div className="space-y-1.5">
-        <Label>Причина отклонения *</Label>
+        <Label>{t("rejectReasonLabel")}</Label>
         <Textarea
           {...form.register("comment")}
-          placeholder="Укажите причину..."
+          placeholder={t("rejectReasonPlaceholder")}
           className="h-20 resize-none"
         />
         {form.formState.errors.comment && (
@@ -575,7 +594,7 @@ function RejectForm({
           variant="destructive"
           disabled={reviewMutation.isPending}
         >
-          {reviewMutation.isPending ? "Отклоняю..." : "Отклонить"}
+          {reviewMutation.isPending ? t("rejecting") : t("reject")}
         </Button>
       </DialogFooter>
     </form>

@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { formatDistanceToNow, format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { Loader2, ChevronDown } from "lucide-react";
@@ -10,37 +11,37 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useEntityTimeline } from "@/lib/hooks/use-entity-events";
 
-const EVENT_LABELS: Record<string, string> = {
-  contract_signed: "Контракт заключён",
-  payment_made: "Оплата произведена",
-  shipped: "Отправлен поставщиком",
-  customs_cleared: "Таможня пройдена",
-  received_at_warehouse: "Принят на склад",
-  quality_checked: "Проверка качества",
-  configured: "Настроен",
-  issued_from_warehouse: "Выдан со склада",
-  loaded_to_bunker: "Загружен в бункер",
-  bunker_mixed: "Смешение партий",
-  installed_in_machine: "Установлен в автомат",
-  removed_from_machine: "Снят с автомата",
-  loaded_to_slot: "Загружен в слот",
-  sold: "Продажа",
-  encashment: "Инкассация",
-  refilled: "Дозаправка",
-  cleaning_daily: "Ежедневная чистка",
-  cleaning_deep: "Глубокая чистка",
-  cleaning_full: "Полная чистка",
-  flush_cycle: "Промывка",
-  maintenance_scheduled: "Плановое ТО",
-  maintenance_unscheduled: "Внеплановый ремонт",
-  spare_part_replaced: "Замена запчасти",
-  relocated: "Перемещение",
-  deactivated: "Деактивирован",
-  reactivated: "Реактивирован",
-  written_off: "Списан",
-  transferred_to_operator: "Передан оператору",
-  returned_from_operator: "Возврат от оператора",
-  inventory_check: "Инвентаризация",
+const EVENT_I18N_KEYS: Record<string, string> = {
+  contract_signed: "eventContractSigned",
+  payment_made: "eventPaymentMade",
+  shipped: "eventShipped",
+  customs_cleared: "eventCustomsCleared",
+  received_at_warehouse: "eventReceivedAtWarehouse",
+  quality_checked: "eventQualityChecked",
+  configured: "eventConfigured",
+  issued_from_warehouse: "eventIssuedFromWarehouse",
+  loaded_to_bunker: "eventLoadedToBunker",
+  bunker_mixed: "eventBunkerMixed",
+  installed_in_machine: "eventInstalledInMachine",
+  removed_from_machine: "eventRemovedFromMachine",
+  loaded_to_slot: "eventLoadedToSlot",
+  sold: "eventSold",
+  encashment: "eventEncashment",
+  refilled: "eventRefilled",
+  cleaning_daily: "eventCleaningDaily",
+  cleaning_deep: "eventCleaningDeep",
+  cleaning_full: "eventCleaningFull",
+  flush_cycle: "eventFlushCycle",
+  maintenance_scheduled: "eventMaintenanceScheduled",
+  maintenance_unscheduled: "eventMaintenanceUnscheduled",
+  spare_part_replaced: "eventSparePartReplaced",
+  relocated: "eventRelocated",
+  deactivated: "eventDeactivated",
+  reactivated: "eventReactivated",
+  written_off: "eventWrittenOff",
+  transferred_to_operator: "eventTransferredToOperator",
+  returned_from_operator: "eventReturnedFromOperator",
+  inventory_check: "eventInventoryCheck",
 };
 
 interface TimelineTabProps {
@@ -48,13 +49,14 @@ interface TimelineTabProps {
 }
 
 export function TimelineTab({ entityId }: TimelineTabProps) {
+  const t = useTranslations("machineDetail");
   const [page, setPage] = useState(1);
   const { data, isLoading } = useEntityTimeline(entityId, page, 30);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Лента событий</CardTitle>
+        <CardTitle className="text-base">{t("eventFeed")}</CardTitle>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -63,7 +65,7 @@ export function TimelineTab({ entityId }: TimelineTabProps) {
           </div>
         ) : !data || !Array.isArray(data.data) || data.data.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">
-            Нет событий
+            {t("noEvents")}
           </p>
         ) : (
           <>
@@ -81,7 +83,9 @@ export function TimelineTab({ entityId }: TimelineTabProps) {
                       <div className="flex items-start justify-between">
                         <div>
                           <p className="text-sm font-medium">
-                            {EVENT_LABELS[event.eventType] || event.eventType}
+                            {EVENT_I18N_KEYS[event.eventType]
+                              ? t(EVENT_I18N_KEYS[event.eventType])
+                              : event.eventType}
                           </p>
                           {event.notes && (
                             <p className="text-xs text-muted-foreground mt-0.5">
@@ -90,7 +94,7 @@ export function TimelineTab({ entityId }: TimelineTabProps) {
                           )}
                           {event.quantity && (
                             <Badge variant="outline" className="mt-1 text-xs">
-                              Кол-во: {event.quantity}
+                              {t("quantityLabel", { count: event.quantity })}
                             </Badge>
                           )}
                           {event.documentNumber && (
@@ -135,13 +139,16 @@ export function TimelineTab({ entityId }: TimelineTabProps) {
                   onClick={() => setPage(page + 1)}
                 >
                   <ChevronDown className="h-4 w-4 mr-2" />
-                  Загрузить ещё
+                  {t("loadMore")}
                 </Button>
               </div>
             )}
 
             <p className="text-xs text-muted-foreground text-center mt-2">
-              Показано {data.data.length} из {data.total}
+              {t("showingOfTotal", {
+                shown: data.data.length,
+                total: data.total,
+              })}
             </p>
           </>
         )}

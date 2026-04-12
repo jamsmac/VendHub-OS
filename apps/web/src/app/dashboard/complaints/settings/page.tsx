@@ -79,8 +79,7 @@ export default function ComplaintsSettingsPage() {
       autoEscalate: settings.autoEscalate ?? DEFAULTS.autoEscalate,
       emailOnNew: settings.notifications?.emailOnNew ?? DEFAULTS.emailOnNew,
       emailOnEscalation:
-        settings.notifications?.emailOnEscalation ??
-        DEFAULTS.emailOnEscalation,
+        settings.notifications?.emailOnEscalation ?? DEFAULTS.emailOnEscalation,
       telegramOnNew:
         settings.notifications?.telegramOnNew ?? DEFAULTS.telegramOnNew,
       telegramOnSlaWarning:
@@ -115,9 +114,9 @@ export default function ComplaintsSettingsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["complaint-settings"] });
-      toast.success("Настройки SLA сохранены");
+      toast.success(t("toastSettingsSaved"));
     },
-    onError: () => toast.error("Ошибка сохранения настроек"),
+    onError: () => toast.error(t("toastSettingsSaveError")),
   });
 
   const onSubmit = form.handleSubmit((values) => saveMutation.mutate(values));
@@ -132,9 +131,7 @@ export default function ComplaintsSettingsPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold">{t("slaSettings")}</h1>
-          <p className="text-muted-foreground">
-            Настройка SLA, уведомлений и автоматизации жалоб
-          </p>
+          <p className="text-muted-foreground">{t("settingsSubtitle")}</p>
         </div>
       </div>
 
@@ -151,52 +148,72 @@ export default function ComplaintsSettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5" />
-                Время реагирования (SLA)
+                {t("slaResponseTime")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Максимальное время на решение жалобы в зависимости от приоритета
+                {t("slaDescription")}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-red-500" />
-                    Критический
+                    {t("priorityCritical")}
                   </Label>
                   <div className="flex items-center gap-2">
-                    <Input type="number" min={1} {...form.register("slaCritical")} />
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">часов</span>
+                    <Input
+                      type="number"
+                      min={1}
+                      {...form.register("slaCritical")}
+                    />
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">
+                      {t("hours")}
+                    </span>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-orange-500" />
-                    Высокий
+                    {t("priorityHigh")}
                   </Label>
                   <div className="flex items-center gap-2">
-                    <Input type="number" min={1} {...form.register("slaHigh")} />
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">часов</span>
+                    <Input
+                      type="number"
+                      min={1}
+                      {...form.register("slaHigh")}
+                    />
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">
+                      {t("hours")}
+                    </span>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-yellow-500" />
-                    Средний
+                    {t("priorityMedium")}
                   </Label>
                   <div className="flex items-center gap-2">
-                    <Input type="number" min={1} {...form.register("slaMedium")} />
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">часов</span>
+                    <Input
+                      type="number"
+                      min={1}
+                      {...form.register("slaMedium")}
+                    />
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">
+                      {t("hours")}
+                    </span>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-blue-500" />
-                    Низкий
+                    {t("priorityLow")}
                   </Label>
                   <div className="flex items-center gap-2">
                     <Input type="number" min={1} {...form.register("slaLow")} />
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">часов</span>
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">
+                      {t("hours")}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -208,33 +225,37 @@ export default function ComplaintsSettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Shield className="h-5 w-5" />
-                Автоматизация
+                {t("automation")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">Автоматическое назначение</p>
+                  <p className="font-medium">{t("autoAssignTitle")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Автоматически назначать жалобы на ближайшего оператора
+                    {t("autoAssignDescription")}
                   </p>
                 </div>
                 <Switch
                   checked={form.watch("autoAssign")}
-                  onCheckedChange={(v) => form.setValue("autoAssign", v, { shouldDirty: true })}
+                  onCheckedChange={(v) =>
+                    form.setValue("autoAssign", v, { shouldDirty: true })
+                  }
                 />
               </div>
               <Separator />
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">Автоматическая эскалация</p>
+                  <p className="font-medium">{t("autoEscalateTitle")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Эскалировать жалобу при нарушении SLA
+                    {t("autoEscalateDescription")}
                   </p>
                 </div>
                 <Switch
                   checked={form.watch("autoEscalate")}
-                  onCheckedChange={(v) => form.setValue("autoEscalate", v, { shouldDirty: true })}
+                  onCheckedChange={(v) =>
+                    form.setValue("autoEscalate", v, { shouldDirty: true })
+                  }
                 />
               </div>
             </CardContent>
@@ -245,55 +266,62 @@ export default function ComplaintsSettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="h-5 w-5" />
-                Уведомления
+                {t("notifications")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">Email при новой жалобе</p>
+                  <p className="font-medium">{t("emailOnNewTitle")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Отправлять email менеджеру при поступлении жалобы
+                    {t("emailOnNewDescription")}
                   </p>
                 </div>
                 <Switch
                   checked={form.watch("emailOnNew")}
-                  onCheckedChange={(v) => form.setValue("emailOnNew", v, { shouldDirty: true })}
+                  onCheckedChange={(v) =>
+                    form.setValue("emailOnNew", v, { shouldDirty: true })
+                  }
                 />
               </div>
               <Separator />
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">Email при эскалации</p>
+                  <p className="font-medium">{t("emailOnEscalationTitle")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Уведомлять руководителя при эскалации
+                    {t("emailOnEscalationDescription")}
                   </p>
                 </div>
                 <Switch
                   checked={form.watch("emailOnEscalation")}
-                  onCheckedChange={(v) => form.setValue("emailOnEscalation", v, { shouldDirty: true })}
+                  onCheckedChange={(v) =>
+                    form.setValue("emailOnEscalation", v, { shouldDirty: true })
+                  }
                 />
               </div>
               <Separator />
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">Telegram при новой жалобе</p>
+                  <p className="font-medium">{t("telegramOnNewTitle")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Мгновенное уведомление через Telegram бот
+                    {t("telegramOnNewDescription")}
                   </p>
                 </div>
                 <Switch
                   checked={form.watch("telegramOnNew")}
-                  onCheckedChange={(v) => form.setValue("telegramOnNew", v, { shouldDirty: true })}
+                  onCheckedChange={(v) =>
+                    form.setValue("telegramOnNew", v, { shouldDirty: true })
+                  }
                 />
               </div>
               <Separator />
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">Предупреждение о SLA</p>
+                  <p className="font-medium">{t("slaWarningTitle")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Telegram уведомление при достижении{" "}
-                    {form.watch("slaWarningPercentage")}% времени SLA
+                    {t("slaWarningDescription", {
+                      percentage: form.watch("slaWarningPercentage"),
+                    })}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -307,7 +335,11 @@ export default function ComplaintsSettingsPage() {
                   <span className="text-sm text-muted-foreground">%</span>
                   <Switch
                     checked={form.watch("telegramOnSlaWarning")}
-                    onCheckedChange={(v) => form.setValue("telegramOnSlaWarning", v, { shouldDirty: true })}
+                    onCheckedChange={(v) =>
+                      form.setValue("telegramOnSlaWarning", v, {
+                        shouldDirty: true,
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -321,7 +353,7 @@ export default function ComplaintsSettingsPage() {
               disabled={saveMutation.isPending}
               className="gap-2"
             >
-              {saveMutation.isPending ? "Сохранение..." : tCommon("save")}
+              {saveMutation.isPending ? t("settingsSaving") : tCommon("save")}
             </Button>
             <Link href="/dashboard/complaints">
               <Button variant="outline">{tCommon("cancel")}</Button>
