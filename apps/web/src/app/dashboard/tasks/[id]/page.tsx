@@ -42,19 +42,19 @@ const TASK_TYPES = [
   "replace_mixer",
 ] as const;
 
-const TASK_TYPE_LABELS: Record<string, string> = {
-  refill: "Пополнение",
-  collection: "Инкассация",
-  cleaning: "Мойка",
-  repair: "Ремонт",
-  install: "Установка",
-  removal: "Демонтаж",
-  audit: "Аудит",
-  inspection: "Инспекция",
-  replace_hopper: "Замена бункера",
-  replace_grinder: "Замена кофемолки",
-  replace_brew_unit: "Замена заварочного блока",
-  replace_mixer: "Замена миксера",
+const TASK_TYPE_KEYS: Record<string, string> = {
+  refill: "type_refill",
+  collection: "type_collection",
+  cleaning: "type_cleaning",
+  repair: "type_repair",
+  install: "type_install",
+  removal: "type_removal",
+  audit: "type_audit",
+  inspection: "type_inspection",
+  replace_hopper: "type_replace_hopper",
+  replace_grinder: "type_replace_grinder",
+  replace_brew_unit: "type_replace_brew_unit",
+  replace_mixer: "type_replace_mixer",
 };
 
 const STATUSES = [
@@ -67,23 +67,23 @@ const STATUSES = [
   "cancelled",
 ] as const;
 
-const STATUS_LABELS: Record<string, string> = {
-  pending: "Ожидает",
-  assigned: "Назначена",
-  in_progress: "В работе",
-  completed: "Завершена",
-  rejected: "Отклонена",
-  postponed: "Отложена",
-  cancelled: "Отменена",
+const STATUS_KEYS: Record<string, string> = {
+  pending: "status_pending",
+  assigned: "status_assigned",
+  in_progress: "status_in_progress",
+  completed: "status_completed",
+  rejected: "status_rejected",
+  postponed: "status_postponed",
+  cancelled: "status_cancelled",
 };
 
 const PRIORITIES = ["low", "normal", "high", "urgent"] as const;
 
-const PRIORITY_LABELS: Record<string, string> = {
-  low: "Низкий",
-  normal: "Обычный",
-  high: "Высокий",
-  urgent: "Срочный",
+const PRIORITY_KEYS: Record<string, string> = {
+  low: "priority_low",
+  normal: "priority_normal",
+  high: "priority_high",
+  urgent: "priority_urgent",
 };
 
 const taskFormSchema = z.object({
@@ -162,19 +162,19 @@ export default function TaskDetailPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast.success("Task updated");
+      toast.success(t("taskUpdated"));
     },
-    onError: () => toast.error("Failed to update"),
+    onError: () => toast.error(t("taskUpdateError")),
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => api.delete(`/tasks/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast.success("Deleted");
+      toast.success(t("taskDeleted"));
       router.push("/dashboard/tasks");
     },
-    onError: () => toast.error("Failed to delete"),
+    onError: () => toast.error(t("taskDeleteError")),
   });
 
   const onSubmit = form.handleSubmit((values) => updateMutation.mutate(values));
@@ -207,25 +207,21 @@ export default function TaskDetailPage() {
           variant="destructive"
           size="sm"
           onClick={() => {
-            if (confirm("Delete this task?")) deleteMutation.mutate();
+            if (confirm(t("deleteTaskConfirm"))) deleteMutation.mutate();
           }}
         >
           <Trash2 className="h-4 w-4 mr-2" />
-          {tCommon("delete") || "Delete"}
+          {tCommon("delete")}
         </Button>
       </div>
       <form onSubmit={onSubmit}>
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">
-              {t("taskDetails") || "Task Details"}
-            </CardTitle>
+            <CardTitle className="text-base">{t("taskDetails")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="text-sm font-medium">
-                {t("title") || "Title"}
-              </label>
+              <label className="text-sm font-medium">{t("title")}</label>
               <Input {...form.register("title")} className="mt-1" />
               {form.formState.errors.title && (
                 <p className="text-xs text-destructive mt-1">
@@ -234,16 +230,12 @@ export default function TaskDetailPage() {
               )}
             </div>
             <div>
-              <label className="text-sm font-medium">
-                {t("description") || "Description"}
-              </label>
+              <label className="text-sm font-medium">{t("description")}</label>
               <Input {...form.register("description")} className="mt-1" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="text-sm font-medium">
-                  {t("type") || "Type"}
-                </label>
+                <label className="text-sm font-medium">{t("type")}</label>
                 <Controller
                   control={form.control}
                   name="type"
@@ -255,7 +247,7 @@ export default function TaskDetailPage() {
                       <SelectContent>
                         {TASK_TYPES.map((tt) => (
                           <SelectItem key={tt} value={tt}>
-                            {TASK_TYPE_LABELS[tt] ?? tt}
+                            {TASK_TYPE_KEYS[tt] ? t(TASK_TYPE_KEYS[tt]) : tt}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -264,9 +256,7 @@ export default function TaskDetailPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">
-                  {t("status") || "Status"}
-                </label>
+                <label className="text-sm font-medium">{t("status")}</label>
                 <Controller
                   control={form.control}
                   name="status"
@@ -278,7 +268,7 @@ export default function TaskDetailPage() {
                       <SelectContent>
                         {STATUSES.map((s) => (
                           <SelectItem key={s} value={s}>
-                            {STATUS_LABELS[s] ?? s}
+                            {STATUS_KEYS[s] ? t(STATUS_KEYS[s]) : s}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -287,9 +277,7 @@ export default function TaskDetailPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">
-                  {t("priority") || "Priority"}
-                </label>
+                <label className="text-sm font-medium">{t("priority")}</label>
                 <Controller
                   control={form.control}
                   name="priority"
@@ -301,7 +289,7 @@ export default function TaskDetailPage() {
                       <SelectContent>
                         {PRIORITIES.map((p) => (
                           <SelectItem key={p} value={p}>
-                            {PRIORITY_LABELS[p] ?? p}
+                            {PRIORITY_KEYS[p] ? t(PRIORITY_KEYS[p]) : p}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -312,9 +300,7 @@ export default function TaskDetailPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">
-                  {t("dueDate") || "Due Date"}
-                </label>
+                <label className="text-sm font-medium">{t("dueDate")}</label>
                 <Input
                   type="date"
                   {...form.register("dueDate")}
@@ -322,9 +308,7 @@ export default function TaskDetailPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">
-                  {t("assignedTo") || "Assigned To"}
-                </label>
+                <label className="text-sm font-medium">{t("assignedTo")}</label>
                 <Input
                   value={form.watch("assignedTo")}
                   disabled
@@ -334,9 +318,7 @@ export default function TaskDetailPage() {
             </div>
             {form.watch("machine") ? (
               <div>
-                <label className="text-sm font-medium">
-                  {t("machine") || "Machine"}
-                </label>
+                <label className="text-sm font-medium">{t("machine")}</label>
                 <Input
                   value={form.watch("machine")}
                   disabled
@@ -348,11 +330,11 @@ export default function TaskDetailPage() {
         </Card>
         <div className="flex justify-end gap-3 mt-6">
           <Link href="/dashboard/tasks">
-            <Button variant="outline">{tCommon("cancel") || "Cancel"}</Button>
+            <Button variant="outline">{tCommon("cancel")}</Button>
           </Link>
           <Button type="submit" disabled={updateMutation.isPending}>
             <Save className="h-4 w-4 mr-2" />
-            {updateMutation.isPending ? "Saving..." : tCommon("save") || "Save"}
+            {updateMutation.isPending ? tCommon("saving") : tCommon("save")}
           </Button>
         </div>
       </form>

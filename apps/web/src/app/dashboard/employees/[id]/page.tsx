@@ -37,14 +37,14 @@ const EMPLOYEE_ROLES = [
   "supervisor",
 ] as const;
 
-const ROLE_LABELS: Record<string, string> = {
-  operator: "Оператор",
-  technician: "Техник",
-  warehouse: "Склад",
-  driver: "Водитель",
-  manager: "Менеджер",
-  accountant: "Бухгалтер",
-  supervisor: "Супервайзер",
+const ROLE_KEYS: Record<string, string> = {
+  operator: "roleOperator",
+  technician: "roleTechnician",
+  warehouse: "roleWarehouse",
+  driver: "roleDriver",
+  manager: "roleManager",
+  accountant: "roleAccountant",
+  supervisor: "roleSupervisor",
 };
 
 /**
@@ -58,12 +58,12 @@ const STATUSES = [
   "terminated",
 ] as const;
 
-const STATUS_LABELS: Record<string, string> = {
-  active: "Активный",
-  inactive: "Неактивный",
-  on_leave: "В отпуске",
-  suspended: "Приостановлен",
-  terminated: "Уволен",
+const STATUS_KEYS: Record<string, string> = {
+  active: "statusActive",
+  inactive: "statusInactive",
+  on_leave: "statusOnLeave",
+  suspended: "statusSuspended",
+  terminated: "statusTerminated",
 };
 
 const employeeFormSchema = z.object({
@@ -146,19 +146,19 @@ export default function EmployeeDetailPage() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees"] });
-      toast.success("Employee updated");
+      toast.success(t("employeeUpdated"));
     },
-    onError: () => toast.error("Failed to update"),
+    onError: () => toast.error(t("employeeUpdateError")),
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => api.delete(`/employees/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees"] });
-      toast.success("Deleted");
+      toast.success(t("employeeDeleted"));
       router.push("/dashboard/employees");
     },
-    onError: () => toast.error("Failed to delete"),
+    onError: () => toast.error(t("employeeDeleteError")),
   });
 
   const onSubmit = form.handleSubmit((values) => updateMutation.mutate(values));
@@ -248,7 +248,7 @@ export default function EmployeeDetailPage() {
                       <SelectContent>
                         {EMPLOYEE_ROLES.map((role) => (
                           <SelectItem key={role} value={role}>
-                            {ROLE_LABELS[role] ?? role}
+                            {ROLE_KEYS[role] ?? role}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -271,7 +271,7 @@ export default function EmployeeDetailPage() {
                       <SelectContent>
                         {STATUSES.map((s) => (
                           <SelectItem key={s} value={s}>
-                            {STATUS_LABELS[s] ?? s}
+                            {STATUS_KEYS[s] ?? s}
                           </SelectItem>
                         ))}
                       </SelectContent>

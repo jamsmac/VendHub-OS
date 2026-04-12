@@ -43,14 +43,14 @@ const EMPLOYEE_ROLES = [
   "supervisor",
 ] as const;
 
-const ROLE_LABELS: Record<string, string> = {
-  operator: "Оператор",
-  technician: "Техник",
-  warehouse: "Склад",
-  driver: "Водитель",
-  manager: "Менеджер",
-  accountant: "Бухгалтер",
-  supervisor: "Супервайзер",
+const ROLE_KEYS: Record<string, string> = {
+  operator: "roleOperator",
+  technician: "roleTechnician",
+  warehouse: "roleWarehouse",
+  driver: "roleDriver",
+  manager: "roleManager",
+  accountant: "roleAccountant",
+  supervisor: "roleSupervisor",
 };
 
 /**
@@ -59,15 +59,15 @@ const ROLE_LABELS: Record<string, string> = {
  * Optional: phone, email, inn (mapped to notes or skipped)
  */
 const employeeSchema = z.object({
-  firstName: z.string().min(1, "Имя обязательно").max(100),
-  lastName: z.string().min(1, "Фамилия обязательна").max(100),
+  firstName: z.string().min(1, "First name is required").max(100),
+  lastName: z.string().min(1, "Last name is required").max(100),
   employeeRole: z.enum(EMPLOYEE_ROLES),
-  hireDate: z.string().min(1, "Дата приёма обязательна"),
+  hireDate: z.string().min(1, "Hire date is required"),
   phone: z
     .string()
-    .regex(/^\+998\d{9}$/, "Формат: +998XXXXXXXXX")
+    .regex(/^\+998\d{9}$/, "Format: +998XXXXXXXXX")
     .or(z.literal("")),
-  email: z.string().email("Неверный формат email").or(z.literal("")),
+  email: z.string().email("Invalid email format").or(z.literal("")),
 });
 
 type EmployeeFormValues = z.infer<typeof employeeSchema>;
@@ -99,10 +99,10 @@ export default function NewEmployeePage() {
       return api.post("/employees", payload);
     },
     onSuccess: () => {
-      toast.success("Сотрудник создан");
+      toast.success(t("employeeCreated"));
       router.push("/dashboard/employees");
     },
-    onError: () => toast.error("Ошибка создания сотрудника"),
+    onError: () => toast.error(t("employeeCreateError")),
   });
 
   return (
@@ -113,17 +113,13 @@ export default function NewEmployeePage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
-        <h1 className="text-2xl font-bold">
-          {t("newEmployee") || "Новый сотрудник"}
-        </h1>
+        <h1 className="text-2xl font-bold">{t("newEmployee")}</h1>
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit((data) => mutation.mutate(data))}>
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">
-                {t("personalInfo") || "Личная информация"}
-              </CardTitle>
+              <CardTitle className="text-base">{t("personalInfo")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -132,7 +128,7 @@ export default function NewEmployeePage() {
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("firstName") || "Имя"} *</FormLabel>
+                      <FormLabel>{t("firstName")} *</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -145,7 +141,7 @@ export default function NewEmployeePage() {
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("lastName") || "Фамилия"} *</FormLabel>
+                      <FormLabel>{t("lastName")} *</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -160,7 +156,7 @@ export default function NewEmployeePage() {
                   name="employeeRole"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("position") || "Должность"} *</FormLabel>
+                      <FormLabel>{t("position")} *</FormLabel>
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}
@@ -173,7 +169,7 @@ export default function NewEmployeePage() {
                         <SelectContent>
                           {EMPLOYEE_ROLES.map((role) => (
                             <SelectItem key={role} value={role}>
-                              {ROLE_LABELS[role] ?? role}
+                              {ROLE_KEYS[role] ? t(ROLE_KEYS[role]) : role}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -187,7 +183,7 @@ export default function NewEmployeePage() {
                   name="hireDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Дата приёма *</FormLabel>
+                      <FormLabel>{t("hireDate")} *</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} />
                       </FormControl>
@@ -202,7 +198,7 @@ export default function NewEmployeePage() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("phone") || "Телефон"}</FormLabel>
+                      <FormLabel>{t("phone")}</FormLabel>
                       <FormControl>
                         <Input placeholder="+998901234567" {...field} />
                       </FormControl>
@@ -215,7 +211,7 @@ export default function NewEmployeePage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{t("email")}</FormLabel>
                       <FormControl>
                         <Input type="email" {...field} />
                       </FormControl>
@@ -228,11 +224,11 @@ export default function NewEmployeePage() {
           </Card>
           <div className="flex justify-end gap-3 mt-6">
             <Link href="/dashboard/employees">
-              <Button variant="outline">{tCommon("cancel") || "Отмена"}</Button>
+              <Button variant="outline">{tCommon("cancel")}</Button>
             </Link>
             <Button type="submit" disabled={mutation.isPending}>
               <Save className="h-4 w-4 mr-2" />
-              {mutation.isPending ? "Сохранение..." : tCommon("save") || "Сохранить"}
+              {mutation.isPending ? tCommon("saving") : tCommon("save")}
             </Button>
           </div>
         </form>

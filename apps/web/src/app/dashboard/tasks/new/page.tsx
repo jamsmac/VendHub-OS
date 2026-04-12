@@ -48,28 +48,28 @@ const TASK_TYPES = [
   "replace_mixer",
 ] as const;
 
-const TASK_TYPE_LABELS: Record<string, string> = {
-  refill: "Пополнение",
-  collection: "Инкассация",
-  cleaning: "Мойка",
-  repair: "Ремонт",
-  install: "Установка",
-  removal: "Демонтаж",
-  audit: "Аудит",
-  inspection: "Инспекция",
-  replace_hopper: "Замена бункера",
-  replace_grinder: "Замена кофемолки",
-  replace_brew_unit: "Замена заварочного блока",
-  replace_mixer: "Замена миксера",
+const TASK_TYPE_KEYS: Record<string, string> = {
+  refill: "type_refill",
+  collection: "type_collection",
+  cleaning: "type_cleaning",
+  repair: "type_repair",
+  install: "type_install",
+  removal: "type_removal",
+  audit: "type_audit",
+  inspection: "type_inspection",
+  replace_hopper: "type_replace_hopper",
+  replace_grinder: "type_replace_grinder",
+  replace_brew_unit: "type_replace_brew_unit",
+  replace_mixer: "type_replace_mixer",
 };
 
 const PRIORITIES = ["low", "normal", "high", "urgent"] as const;
 
-const PRIORITY_LABELS: Record<string, string> = {
-  low: "Низкий",
-  normal: "Обычный",
-  high: "Высокий",
-  urgent: "Срочный",
+const PRIORITY_KEYS: Record<string, string> = {
+  low: "priority_low",
+  normal: "priority_normal",
+  high: "priority_high",
+  urgent: "priority_urgent",
 };
 
 /**
@@ -79,7 +79,7 @@ const PRIORITY_LABELS: Record<string, string> = {
  * Note: organizationId is injected by backend from JWT token
  */
 const taskSchema = z.object({
-  title: z.string().min(1, "Название обязательно").max(255),
+  title: z.string().min(1, "Title is required").max(255),
   description: z.string().max(1000).optional().or(z.literal("")),
   type: z.enum(TASK_TYPES),
   priority: z.enum(PRIORITIES),
@@ -109,15 +109,17 @@ export default function NewTaskPage() {
       const payload = {
         ...data,
         description: data.description || undefined,
-        dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : undefined,
+        dueDate: data.dueDate
+          ? new Date(data.dueDate).toISOString()
+          : undefined,
       };
       return api.post("/tasks", payload);
     },
     onSuccess: () => {
-      toast.success("Задача создана");
+      toast.success(t("taskCreated"));
       router.push("/dashboard/tasks");
     },
-    onError: () => toast.error("Ошибка создания задачи"),
+    onError: () => toast.error(t("taskCreateError")),
   });
 
   return (
@@ -128,15 +130,13 @@ export default function NewTaskPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
-        <h1 className="text-2xl font-bold">{t("newTask") || "New Task"}</h1>
+        <h1 className="text-2xl font-bold">{t("newTask")}</h1>
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit((data) => mutation.mutate(data))}>
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">
-                {t("taskDetails") || "Task Details"}
-              </CardTitle>
+              <CardTitle className="text-base">{t("taskDetails")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <FormField
@@ -144,9 +144,9 @@ export default function NewTaskPage() {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("title") || "Title"} *</FormLabel>
+                    <FormLabel>{t("title")} *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Refill machine VH-001" {...field} />
+                      <Input placeholder={t("titlePlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -157,7 +157,7 @@ export default function NewTaskPage() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("description") || "Description"}</FormLabel>
+                    <FormLabel>{t("description")}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -171,7 +171,7 @@ export default function NewTaskPage() {
                   name="type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("type") || "Type"}</FormLabel>
+                      <FormLabel>{t("type")}</FormLabel>
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}
@@ -184,7 +184,7 @@ export default function NewTaskPage() {
                         <SelectContent>
                           {TASK_TYPES.map((tt) => (
                             <SelectItem key={tt} value={tt}>
-                              {TASK_TYPE_LABELS[tt] ?? tt}
+                              {TASK_TYPE_KEYS[tt] ? t(TASK_TYPE_KEYS[tt]) : tt}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -198,7 +198,7 @@ export default function NewTaskPage() {
                   name="priority"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("priority") || "Priority"}</FormLabel>
+                      <FormLabel>{t("priority")}</FormLabel>
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}
@@ -211,7 +211,7 @@ export default function NewTaskPage() {
                         <SelectContent>
                           {PRIORITIES.map((p) => (
                             <SelectItem key={p} value={p}>
-                              {PRIORITY_LABELS[p] ?? p}
+                              {PRIORITY_KEYS[p] ? t(PRIORITY_KEYS[p]) : p}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -225,7 +225,7 @@ export default function NewTaskPage() {
                   name="dueDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("dueDate") || "Due Date"}</FormLabel>
+                      <FormLabel>{t("dueDate")}</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} />
                       </FormControl>
@@ -238,11 +238,11 @@ export default function NewTaskPage() {
           </Card>
           <div className="flex justify-end gap-3 mt-6">
             <Link href="/dashboard/tasks">
-              <Button variant="outline">{tCommon("cancel") || "Cancel"}</Button>
+              <Button variant="outline">{tCommon("cancel")}</Button>
             </Link>
             <Button type="submit" disabled={mutation.isPending}>
               <Save className="h-4 w-4 mr-2" />
-              {mutation.isPending ? "Saving..." : tCommon("save") || "Save"}
+              {mutation.isPending ? tCommon("saving") : tCommon("save")}
             </Button>
           </div>
         </form>

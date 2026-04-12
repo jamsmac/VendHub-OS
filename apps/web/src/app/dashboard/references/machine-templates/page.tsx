@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -11,8 +11,6 @@ import {
   Edit,
   Trash2,
   Lock,
-  Eye,
-  EyeOff,
   Box,
   Layers,
   Cpu,
@@ -20,20 +18,12 @@ import {
   CreditCard,
   QrCode,
   Smartphone,
-  Coffee,
-  Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -118,14 +108,14 @@ interface MachineTemplate {
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const MACHINE_TYPE_LABELS: Record<string, string> = {
-  coffee: "Кофейный",
-  snack: "Снэковый",
-  drink: "Напитки",
-  combo: "Комбо",
-  fresh: "Фреш",
-  ice_cream: "Мороженое",
-  water: "Вода",
+const MACHINE_TYPE_KEYS: Record<string, string> = {
+  coffee: "machineTypeCoffee",
+  snack: "machineTypeSnack",
+  drink: "machineTypeDrink",
+  combo: "machineTypeCombo",
+  fresh: "machineTypeFresh",
+  ice_cream: "machineTypeIceCream",
+  water: "machineTypeWater",
 };
 
 const MACHINE_TYPE_ICONS: Record<string, string> = {
@@ -138,10 +128,10 @@ const MACHINE_TYPE_ICONS: Record<string, string> = {
   water: "💧",
 };
 
-const CONTENT_MODEL_LABELS: Record<string, string> = {
-  containers: "Бункеры (г/мл)",
-  slots: "Ячейки (шт)",
-  mixed: "Смешанный",
+const CONTENT_MODEL_KEYS: Record<string, string> = {
+  containers: "contentModelContainers",
+  slots: "contentModelSlots",
+  mixed: "contentModelMixed",
 };
 
 const CONTENT_MODEL_COLORS: Record<string, string> = {
@@ -191,6 +181,7 @@ const EMPTY_FORM: TemplateFormData = {
 // ─── Page ───────────────────────────────────────────────────────────────────
 
 export default function MachineTemplatesPage() {
+  const t = useTranslations("references.machineTemplates");
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -211,49 +202,56 @@ export default function MachineTemplatesPage() {
       machineTemplatesApi.getAll().then((res) => res.data?.data ?? res.data),
   });
 
-  const filtered = templates.filter((t) => {
+  const filtered = templates.filter((tpl) => {
     if (!search) return true;
     const q = search.toLowerCase();
+    const typeLabel = MACHINE_TYPE_KEYS[tpl.type]
+      ? t(MACHINE_TYPE_KEYS[tpl.type])
+      : "";
     return (
-      t.name.toLowerCase().includes(q) ||
-      (t.manufacturer ?? "").toLowerCase().includes(q) ||
-      (t.model ?? "").toLowerCase().includes(q) ||
-      (MACHINE_TYPE_LABELS[t.type] ?? "").toLowerCase().includes(q)
+      tpl.name.toLowerCase().includes(q) ||
+      (tpl.manufacturer ?? "").toLowerCase().includes(q) ||
+      (tpl.model ?? "").toLowerCase().includes(q) ||
+      typeLabel.toLowerCase().includes(q)
     );
   });
 
   // ─── Mutations ──────────────────────────────────────────────────────────
 
   const createMutation = useMutation({
-    mutationFn: (data: TemplateFormData) =>
-      machineTemplatesApi.create(data),
+    mutationFn: (data: TemplateFormData) => machineTemplatesApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["machine-templates"] });
-      toast.success("Шаблон создан");
+      toast.success(t("toastCreated"));
       closeDialog();
     },
-    onError: () => toast.error("Не удалось создать шаблон"),
+    onError: () => toast.error(t("toastCreateError")),
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<TemplateFormData> }) =>
-      machineTemplatesApi.update(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<TemplateFormData>;
+    }) => machineTemplatesApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["machine-templates"] });
-      toast.success("Шаблон обновлён");
+      toast.success(t("toastUpdated"));
       closeDialog();
     },
-    onError: () => toast.error("Не удалось обновить шаблон"),
+    onError: () => toast.error(t("toastUpdateError")),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => machineTemplatesApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["machine-templates"] });
-      toast.success("Шаблон удалён");
+      toast.success(t("toastDeleted"));
       setDeleteId(null);
     },
-    onError: () => toast.error("Не удалось удалить шаблон"),
+    onError: () => toast.error(t("toastDeleteError")),
   });
 
   // ─── Dialog Helpers ─────────────────────────────────────────────────────
@@ -294,7 +292,7 @@ export default function MachineTemplatesPage() {
 
   function handleSave() {
     if (!form.name.trim()) {
-      toast.error("Название обязательно");
+      toast.error(t("nameRequired"));
       return;
     }
     if (editingTemplate) {
@@ -406,15 +404,12 @@ export default function MachineTemplatesPage() {
           </Button>
         </Link>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold">Шаблоны автоматов</h1>
-          <p className="text-sm text-muted-foreground">
-            Предустановленные конфигурации бункеров, ячеек и компонентов для
-            быстрого создания автоматов
-          </p>
+          <h1 className="text-2xl font-bold">{t("title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("description")}</p>
         </div>
         <Button onClick={openCreate} className="gap-2">
           <Plus className="w-4 h-4" />
-          Новый шаблон
+          {t("newTemplate")}
         </Button>
       </div>
 
@@ -424,7 +419,7 @@ export default function MachineTemplatesPage() {
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Поиск шаблонов..."
+          placeholder={t("searchPlaceholder")}
           className="pl-9"
         />
       </div>
@@ -439,9 +434,7 @@ export default function MachineTemplatesPage() {
       ) : filtered.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
-            {search
-              ? "Ничего не найдено по вашему запросу"
-              : "Нет шаблонов. Создайте первый!"}
+            {search ? t("notFoundSearch") : t("noTemplates")}
           </CardContent>
         </Card>
       ) : (
@@ -449,14 +442,18 @@ export default function MachineTemplatesPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[60px]">Тип</TableHead>
-                <TableHead>Название</TableHead>
-                <TableHead>Модель контента</TableHead>
-                <TableHead className="text-center">Бункеры</TableHead>
-                <TableHead className="text-center">Ячейки</TableHead>
-                <TableHead className="text-center">Компоненты</TableHead>
-                <TableHead>Оплата</TableHead>
-                <TableHead>Статус</TableHead>
+                <TableHead className="w-[60px]">{t("colType")}</TableHead>
+                <TableHead>{t("colName")}</TableHead>
+                <TableHead>{t("colContentModel")}</TableHead>
+                <TableHead className="text-center">
+                  {t("colContainers")}
+                </TableHead>
+                <TableHead className="text-center">{t("colSlots")}</TableHead>
+                <TableHead className="text-center">
+                  {t("colComponents")}
+                </TableHead>
+                <TableHead>{t("colPayment")}</TableHead>
+                <TableHead>{t("colStatus")}</TableHead>
                 <TableHead className="w-[120px]" />
               </TableRow>
             </TableHeader>
@@ -479,7 +476,9 @@ export default function MachineTemplatesPage() {
                       <div className="text-xs text-muted-foreground">
                         {t.manufacturer && t.model
                           ? `${t.manufacturer} ${t.model}`
-                          : t.manufacturer || t.model || MACHINE_TYPE_LABELS[t.type]}
+                          : t.manufacturer ||
+                            t.model ||
+                            MACHINE_TYPE_KEYS[t.type]}
                       </div>
                     </div>
                   </TableCell>
@@ -489,7 +488,7 @@ export default function MachineTemplatesPage() {
                         CONTENT_MODEL_COLORS[t.contentModel] ?? "bg-gray-100"
                       }
                     >
-                      {CONTENT_MODEL_LABELS[t.contentModel] ?? t.contentModel}
+                      {CONTENT_MODEL_KEYS[t.contentModel] ?? t.contentModel}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center font-mono">
@@ -587,14 +586,19 @@ export default function MachineTemplatesPage() {
                   {viewTemplate.name}
                   {viewTemplate.isSystem && (
                     <Badge variant="outline" className="ml-2 gap-1">
-                      <Lock className="w-3 h-3" /> Системный
+                      <Lock className="w-3 h-3" /> {t("systemBadge")}
                     </Badge>
                   )}
                 </DialogTitle>
                 <DialogDescription>
                   {viewTemplate.manufacturer} {viewTemplate.model} &middot;{" "}
-                  {MACHINE_TYPE_LABELS[viewTemplate.type]} &middot;{" "}
-                  {CONTENT_MODEL_LABELS[viewTemplate.contentModel]}
+                  {MACHINE_TYPE_KEYS[viewTemplate.type]
+                    ? t(MACHINE_TYPE_KEYS[viewTemplate.type])
+                    : viewTemplate.type}{" "}
+                  &middot;{" "}
+                  {CONTENT_MODEL_KEYS[viewTemplate.contentModel]
+                    ? t(CONTENT_MODEL_KEYS[viewTemplate.contentModel])
+                    : viewTemplate.contentModel}
                 </DialogDescription>
               </DialogHeader>
 
@@ -609,18 +613,19 @@ export default function MachineTemplatesPage() {
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium">
-                      Способы оплаты
+                      {t("paymentMethods")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="flex flex-wrap gap-2">
                     {viewTemplate.acceptsCash && (
                       <Badge variant="outline" className="gap-1">
-                        <Banknote className="w-3.5 h-3.5" /> Наличные
+                        <Banknote className="w-3.5 h-3.5" /> {t("paymentCash")}
                       </Badge>
                     )}
                     {viewTemplate.acceptsCard && (
                       <Badge variant="outline" className="gap-1">
-                        <CreditCard className="w-3.5 h-3.5" /> Карта
+                        <CreditCard className="w-3.5 h-3.5" />{" "}
+                        {t("paymentCard")}
                       </Badge>
                     )}
                     {viewTemplate.acceptsQr && (
@@ -640,18 +645,22 @@ export default function MachineTemplatesPage() {
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium">
-                      Структура
+                      {t("structure")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Бункеры</span>
+                      <span className="text-muted-foreground">
+                        {t("containersLabel")}
+                      </span>
                       <span className="font-mono">
                         {viewTemplate.defaultContainers?.length ?? 0}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Ячейки</span>
+                      <span className="text-muted-foreground">
+                        {t("slotsLabel")}
+                      </span>
                       <span className="font-mono">
                         {viewTemplate.defaultSlots?.length ?? 0}
                       </span>
@@ -679,7 +688,9 @@ export default function MachineTemplatesPage() {
                           <TableHead className="w-[60px]">№</TableHead>
                           <TableHead>Название</TableHead>
                           <TableHead className="text-right">Ёмкость</TableHead>
-                          <TableHead className="text-right">Мин. уровень</TableHead>
+                          <TableHead className="text-right">
+                            Мин. уровень
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -781,7 +792,7 @@ export default function MachineTemplatesPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(MACHINE_TYPE_LABELS).map(([val, label]) => (
+                    {Object.entries(MACHINE_TYPE_KEYS).map(([val, label]) => (
                       <SelectItem key={val} value={val}>
                         {MACHINE_TYPE_ICONS[val]} {label}
                       </SelectItem>
@@ -801,13 +812,11 @@ export default function MachineTemplatesPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(CONTENT_MODEL_LABELS).map(
-                      ([val, label]) => (
-                        <SelectItem key={val} value={val}>
-                          {label}
-                        </SelectItem>
-                      ),
-                    )}
+                    {Object.entries(CONTENT_MODEL_KEYS).map(([val, label]) => (
+                      <SelectItem key={val} value={val}>
+                        {label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1096,9 +1105,7 @@ export default function MachineTemplatesPage() {
                           <SelectItem value="bill_acceptor">
                             Купюроприёмник
                           </SelectItem>
-                          <SelectItem value="card_reader">
-                            Картридер
-                          </SelectItem>
+                          <SelectItem value="card_reader">Картридер</SelectItem>
                           <SelectItem value="display">Дисплей</SelectItem>
                           <SelectItem value="modem">Модем</SelectItem>
                           <SelectItem value="other">Другое</SelectItem>
@@ -1131,9 +1138,7 @@ export default function MachineTemplatesPage() {
             <div className="flex items-center gap-2">
               <Switch
                 checked={form.isActive}
-                onCheckedChange={(v) =>
-                  setForm((f) => ({ ...f, isActive: v }))
-                }
+                onCheckedChange={(v) => setForm((f) => ({ ...f, isActive: v }))}
               />
               <Label>Активен (доступен для выбора)</Label>
             </div>
