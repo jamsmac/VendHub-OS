@@ -30,13 +30,13 @@ import { api } from "@/lib/api";
  *       We use a flat 'street' field in the form and build the AddressDto in the mutation
  */
 const locationSchema = z.object({
-  name: z.string().min(1, "Название обязательно").max(255),
-  street: z.string().min(1, "Адрес обязателен").max(255),
+  name: z.string().min(1, "Name is required").max(255),
+  street: z.string().min(1, "Street is required").max(255),
   building: z.string().max(50).optional().or(z.literal("")),
-  city: z.string().min(1, "Город обязателен").max(100),
+  city: z.string().min(1, "City is required").max(100),
   region: z.string().max(100).optional().or(z.literal("")),
-  latitude: z.coerce.number({ invalid_type_error: "Должно быть числом" }),
-  longitude: z.coerce.number({ invalid_type_error: "Должно быть числом" }),
+  latitude: z.coerce.number({ invalid_type_error: "Must be a number" }),
+  longitude: z.coerce.number({ invalid_type_error: "Must be a number" }),
   primary_contact_name: z.string().max(255).optional().or(z.literal("")),
   primary_contact_phone: z.string().max(50).optional().or(z.literal("")),
 });
@@ -85,10 +85,10 @@ export default function NewLocationPage() {
       return api.post("/locations", payload);
     },
     onSuccess: () => {
-      toast.success("Location created");
+      toast.success(t("locationCreated"));
       router.push("/dashboard/locations");
     },
-    onError: () => toast.error("Failed to create location"),
+    onError: () => toast.error(t("locationCreateError")),
   });
 
   return (
@@ -99,17 +99,13 @@ export default function NewLocationPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
-        <h1 className="text-2xl font-bold">
-          {t("newLocation") || "New Location"}
-        </h1>
+        <h1 className="text-2xl font-bold">{t("newLocation")}</h1>
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit((data) => mutation.mutate(data))}>
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">
-                {t("locationInfo") || "Location Info"}
-              </CardTitle>
+              <CardTitle className="text-base">{t("locationInfo")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -118,7 +114,7 @@ export default function NewLocationPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("name") || "Name"} *</FormLabel>
+                      <FormLabel>{t("name")} *</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -131,7 +127,7 @@ export default function NewLocationPage() {
                   name="city"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("city") || "City"}</FormLabel>
+                      <FormLabel>{t("city")}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -146,7 +142,7 @@ export default function NewLocationPage() {
                   name="street"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("address") || "Улица"} *</FormLabel>
+                      <FormLabel>{t("street")} *</FormLabel>
                       <FormControl>
                         <Input placeholder="Amir Temur ko'chasi" {...field} />
                       </FormControl>
@@ -159,7 +155,7 @@ export default function NewLocationPage() {
                   name="building"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Здание</FormLabel>
+                      <FormLabel>{t("building")}</FormLabel>
                       <FormControl>
                         <Input placeholder="15A" {...field} />
                       </FormControl>
@@ -173,7 +169,7 @@ export default function NewLocationPage() {
                 name="region"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Регион</FormLabel>
+                    <FormLabel>{t("region")}</FormLabel>
                     <FormControl>
                       <Input placeholder="Toshkent viloyati" {...field} />
                     </FormControl>
@@ -187,7 +183,7 @@ export default function NewLocationPage() {
                   name="primary_contact_name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("contactPerson") || "Контактное лицо"}</FormLabel>
+                      <FormLabel>{t("contactPerson")}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -200,7 +196,7 @@ export default function NewLocationPage() {
                   name="primary_contact_phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("phone") || "Телефон"}</FormLabel>
+                      <FormLabel>{t("phone")}</FormLabel>
                       <FormControl>
                         <Input placeholder="+998901234567" {...field} />
                       </FormControl>
@@ -215,7 +211,7 @@ export default function NewLocationPage() {
                   name="latitude"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Latitude</FormLabel>
+                      <FormLabel>{t("latitude")}</FormLabel>
                       <FormControl>
                         <Input type="number" step="any" {...field} />
                       </FormControl>
@@ -228,7 +224,7 @@ export default function NewLocationPage() {
                   name="longitude"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Longitude</FormLabel>
+                      <FormLabel>{t("longitude")}</FormLabel>
                       <FormControl>
                         <Input type="number" step="any" {...field} />
                       </FormControl>
@@ -241,11 +237,11 @@ export default function NewLocationPage() {
           </Card>
           <div className="flex justify-end gap-3 mt-6">
             <Link href="/dashboard/locations">
-              <Button variant="outline">{tCommon("cancel") || "Cancel"}</Button>
+              <Button variant="outline">{tCommon("cancel")}</Button>
             </Link>
             <Button type="submit" disabled={mutation.isPending}>
               <Save className="h-4 w-4 mr-2" />
-              {mutation.isPending ? "Saving..." : tCommon("save") || "Save"}
+              {mutation.isPending ? tCommon("saving") : tCommon("save")}
             </Button>
           </div>
         </form>

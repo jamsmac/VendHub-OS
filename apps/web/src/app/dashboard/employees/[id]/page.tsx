@@ -193,26 +193,22 @@ export default function EmployeeDetailPage() {
           variant="destructive"
           size="sm"
           onClick={() => {
-            if (confirm("Delete this employee?")) deleteMutation.mutate();
+            if (confirm(t("deleteEmployeeConfirm"))) deleteMutation.mutate();
           }}
         >
           <Trash2 className="h-4 w-4 mr-2" />
-          {tCommon("delete") || "Delete"}
+          {tCommon("delete")}
         </Button>
       </div>
       <form onSubmit={onSubmit}>
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">
-              {t("personalInfo") || "Personal Info"}
-            </CardTitle>
+            <CardTitle className="text-base">{t("personalInfo")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">
-                  {t("firstName") || "First Name"}
-                </label>
+                <label className="text-sm font-medium">{t("firstName")}</label>
                 <Input {...form.register("firstName")} className="mt-1" />
                 {form.formState.errors.firstName && (
                   <p className="text-xs text-destructive mt-1">
@@ -221,9 +217,7 @@ export default function EmployeeDetailPage() {
                 )}
               </div>
               <div>
-                <label className="text-sm font-medium">
-                  {t("lastName") || "Last Name"}
-                </label>
+                <label className="text-sm font-medium">{t("lastName")}</label>
                 <Input {...form.register("lastName")} className="mt-1" />
                 {form.formState.errors.lastName && (
                   <p className="text-xs text-destructive mt-1">
@@ -234,9 +228,7 @@ export default function EmployeeDetailPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">
-                  {t("position") || "Должность"}
-                </label>
+                <label className="text-sm font-medium">{t("position")}</label>
                 <Controller
                   control={form.control}
                   name="employeeRole"
@@ -248,7 +240,7 @@ export default function EmployeeDetailPage() {
                       <SelectContent>
                         {EMPLOYEE_ROLES.map((role) => (
                           <SelectItem key={role} value={role}>
-                            {ROLE_KEYS[role] ?? role}
+                            {ROLE_KEYS[role] ? t(ROLE_KEYS[role]) : role}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -257,9 +249,7 @@ export default function EmployeeDetailPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">
-                  {t("status") || "Status"}
-                </label>
+                <label className="text-sm font-medium">{t("status")}</label>
                 <Controller
                   control={form.control}
                   name="status"
@@ -271,7 +261,7 @@ export default function EmployeeDetailPage() {
                       <SelectContent>
                         {STATUSES.map((s) => (
                           <SelectItem key={s} value={s}>
-                            {STATUS_KEYS[s] ?? s}
+                            {STATUS_KEYS[s] ? t(STATUS_KEYS[s]) : s}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -282,13 +272,11 @@ export default function EmployeeDetailPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">
-                  {t("phone") || "Phone"}
-                </label>
+                <label className="text-sm font-medium">{t("phone")}</label>
                 <Input {...form.register("phone")} className="mt-1" />
               </div>
               <div>
-                <label className="text-sm font-medium">Email</label>
+                <label className="text-sm font-medium">{t("email")}</label>
                 <Input
                   type="email"
                   {...form.register("email")}
@@ -303,7 +291,7 @@ export default function EmployeeDetailPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="text-sm font-medium">INN</label>
+                <label className="text-sm font-medium">{t("inn")}</label>
                 <Input
                   value={form.watch("inn")}
                   disabled
@@ -311,9 +299,7 @@ export default function EmployeeDetailPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">
-                  {t("hireDate") || "Hire Date"}
-                </label>
+                <label className="text-sm font-medium">{t("hireDate")}</label>
                 <Input
                   value={form.watch("hireDate")}
                   disabled
@@ -322,7 +308,7 @@ export default function EmployeeDetailPage() {
               </div>
               <div>
                 <label className="text-sm font-medium">
-                  {t("salary") || "Salary"} (UZS)
+                  {t("salary")} (UZS)
                 </label>
                 <Input
                   type="number"
@@ -336,11 +322,11 @@ export default function EmployeeDetailPage() {
         </Card>
         <div className="flex justify-end gap-3 mt-6">
           <Link href="/dashboard/employees">
-            <Button variant="outline">{tCommon("cancel") || "Cancel"}</Button>
+            <Button variant="outline">{tCommon("cancel")}</Button>
           </Link>
           <Button type="submit" disabled={updateMutation.isPending}>
             <Save className="h-4 w-4 mr-2" />
-            {updateMutation.isPending ? "Saving..." : tCommon("save") || "Save"}
+            {updateMutation.isPending ? tCommon("saving") : tCommon("save")}
           </Button>
         </div>
       </form>

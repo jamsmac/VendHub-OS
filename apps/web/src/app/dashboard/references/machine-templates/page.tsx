@@ -666,7 +666,9 @@ export default function MachineTemplatesPage() {
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Компоненты</span>
+                      <span className="text-muted-foreground">
+                        {t("componentsLabel")}
+                      </span>
                       <span className="font-mono">
                         {viewTemplate.defaultComponents?.length ?? 0}
                       </span>
@@ -679,17 +681,21 @@ export default function MachineTemplatesPage() {
               {viewTemplate.defaultContainers?.length > 0 && (
                 <div>
                   <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                    <Box className="w-4 h-4" /> Бункеры по умолчанию
+                    <Box className="w-4 h-4" /> {t("defaultContainers")}
                   </h4>
                   <div className="rounded-md border">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-[60px]">№</TableHead>
-                          <TableHead>Название</TableHead>
-                          <TableHead className="text-right">Ёмкость</TableHead>
+                          <TableHead className="w-[60px]">
+                            {t("containerColNumber")}
+                          </TableHead>
+                          <TableHead>{t("containerColName")}</TableHead>
                           <TableHead className="text-right">
-                            Мин. уровень
+                            {t("containerColCapacity")}
+                          </TableHead>
+                          <TableHead className="text-right">
+                            {t("containerColMinLevel")}
                           </TableHead>
                         </TableRow>
                       </TableHeader>
@@ -720,7 +726,7 @@ export default function MachineTemplatesPage() {
               {viewTemplate.defaultSlots?.length > 0 && (
                 <div>
                   <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                    <Layers className="w-4 h-4" /> Ячейки по умолчанию
+                    <Layers className="w-4 h-4" /> {t("defaultSlots")}
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {viewTemplate.defaultSlots.map((s, i) => (
@@ -740,7 +746,7 @@ export default function MachineTemplatesPage() {
               {viewTemplate.defaultComponents?.length > 0 && (
                 <div>
                   <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                    <Cpu className="w-4 h-4" /> Компоненты по умолчанию
+                    <Cpu className="w-4 h-4" /> {t("defaultComponents")}
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {viewTemplate.defaultComponents.map((c, i) => (
@@ -761,18 +767,16 @@ export default function MachineTemplatesPage() {
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingTemplate ? "Редактировать шаблон" : "Новый шаблон"}
+              {editingTemplate ? t("editTemplate") : t("newTemplateDialog")}
             </DialogTitle>
-            <DialogDescription>
-              Настройте тип, модель контента и структуру по умолчанию
-            </DialogDescription>
+            <DialogDescription>{t("dialogDescription")}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6">
             {/* Basic info */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="tpl-name">Название *</Label>
+                <Label htmlFor="tpl-name">{t("nameLabel")}</Label>
                 <Input
                   id="tpl-name"
                   value={form.name}
@@ -783,7 +787,7 @@ export default function MachineTemplatesPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Тип автомата</Label>
+                <Label>{t("machineTypeLabel")}</Label>
                 <Select
                   value={form.type}
                   onValueChange={(v) => setForm((f) => ({ ...f, type: v }))}
@@ -792,16 +796,16 @@ export default function MachineTemplatesPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(MACHINE_TYPE_KEYS).map(([val, label]) => (
+                    {Object.entries(MACHINE_TYPE_KEYS).map(([val, key]) => (
                       <SelectItem key={val} value={val}>
-                        {MACHINE_TYPE_ICONS[val]} {label}
+                        {MACHINE_TYPE_ICONS[val]} {t(key)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Модель контента</Label>
+                <Label>{t("contentModelLabel")}</Label>
                 <Select
                   value={form.contentModel}
                   onValueChange={(v) =>
@@ -812,16 +816,16 @@ export default function MachineTemplatesPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(CONTENT_MODEL_KEYS).map(([val, label]) => (
+                    {Object.entries(CONTENT_MODEL_KEYS).map(([val, key]) => (
                       <SelectItem key={val} value={val}>
-                        {label}
+                        {t(key)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Макс. ячеек</Label>
+                <Label>{t("maxSlotsLabel")}</Label>
                 <Input
                   type="number"
                   min={0}
@@ -836,7 +840,7 @@ export default function MachineTemplatesPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Производитель</Label>
+                <Label>{t("manufacturerLabel")}</Label>
                 <Input
                   value={form.manufacturer}
                   onChange={(e) =>
@@ -918,7 +922,7 @@ export default function MachineTemplatesPage() {
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <Label className="flex items-center gap-2">
-                    <Box className="w-4 h-4" /> Бункеры по умолчанию
+                    <Box className="w-4 h-4" /> {t("defaultContainers")}
                   </Label>
                   <Button
                     type="button"
@@ -998,7 +1002,7 @@ export default function MachineTemplatesPage() {
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <Label className="flex items-center gap-2">
-                    <Layers className="w-4 h-4" /> Ячейки по умолчанию
+                    <Layers className="w-4 h-4" /> {t("defaultSlots")}
                   </Label>
                   <Button
                     type="button"
@@ -1059,7 +1063,7 @@ export default function MachineTemplatesPage() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <Label className="flex items-center gap-2">
-                  <Cpu className="w-4 h-4" /> Компоненты по умолчанию
+                  <Cpu className="w-4 h-4" /> {t("defaultComponents")}
                 </Label>
                 <Button
                   type="button"

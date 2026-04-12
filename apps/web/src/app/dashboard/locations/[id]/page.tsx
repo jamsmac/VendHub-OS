@@ -112,19 +112,19 @@ export default function LocationDetailPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["locations"] });
-      toast.success("Location updated");
+      toast.success(t("locationUpdated"));
     },
-    onError: () => toast.error("Failed to update"),
+    onError: () => toast.error(t("locationUpdateError")),
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => api.delete(`/locations/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["locations"] });
-      toast.success("Deleted");
+      toast.success(t("locationDeletedToast"));
       router.push("/dashboard/locations");
     },
-    onError: () => toast.error("Failed to delete"),
+    onError: () => toast.error(t("locationDeleteError")),
   });
 
   const onSubmit = form.handleSubmit((values) => updateMutation.mutate(values));
@@ -152,26 +152,22 @@ export default function LocationDetailPage() {
           variant="destructive"
           size="sm"
           onClick={() => {
-            if (confirm("Delete this location?")) deleteMutation.mutate();
+            if (confirm(t("deleteLocationConfirm"))) deleteMutation.mutate();
           }}
         >
           <Trash2 className="h-4 w-4 mr-2" />
-          {tCommon("delete") || "Delete"}
+          {tCommon("delete")}
         </Button>
       </div>
       <form onSubmit={onSubmit}>
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">
-              {t("locationInfo") || "Location Info"}
-            </CardTitle>
+            <CardTitle className="text-base">{t("locationInfo")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">
-                  {t("name") || "Name"}
-                </label>
+                <label className="text-sm font-medium">{t("name")}</label>
                 <Input {...form.register("name")} className="mt-1" />
                 {form.formState.errors.name && (
                   <p className="text-xs text-destructive mt-1">
@@ -180,9 +176,7 @@ export default function LocationDetailPage() {
                 )}
               </div>
               <div>
-                <label className="text-sm font-medium">
-                  {t("city") || "City"}
-                </label>
+                <label className="text-sm font-medium">{t("city")}</label>
                 <Input {...form.register("city")} className="mt-1" />
                 {form.formState.errors.city && (
                   <p className="text-xs text-destructive mt-1">
@@ -193,9 +187,7 @@ export default function LocationDetailPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">
-                  {t("address") || "Улица"} *
-                </label>
+                <label className="text-sm font-medium">{t("street")} *</label>
                 <Input
                   {...form.register("street")}
                   placeholder="Amir Temur ko'chasi"
@@ -208,7 +200,7 @@ export default function LocationDetailPage() {
                 )}
               </div>
               <div>
-                <label className="text-sm font-medium">Здание</label>
+                <label className="text-sm font-medium">{t("building")}</label>
                 <Input
                   {...form.register("building")}
                   placeholder="15A"
@@ -217,7 +209,7 @@ export default function LocationDetailPage() {
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium">Регион</label>
+              <label className="text-sm font-medium">{t("region")}</label>
               <Input
                 {...form.register("region")}
                 placeholder="Toshkent viloyati"
@@ -227,7 +219,7 @@ export default function LocationDetailPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">
-                  {t("contactPerson") || "Контактное лицо"}
+                  {t("contactPerson")}
                 </label>
                 <Input
                   {...form.register("primaryContactName")}
@@ -235,9 +227,7 @@ export default function LocationDetailPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">
-                  {t("phone") || "Телефон"}
-                </label>
+                <label className="text-sm font-medium">{t("phone")}</label>
                 <Input
                   {...form.register("primaryContactPhone")}
                   placeholder="+998901234567"
@@ -247,7 +237,7 @@ export default function LocationDetailPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="text-sm font-medium">Latitude</label>
+                <label className="text-sm font-medium">{t("latitude")}</label>
                 <Input
                   type="number"
                   step="any"
@@ -256,7 +246,7 @@ export default function LocationDetailPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Longitude</label>
+                <label className="text-sm font-medium">{t("longitude")}</label>
                 <Input
                   type="number"
                   step="any"
@@ -265,9 +255,7 @@ export default function LocationDetailPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">
-                  {t("machines") || "Machines"}
-                </label>
+                <label className="text-sm font-medium">{t("machines")}</label>
                 <Input
                   value={form.watch("machinesCount")}
                   disabled
@@ -279,11 +267,11 @@ export default function LocationDetailPage() {
         </Card>
         <div className="flex justify-end gap-3 mt-6">
           <Link href="/dashboard/locations">
-            <Button variant="outline">{tCommon("cancel") || "Cancel"}</Button>
+            <Button variant="outline">{tCommon("cancel")}</Button>
           </Link>
           <Button type="submit" disabled={updateMutation.isPending}>
             <Save className="h-4 w-4 mr-2" />
-            {updateMutation.isPending ? "Saving..." : tCommon("save") || "Save"}
+            {updateMutation.isPending ? tCommon("saving") : tCommon("save")}
           </Button>
         </div>
       </form>
