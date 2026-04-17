@@ -699,7 +699,7 @@ jobs:
           REF_NAME: ${{ github.ref_name }}
           COMMIT_SHA: ${{ github.sha }}
           ACTOR: ${{ github.actor }}
-        uses: appleboy/telegram-action@v0.1.1
+        uses: appleboy/telegram-action@v1.0.1
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
