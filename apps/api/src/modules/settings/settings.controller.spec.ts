@@ -484,6 +484,7 @@ describe("SettingsController (e2e)", () => {
 
       expect(settingsService.deleteSetting).toHaveBeenCalledWith(
         "email_notifications_enabled",
+        "org-1",
       );
     });
 
