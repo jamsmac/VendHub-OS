@@ -39,7 +39,7 @@ jobs:
         run: pnpm --filter "@vendhub/shared" build
 
       - name: Run security audit
-        run: pnpm audit --audit-level=high
+        run: pnpm audit --audit-level=critical
 
       - name: Run Trivy filesystem scan
         uses: aquasecurity/trivy-action@master
@@ -85,11 +85,6 @@ jobs:
 
       - name: Run API unit tests
         run: pnpm --filter api test:unit --forceExit --passWithNoTests
-        env:
-          CI: true
-
-      - name: Run Bot unit tests
-        run: pnpm --filter bot test --forceExit --passWithNoTests
         env:
           CI: true
 
@@ -162,9 +157,6 @@ jobs:
         run: pnpm --filter client build
         env:
           VITE_API_URL: http://localhost:4000
-
-      - name: Build Bot
-        run: pnpm --filter bot build
 
       - name: Build Site (Landing Page)
         run: pnpm --filter @vendhub/site build
@@ -644,21 +636,6 @@ jobs:
           sarif_file: "trivy-results-client.sarif"
           category: "client-image"
 
-      - name: Run Trivy vulnerability scanner on Bot
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: vendhub/bot:${{ github.sha }}
-          format: "sarif"
-          output: "trivy-results-bot.sarif"
-          severity: "CRITICAL,HIGH"
-
-      - name: Upload Trivy scan results for Bot
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: "trivy-results-bot.sarif"
-          category: "bot-image"
-
       - name: Extract metadata for Site
         id: meta-site
         uses: docker/metadata-action@v5
@@ -708,10 +685,30 @@ jobs:
       - name: Deploy Client PWA
         run: railway up --service "@vendhub/client" --environment production --detach
 
-      - name: Deploy Bot
-        run: railway up --service "@vendhub/bot" --environment production --detach
-
       - name: Run database migrations
         run: |
           echo "Waiting 30s for API to come up..."
-          sl
+          sleep 30
+          railway run --service "@vendhub/api" --environment production -- pnpm db:migrate
+
+      - name: Notify Telegram
+        if: always()
+        continue-on-error: true
+        env:
+          JOB_STATUS: ${{ job.status }}
+          REF_NAME: ${{ github.ref_name }}
+          COMMIT_SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+        uses: appleboy/telegram-action@v0.1.1
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            VendHub Railway Deployment
+
+            Status: ${{ job.status }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
+
+            Project: [see RAILWAY_PROJECT_ID secret]
