@@ -16,6 +16,7 @@ import {
   Min,
   Max,
 } from "class-validator";
+import { Type } from "class-transformer";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { MachineType, MachineStatus } from "../entities/machine.entity";
 import { ContentModel } from "@vendhub/shared";
@@ -221,12 +222,14 @@ export class QueryMachinesDto {
 
   @ApiPropertyOptional({ default: 1 })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   @Min(1)
   page?: number = 1;
 
   @ApiPropertyOptional({ default: 20 })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   @Min(1)
   @Max(100)

@@ -652,6 +652,7 @@ export class NotificationsService {
         { isSystem: true, isActive: true },
       ],
       order: { type: "ASC", name: "ASC" },
+      take: 1000,
     });
   }
 
@@ -761,6 +762,7 @@ export class NotificationsService {
     return this.campaignRepo.find({
       where: { organizationId },
       order: { createdAt: "DESC" },
+      take: 1000,
     });
   }
 
@@ -791,6 +793,7 @@ export class NotificationsService {
     return this.ruleRepo.find({
       where: { organizationId },
       order: { sortOrder: "ASC", createdAt: "DESC" },
+      take: 1000,
     });
   }
 
@@ -844,6 +847,7 @@ export class NotificationsService {
         notificationType: eventType,
         isActive: true,
       },
+      take: 1000,
     });
 
     for (const rule of rules) {

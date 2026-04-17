@@ -714,27 +714,4 @@ jobs:
       - name: Run database migrations
         run: |
           echo "Waiting 30s for API to come up..."
-          sleep 30
-          railway run --service "@vendhub/api" --environment production -- pnpm db:migrate
-
-      - name: Notify Telegram
-        if: always()
-        continue-on-error: true
-        env:
-          JOB_STATUS: ${{ job.status }}
-          REF_NAME: ${{ github.ref_name }}
-          COMMIT_SHA: ${{ github.sha }}
-          ACTOR: ${{ github.actor }}
-        uses: appleboy/telegram-action@v0.1.1
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          message: |
-            VendHub Railway Deployment
-
-            Status: ${{ job.status }}
-            Branch: ${{ github.ref_name }}
-            Commit: ${{ github.sha }}
-            Author: ${{ github.actor }}
-
-            Project: [see RAILWAY_PROJECT_ID secret]
+          sl

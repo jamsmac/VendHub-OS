@@ -60,7 +60,7 @@ import {
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class SettingsController {
-  constructor(private readonly settingsService: SettingsService) { }
+  constructor(private readonly settingsService: SettingsService) {}
 
   // ============================================================================
   // SYSTEM SETTINGS
@@ -120,8 +120,11 @@ export class SettingsController {
   @ApiResponse({ status: 200, description: "Setting details" })
   @ApiResponse({ status: 404, description: "Setting not found" })
   @ApiParam({ name: "key", type: String, description: "Setting key" })
-  async getSetting(@Param("key") key: string) {
-    return this.settingsService.getSetting(key);
+  async getSetting(
+    @Param("key") key: string,
+    @CurrentOrganizationId() organizationId: string,
+  ) {
+    return this.settingsService.getSetting(key, organizationId);
   }
 
   @Post()
@@ -129,8 +132,11 @@ export class SettingsController {
   @ApiOperation({ summary: "Create a new system setting" })
   @ApiResponse({ status: 201, description: "Setting created" })
   @ApiResponse({ status: 409, description: "Setting key already exists" })
-  async createSetting(@Body() dto: CreateSettingDto) {
-    return this.settingsService.createSetting(dto);
+  async createSetting(
+    @Body() dto: CreateSettingDto,
+    @CurrentOrganizationId() organizationId: string,
+  ) {
+    return this.settingsService.createSetting(dto, organizationId);
   }
 
   @Post("ai-providers")
@@ -185,8 +191,9 @@ export class SettingsController {
   async updateSetting(
     @Param("key") key: string,
     @Body() dto: UpdateSettingDto,
+    @CurrentOrganizationId() organizationId: string,
   ) {
-    return this.settingsService.updateSetting(key, dto);
+    return this.settingsService.updateSetting(key, dto, organizationId);
   }
 
   @Delete(":key")
@@ -196,7 +203,10 @@ export class SettingsController {
   @ApiResponse({ status: 204, description: "Setting deleted" })
   @ApiResponse({ status: 404, description: "Setting not found" })
   @ApiParam({ name: "key", type: String, description: "Setting key" })
-  async deleteSetting(@Param("key") key: string) {
-    return this.settingsService.deleteSetting(key);
+  async deleteSetting(
+    @Param("key") key: string,
+    @CurrentOrganizationId() organizationId: string,
+  ) {
+    return this.settingsService.deleteSetting(key, organizationId);
   }
 }

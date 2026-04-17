@@ -31,10 +31,11 @@ export function PromotionsList({
   const [selectedPromos, setSelectedPromos] = useState<Set<string>>(new Set());
 
   const filtered = promotions.filter((p) => {
+    const q = search.toLowerCase();
     const matchSearch =
-      p.title.toLowerCase().includes(search.toLowerCase()) ||
-      p.promoCode.toLowerCase().includes(search.toLowerCase()) ||
-      p.description.toLowerCase().includes(search.toLowerCase());
+      (p.title ?? "").toLowerCase().includes(q) ||
+      (p.promoCode ?? "").toLowerCase().includes(q) ||
+      (p.description ?? "").toLowerCase().includes(q);
     const matchStatus =
       statusFilter === "all" ||
       (statusFilter === "active" ? p.isActive : !p.isActive);

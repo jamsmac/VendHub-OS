@@ -385,6 +385,7 @@ export class ComplaintsCoreService {
     return this.complaintRepo.find({
       where: { organizationId, status: ComplaintStatus.NEW },
       order: { createdAt: "ASC" },
+      take: 1000,
     });
   }
 
@@ -450,7 +451,11 @@ export class ComplaintsCoreService {
       where.isInternal = false;
     }
 
-    return this.commentRepo.find({ where, order: { createdAt: "ASC" } });
+    return this.commentRepo.find({
+      where,
+      order: { createdAt: "ASC" },
+      take: 1000,
+    });
   }
 
   // ============================================================================
@@ -501,7 +506,11 @@ export class ComplaintsCoreService {
     });
   }
 
-  async remove(id: string, userId: string, organizationId?: string): Promise<void> {
+  async remove(
+    id: string,
+    userId: string,
+    organizationId?: string,
+  ): Promise<void> {
     const complaint = await this.findById(id, organizationId);
 
     if (
@@ -578,6 +587,7 @@ export class ComplaintsCoreService {
       where,
       relations: ["comments", "actions"],
       order: { priority: "DESC", createdAt: "ASC" },
+      take: 1000,
     });
   }
 
@@ -666,6 +676,7 @@ export class ComplaintsCoreService {
     const rules = await this.automationRepo.find({
       where: { organizationId: dto.organizationId, isActive: true },
       order: { priority: "DESC" },
+      take: 500,
     });
 
     for (const rule of rules) {

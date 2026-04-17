@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, DataSource } from "typeorm";
@@ -9,6 +8,7 @@ import { EntityEventsService } from "../entity-events/entity-events.service";
 import {
   BatchMovementType,
   EntityEventType,
+  IngredientBatchStatus,
   TrackedEntityType,
 } from "@vendhub/shared";
 
@@ -66,9 +66,9 @@ export class BatchMovementsService {
 
       // Update batch status
       if (Number(batch.remainingQuantity) <= 0) {
-        batch.status = "depleted" as any;
+        batch.status = IngredientBatchStatus.DEPLETED;
       } else if (Number(batch.remainingQuantity) < Number(batch.quantity)) {
-        batch.status = "partially_used" as any;
+        batch.status = IngredientBatchStatus.PARTIALLY_USED;
       }
 
       await manager.save(IngredientBatch, batch);

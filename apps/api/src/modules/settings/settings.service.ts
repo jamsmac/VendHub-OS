@@ -58,14 +58,20 @@ export class SettingsService {
   /**
    * Get a single setting by its unique key (cached for 5 minutes).
    */
-  async getSetting(key: string): Promise<SystemSetting> {
-    const cacheKey = `settings:key:${key}`;
+  async getSetting(
+    key: string,
+    organizationId?: string,
+  ): Promise<SystemSetting> {
+    const cacheKey = `settings:key:${key}:${organizationId || "system"}`;
     const cached = await this.cacheManager.get<SystemSetting>(cacheKey);
     if (cached) return cached;
 
-    const setting = await this.settingRepository.findOne({
-      where: { key },
-    });
+    const where: { key: string; organizationId?: string } = { key };
+    if (organizationId) {
+      where.organizationId = organizationId;
+    }
+
+    const setting = await this.settingRepository.findOne({ where });
 
     if (!setting) {
       throw new NotFoundException(`Setting with key "${key}" not found`);
@@ -142,10 +148,14 @@ export class SettingsService {
   /**
    * Create a new setting. Throws ConflictException if key already exists.
    */
-  async createSetting(dto: CreateSettingDto): Promise<SystemSetting> {
-    // Check for duplicate key
+  async createSetting(
+    dto: CreateSettingDto,
+    organizationId?: string,
+  ): Promise<SystemSetting> {
+    const orgId = organizationId || dto.organizationId || null;
+
     const existing = await this.settingRepository.findOne({
-      where: { key: dto.key },
+      where: { key: dto.key, organizationId: orgId || undefined },
     });
 
     if (existing) {
@@ -161,7 +171,7 @@ export class SettingsService {
       description: (dto.description ?? null) as string,
       isEncrypted: dto.isEncrypted ?? false,
       isPublic: dto.isPublic ?? false,
-      organizationId: (dto.organizationId ?? null) as string,
+      organizationId: orgId as string,
     } as Partial<SystemSetting>);
 
     const saved = await this.settingRepository.save(setting);
@@ -176,8 +186,9 @@ export class SettingsService {
   async updateSetting(
     key: string,
     dto: UpdateSettingDto,
+    organizationId?: string,
   ): Promise<SystemSetting> {
-    const setting = await this.getSetting(key);
+    const setting = await this.getSetting(key, organizationId);
 
     if (dto.value !== undefined) {
       setting.value = dto.value;
@@ -201,8 +212,8 @@ export class SettingsService {
   /**
    * Soft-delete a setting by key.
    */
-  async deleteSetting(key: string): Promise<void> {
-    const setting = await this.getSetting(key);
+  async deleteSetting(key: string, organizationId?: string): Promise<void> {
+    const setting = await this.getSetting(key, organizationId);
     await this.settingRepository.softDelete(setting.id);
     this.logger.log(`Setting deleted: ${key}`);
     await this.invalidateSettingsCache(key);

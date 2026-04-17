@@ -129,7 +129,8 @@ export default function ContractorsPage() {
       if (statusFilter !== "all") params.status = statusFilter;
       if (typeFilter !== "all") params.type = typeFilter;
       const res = await contractorsApi.getAll(params);
-      return res.data;
+      const raw = res.data;
+      return Array.isArray(raw) ? raw : (raw?.data ?? []);
     },
   });
 
@@ -147,13 +148,14 @@ export default function ContractorsPage() {
     },
   });
 
+  const list = Array.isArray(contractors) ? contractors : [];
   const stats = useMemo(
     () => ({
-      total: contractors?.length || 0,
-      active: contractors?.filter((c) => c.status === "active").length || 0,
-      totalSpent: contractors?.reduce((sum, c) => sum + c.totalSpent, 0) || 0,
+      total: list.length,
+      active: list.filter((c) => c.status === "active").length,
+      totalSpent: list.reduce((sum, c) => sum + c.totalSpent, 0),
     }),
-    [contractors],
+    [list],
   );
 
   const formatMoney = formatCurrency;
@@ -327,8 +329,8 @@ export default function ContractorsPage() {
                   </TableCell>
                 </TableRow>
               ))
-            ) : contractors?.length ? (
-              contractors.map((contractor) => (
+            ) : list.length ? (
+              list.map((contractor) => (
                 <TableRow key={contractor.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">

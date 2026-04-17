@@ -119,3 +119,11 @@ VendHub_CRUD_Scenarios.html
 VendHub_FULL_AUDIT_REPORT.md
 VendHub_Phase2_Audit_Report.md
 machines-architecture.html
+FIXPLAN_*.md
+RAILWAY_ENV_VARS.md
+DEPLOY_RAILWAY.md
+MYDON_LIFE_*.docx
+
+# Railway env files
+.env.railway
+apps/*/.env.railway

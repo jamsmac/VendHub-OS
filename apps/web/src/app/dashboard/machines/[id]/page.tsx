@@ -21,14 +21,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/lib/api";
 
 // Tab components
-import { PassportTab } from "./tabs/PassportTab";
+import { OverviewTab } from "./tabs/OverviewTab";
 import { ContentsTab } from "./tabs/ContentsTab";
-import { AnalyticsTab } from "./tabs/AnalyticsTab";
 import { EncashmentTab } from "./tabs/EncashmentTab";
 import { MaintenanceTab } from "./tabs/MaintenanceTab";
-import { LocationsTab } from "./tabs/LocationsTab";
 import { TasksTab } from "./tabs/TasksTab";
+import { AnalyticsTab } from "./tabs/AnalyticsTab";
+import { LocationsTab } from "./tabs/LocationsTab";
 import { TimelineTab } from "./tabs/TimelineTab";
+import { PassportTab } from "./tabs/PassportTab";
 
 const STATUS_COLORS: Record<string, string> = {
   active: "bg-green-100 text-green-800",
@@ -145,81 +146,81 @@ export default function MachineDetailPage() {
       {/* ================================================================
           8 TABS (Spec v2 Sections 4.1-4.8)
           ================================================================ */}
-      <Tabs defaultValue="contents" className="mt-4">
-        <TabsList className="grid grid-cols-4 lg:grid-cols-8 w-full">
-          <TabsTrigger value="passport" className="text-xs">
-            <FileText className="h-3.5 w-3.5 mr-1" />
-            Паспорт
+      <Tabs defaultValue="overview" className="mt-4">
+        <TabsList className="grid grid-cols-5 lg:grid-cols-9 w-full">
+          <TabsTrigger value="overview" className="text-xs">
+            <BarChart3 className="h-3.5 w-3.5 mr-1" />
+            Обзор
           </TabsTrigger>
           <TabsTrigger value="contents" className="text-xs">
             <Package className="h-3.5 w-3.5 mr-1" />
-            Наполнение
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="text-xs">
-            <BarChart3 className="h-3.5 w-3.5 mr-1" />
-            Аналитика
+            Содержимое
           </TabsTrigger>
           <TabsTrigger value="encashment" className="text-xs">
             <Banknote className="h-3.5 w-3.5 mr-1" />
-            Инкассации
+            Инкассация
           </TabsTrigger>
           <TabsTrigger value="maintenance" className="text-xs">
             <Wrench className="h-3.5 w-3.5 mr-1" />
             Обслуживание
           </TabsTrigger>
-          <TabsTrigger value="locations" className="text-xs">
-            <MapPin className="h-3.5 w-3.5 mr-1" />
-            Локации
-          </TabsTrigger>
           <TabsTrigger value="tasks" className="text-xs">
             <ClipboardList className="h-3.5 w-3.5 mr-1" />
             Задачи
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="text-xs">
+            <BarChart3 className="h-3.5 w-3.5 mr-1" />
+            Аналитика
+          </TabsTrigger>
+          <TabsTrigger value="locations" className="text-xs">
+            <MapPin className="h-3.5 w-3.5 mr-1" />
+            Локация
           </TabsTrigger>
           <TabsTrigger value="timeline" className="text-xs">
             <Clock className="h-3.5 w-3.5 mr-1" />
             Лента
           </TabsTrigger>
+          <TabsTrigger value="settings" className="text-xs">
+            <FileText className="h-3.5 w-3.5 mr-1" />
+            Настройки
+          </TabsTrigger>
         </TabsList>
 
         <div className="mt-4">
-          {/* Tab 1: Passport */}
-          <TabsContent value="passport">
-            <PassportTab machine={machine} />
+          <TabsContent value="overview">
+            <OverviewTab machineId={id} machine={machine} />
           </TabsContent>
 
-          {/* Tab 2: Contents (Bunkers, Components, Cleaning) */}
           <TabsContent value="contents">
             <ContentsTab machineId={id} />
           </TabsContent>
 
-          {/* Tab 3: Analytics (P&L, Sales, State, Dynamics) */}
-          <TabsContent value="analytics">
-            <AnalyticsTab machineId={id} />
-          </TabsContent>
-
-          {/* Tab 4: Encashment (Collections) */}
           <TabsContent value="encashment">
             <EncashmentTab machineId={id} />
           </TabsContent>
 
-          {/* Tab 5: Maintenance */}
           <TabsContent value="maintenance">
             <MaintenanceTab machineId={id} />
           </TabsContent>
 
-          {/* Tab 6: Locations */}
-          <TabsContent value="locations">
-            <LocationsTab machineId={id} machine={machine} />
-          </TabsContent>
-
-          {/* Tab 7: Tasks */}
           <TabsContent value="tasks">
             <TasksTab machineId={id} />
           </TabsContent>
 
-          {/* Tab 8: Timeline */}
+          <TabsContent value="analytics">
+            <AnalyticsTab machineId={id} />
+          </TabsContent>
+
+          <TabsContent value="locations">
+            <LocationsTab machineId={id} machine={machine} />
+          </TabsContent>
+
           <TabsContent value="timeline">
             <TimelineTab entityId={id} />
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <PassportTab machine={machine} />
           </TabsContent>
         </div>
       </Tabs>

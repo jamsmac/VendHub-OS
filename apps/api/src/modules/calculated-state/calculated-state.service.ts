@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Injectable, NotFoundException, Inject } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, MoreThan } from "typeorm";
@@ -150,7 +149,7 @@ export class CalculatedStateService {
         ingredientName: container.name,
         ingredientId: container.nomenclatureId,
         batchNumber: null, // TODO: join with ingredient_batches via currentBatchId
-        batchId: (container as any).currentBatchId || null,
+        batchId: container.currentBatchId || null,
         remaining,
         capacity,
         fillPercent:
@@ -258,7 +257,7 @@ export class CalculatedStateService {
       where: {
         entityId: machineId,
         organizationId,
-        eventType: EntityEventType.FLUSH_CYCLE as any,
+        eventType: EntityEventType.FLUSH_CYCLE,
       },
       order: { eventDate: "DESC" },
     });
@@ -268,7 +267,7 @@ export class CalculatedStateService {
       where: {
         entityId: machineId,
         organizationId,
-        eventType: EntityEventType.CLEANING_DEEP as any,
+        eventType: EntityEventType.CLEANING_DEEP,
       },
       order: { eventDate: "DESC" },
     });

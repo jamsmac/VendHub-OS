@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -196,7 +196,8 @@ export default function ReconciliationPage() {
     queryFn: () => api.get("/reconciliation/runs").then((res) => res.data),
   });
 
-  const runs: ReconciliationRun[] = runsData?.data ?? runsData ?? [];
+  const runsRaw = runsData?.data ?? runsData;
+  const runs: ReconciliationRun[] = Array.isArray(runsRaw) ? runsRaw : [];
 
   const { data: mismatchesData, isLoading: mismatchesLoading } = useQuery({
     queryKey: ["reconciliation-mismatches", expandedRunId],
@@ -343,18 +344,18 @@ export default function ReconciliationPage() {
                   {...form.register("dateFrom")}
                 />
                 {form.formState.errors.dateFrom && (
-                  <p className="text-xs text-destructive">{form.formState.errors.dateFrom.message}</p>
+                  <p className="text-xs text-destructive">
+                    {form.formState.errors.dateFrom.message}
+                  </p>
                 )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="dateTo">{t("dateEnd")}</Label>
-                <Input
-                  id="dateTo"
-                  type="date"
-                  {...form.register("dateTo")}
-                />
+                <Input id="dateTo" type="date" {...form.register("dateTo")} />
                 {form.formState.errors.dateTo && (
-                  <p className="text-xs text-destructive">{form.formState.errors.dateTo.message}</p>
+                  <p className="text-xs text-destructive">
+                    {form.formState.errors.dateTo.message}
+                  </p>
                 )}
               </div>
             </div>

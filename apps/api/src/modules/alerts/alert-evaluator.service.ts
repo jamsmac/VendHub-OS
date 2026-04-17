@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -11,7 +10,7 @@ import {
   AlertMetric,
   AlertCondition,
 } from "./entities/alert-rule.entity";
-import { Machine } from "../machines/entities/machine.entity";
+import { Machine, MachineStatus } from "../machines/entities/machine.entity";
 import { CalculatedStateService } from "../calculated-state/calculated-state.service";
 import { IngredientBatch } from "../products/entities/product.entity";
 
@@ -74,7 +73,7 @@ export class AlertEvaluatorService {
 
     // Get all active machines for this org
     const machines = await this.machineRepo.find({
-      where: { organizationId: orgId, status: "active" as any },
+      where: { organizationId: orgId, status: MachineStatus.ACTIVE },
       select: ["id", "machineNumber", "organizationId"],
     });
 

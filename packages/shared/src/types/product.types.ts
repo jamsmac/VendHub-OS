@@ -74,6 +74,7 @@ export enum RecipeType {
 
 export enum IngredientBatchStatus {
   IN_STOCK = "in_stock",
+  PARTIALLY_USED = "partially_used",
   DEPLETED = "depleted",
   EXPIRED = "expired",
   RETURNED = "returned",
@@ -593,6 +594,7 @@ export const RECIPE_TYPE_LABELS: Record<RecipeType, string> = {
 
 export const BATCH_STATUS_LABELS: Record<IngredientBatchStatus, string> = {
   [IngredientBatchStatus.IN_STOCK]: "В наличии",
+  [IngredientBatchStatus.PARTIALLY_USED]: "Частично использована",
   [IngredientBatchStatus.DEPLETED]: "Израсходована",
   [IngredientBatchStatus.EXPIRED]: "Просрочена",
   [IngredientBatchStatus.RETURNED]: "Возвращена",
@@ -673,6 +675,7 @@ export const PRODUCT_STATUS_COLORS: Record<ProductStatus, string> = {
 
 export const BATCH_STATUS_COLORS: Record<IngredientBatchStatus, string> = {
   [IngredientBatchStatus.IN_STOCK]: "bg-green-100 text-green-800",
+  [IngredientBatchStatus.PARTIALLY_USED]: "bg-yellow-100 text-yellow-800",
   [IngredientBatchStatus.DEPLETED]: "bg-gray-100 text-gray-800",
   [IngredientBatchStatus.EXPIRED]: "bg-red-100 text-red-800",
   [IngredientBatchStatus.RETURNED]: "bg-orange-100 text-orange-800",

@@ -207,6 +207,7 @@ export class MachinesCoreService {
       .select("machine.status", "status")
       .addSelect("COUNT(*)", "count")
       .where("machine.organizationId = :organizationId", { organizationId })
+      .andWhere("machine.deletedAt IS NULL")
       .groupBy("machine.status")
       .getRawMany();
 
