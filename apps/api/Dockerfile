@@ -6,7 +6,7 @@
 ARG PNPM_VERSION=9.15.0
 
 # Stage 1: Dependencies
-FROM node:20-alpine AS deps
+FROM node:25-alpine AS deps
 RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
@@ -23,7 +23,7 @@ RUN pnpm install --frozen-lockfile
 
 # ==================================================
 # Stage 2: Development (for docker-compose dev mode)
-FROM node:20-alpine AS development
+FROM node:25-alpine AS development
 WORKDIR /app
 
 ARG PNPM_VERSION
@@ -46,7 +46,7 @@ CMD ["pnpm", "--filter", "@vendhub/api", "dev"]
 
 # ==================================================
 # Stage 3: Builder
-FROM node:20-alpine AS builder
+FROM node:25-alpine AS builder
 WORKDIR /app
 
 ARG PNPM_VERSION
@@ -72,7 +72,7 @@ RUN pnpm --filter @vendhub/api deploy --prod /app/pruned
 
 # ==================================================
 # Stage 4: Production Runner (MUST be last for Railway)
-FROM node:20-alpine AS production
+FROM node:25-alpine AS production
 WORKDIR /app
 
 # Security: run as non-root user
