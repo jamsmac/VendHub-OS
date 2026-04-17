@@ -176,7 +176,7 @@ export class SettingsService {
 
     const saved = await this.settingRepository.save(setting);
     this.logger.log(`Setting created: ${dto.key}`);
-    await this.invalidateSettingsCache(dto.key);
+    await this.invalidateSettingsCache(dto.key, orgId || undefined);
     return saved;
   }
 
@@ -205,7 +205,7 @@ export class SettingsService {
 
     const saved = await this.settingRepository.save(setting);
     this.logger.log(`Setting updated: ${key}`);
-    await this.invalidateSettingsCache(key);
+    await this.invalidateSettingsCache(key, organizationId);
     return saved;
   }
 
@@ -216,14 +216,19 @@ export class SettingsService {
     const setting = await this.getSetting(key, organizationId);
     await this.settingRepository.softDelete(setting.id);
     this.logger.log(`Setting deleted: ${key}`);
-    await this.invalidateSettingsCache(key);
+    await this.invalidateSettingsCache(key, organizationId);
   }
 
   /**
    * Invalidate setting caches after mutation.
    */
-  private async invalidateSettingsCache(key: string): Promise<void> {
-    await this.cacheManager.del(`settings:key:${key}`);
+  private async invalidateSettingsCache(
+    key: string,
+    organizationId?: string,
+  ): Promise<void> {
+    await this.cacheManager.del(
+      `settings:key:${key}:${organizationId || "system"}`,
+    );
     await this.cacheManager.del("settings:public");
   }
 
