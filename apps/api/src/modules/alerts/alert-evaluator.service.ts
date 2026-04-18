@@ -300,7 +300,7 @@ export class AlertEvaluatorService {
     await this.historyRepo.save(alert);
 
     // Emit event for notification system
-    this.eventEmitter.emit("alert.triggered", {
+    this.eventEmitter.emit("alerts.triggered", {
       alert,
       rule,
       notifyChannels: rule.notifyChannels,
