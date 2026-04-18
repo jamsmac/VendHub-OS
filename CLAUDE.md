@@ -117,6 +117,22 @@ Every query returning user-facing data MUST filter by `organization_id`.
 
 Every module must be registered in `app.module.ts`, have at least one test, and be exported if used by others.
 
+### Rule 9: Storage backend is Supabase Storage via S3-compatible API
+
+All file storage MUST go through `StorageService` (`apps/api/src/modules/storage/storage.service.ts`), which wraps the AWS SDK against Supabase Storage's S3-compatible endpoint. Do NOT introduce direct filesystem writes, alternative SDKs (`@supabase/supabase-js` for uploads), or new MinIO clients in production code paths. MinIO in `docker-compose.yml` is the **dev-only** S3-compatible mock — production traffic points at `*.storage.supabase.co/storage/v1/s3` via the `STORAGE_ENDPOINT` env var.
+
+Config (production):
+
+```
+STORAGE_ENDPOINT=https://<project>.storage.supabase.co/storage/v1/s3
+STORAGE_BUCKET=vendhub-storage
+STORAGE_ACCESS_KEY_ID=<supabase-service-role-or-scoped-key>
+STORAGE_SECRET_ACCESS_KEY=<…>
+SUPABASE_URL=https://<project>.supabase.co  # for signed-URL generation helpers only
+```
+
+Why Supabase (not native Railway Buckets, not S3 directly): it was already wired, the 1 GB free tier is enough for MVP, and the S3 API keeps the code portable — Railway Buckets migration (roadmap Q3 2026) is a config swap, not a rewrite. Do NOT delete the Supabase adapter branch in `storage.service.ts` — it is the live code path.
+
 ## RBAC Roles (7 roles)
 
 | Role       | Level        | Access                                |
