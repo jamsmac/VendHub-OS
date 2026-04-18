@@ -148,6 +148,15 @@ export class TelegramCustomerBotService
     }
   }
 
+  async handleUpdate(update: unknown): Promise<void> {
+    if (!this.bot) {
+      this.logger.warn("Customer bot not initialized, dropping webhook update");
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await this.bot.handleUpdate(update as any);
+  }
+
   // ============================================================================
   // PUBLIC API — for sending messages from other modules
   // ============================================================================

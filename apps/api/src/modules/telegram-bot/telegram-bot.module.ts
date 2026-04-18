@@ -14,6 +14,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { TelegramBotService } from "./telegram-bot.service";
 import { TelegramCustomerBotService } from "./telegram-customer-bot.service";
 import { TelegramBotController } from "./telegram-bot.controller";
+import { TelegramWebhookController } from "./telegram-webhook.controller";
 
 // --- Staff Bot Sub-Services ---
 import { BotHandlersService } from "./services/bot-handlers.service";
@@ -100,7 +101,7 @@ import { AccessRequest } from "./entities/access-request.entity";
       AccessRequest,
     ]),
   ],
-  controllers: [TelegramBotController],
+  controllers: [TelegramBotController, TelegramWebhookController],
   providers: [
     // Staff bot
     TelegramBotService,

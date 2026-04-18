@@ -11,8 +11,6 @@ import {
   Put,
   Param,
   Query,
-  HttpCode,
-  HttpStatus,
   UseGuards,
   ParseUUIDPipe,
 } from "@nestjs/common";
@@ -53,20 +51,6 @@ export class TelegramBotController {
   // ============================================================================
   // EXISTING ENDPOINTS (kept as-is)
   // ============================================================================
-
-  /**
-   * Webhook endpoint for Telegram updates
-   * Set webhook URL: https://api.telegram.org/bot<token>/setWebhook?url=<webhook_url>
-   */
-  @Post("webhook")
-  @Public()
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Telegram webhook endpoint" })
-  async handleWebhook(@Body() _update: Record<string, unknown>) {
-    // If using webhook mode instead of long-polling
-    // The Telegraf instance would handle this internally
-    return { ok: true };
-  }
 
   /**
    * Health check for the bot

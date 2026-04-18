@@ -168,6 +168,15 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  async handleUpdate(update: unknown): Promise<void> {
+    if (!this.bot) {
+      this.logger.warn("Staff bot not initialized, dropping webhook update");
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await this.bot.handleUpdate(update as any);
+  }
+
   // ============================================================================
   // PUBLIC API — delegated to sub-services
   // All public methods below preserve the original TelegramBotService API
