@@ -19,6 +19,7 @@ import { User, TwoFactorAuth } from "../../users/entities/user.entity";
 export class TwoFactorService {
   private readonly logger = new Logger(TwoFactorService.name);
   private readonly TOTP_WINDOW = 1;
+  private ephemeralDevKey?: Buffer;
 
   constructor(
     @InjectRepository(TwoFactorAuth)
@@ -283,26 +284,33 @@ export class TwoFactorService {
   }
 
   private getEncryptionKey(): Buffer {
-    const keyHex = this.configService.get("ENCRYPTION_KEY");
-    const nodeEnv = this.configService.get("NODE_ENV");
-
-    if (!keyHex || keyHex.length !== 64) {
-      // SECURITY: In production, encryption key MUST be set
-      if (nodeEnv === "production") {
-        throw new InternalServerErrorException(
-          "CRITICAL: ENCRYPTION_KEY must be set in production. " +
-            "Generate with: openssl rand -hex 32",
-        );
-      }
-
-      // Development only: use derived key with warning
-      this.logger.warn(
-        "ENCRYPTION_KEY not set - using development fallback. " +
-          "DO NOT use in production!",
-      );
-      return crypto.scryptSync("vendhub-dev-key-unsafe", "vendhub-salt", 32);
+    const raw = this.configService.get<string>("TOTP_ENCRYPTION_KEY");
+    if (raw && raw.length >= 64) {
+      return Buffer.from(raw, "hex");
     }
 
-    return Buffer.from(keyHex, "hex");
+    const env = process.env.NODE_ENV ?? "development";
+    const allowDevFallback = process.env.ALLOW_DEV_FALLBACK === "true";
+    const isDevEnv = env === "development";
+
+    if (!isDevEnv && !allowDevFallback) {
+      throw new InternalServerErrorException(
+        `TOTP_ENCRYPTION_KEY missing or too short in ${env}. Refusing to derive an ephemeral key.`,
+      );
+    }
+
+    if (!this.ephemeralDevKey) {
+      this.ephemeralDevKey = crypto.randomBytes(32);
+      const fingerprint = crypto
+        .createHash("sha256")
+        .update(this.ephemeralDevKey)
+        .digest("hex")
+        .slice(0, 8);
+      this.logger.warn(
+        `Using ephemeral dev TOTP key (fingerprint=${fingerprint}). ` +
+          `TOTPs encrypted with this key will be unreadable after restart. Set TOTP_ENCRYPTION_KEY to persist.`,
+      );
+    }
+    return this.ephemeralDevKey;
   }
 }
