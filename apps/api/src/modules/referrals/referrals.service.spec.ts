@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { Repository, ObjectLiteral } from "typeorm";
+import { Repository, ObjectLiteral, DataSource } from "typeorm";
 import {
   NotFoundException,
   BadRequestException,
@@ -74,6 +74,18 @@ describe("ReferralsService", () => {
         { provide: LoyaltyService, useValue: loyaltyService },
         { provide: EventEmitter2, useValue: eventEmitter },
         { provide: ConfigService, useValue: configService },
+        {
+          provide: DataSource,
+          useValue: {
+            transaction: jest.fn(async (fn: (manager: any) => any) => {
+              const manager = {
+                findOne: referralRepo.findOne,
+                save: referralRepo.save,
+              };
+              return fn(manager);
+            }),
+          },
+        },
       ],
     }).compile();
 
@@ -272,7 +284,7 @@ describe("ReferralsService", () => {
   // ==========================================================================
 
   describe("handleOrderCompleted", () => {
-    it("should activate referral when pending referral exists", async () => {
+    it("should activate referral inside pessimistic_write transaction", async () => {
       const referral = {
         id: "ref-1",
         referredId: "u-2",
@@ -283,7 +295,9 @@ describe("ReferralsService", () => {
         referrer: { firstName: "Alisher" },
       };
       referralRepo.findOne!.mockResolvedValue(referral);
-      referralRepo.update!.mockResolvedValue({});
+      referralRepo.save!.mockImplementation(async (_cls: any, entity: any) =>
+        entity ? entity : _cls,
+      );
 
       await service.handleOrderCompleted({
         userId: "u-2",
@@ -291,16 +305,33 @@ describe("ReferralsService", () => {
         amount: 50000,
       });
 
-      // Should update status to ACTIVATED then REWARDED
-      expect(referralRepo.update).toHaveBeenCalledWith(
-        "ref-1",
-        expect.objectContaining({ status: ReferralStatus.ACTIVATED }),
-      );
+      expect(referralRepo.save).toHaveBeenCalled();
       expect(loyaltyService.earnPoints).toHaveBeenCalled();
       expect(eventEmitter.emit).toHaveBeenCalledWith(
         "referral.activated",
         expect.any(Object),
       );
+    });
+
+    it("is idempotent when referral is already activated", async () => {
+      const referral = {
+        id: "ref-1",
+        referredId: "u-2",
+        referrerId: "u-1",
+        organizationId: orgId,
+        status: ReferralStatus.ACTIVATED,
+        referrerRewardPoints: LOYALTY_BONUSES.referral,
+      };
+      referralRepo.findOne!.mockResolvedValue(referral);
+
+      await service.handleOrderCompleted({
+        userId: "u-2",
+        orderId: "order-1",
+        amount: 50000,
+      });
+
+      expect(referralRepo.save).not.toHaveBeenCalled();
+      expect(loyaltyService.earnPoints).not.toHaveBeenCalled();
     });
 
     it("should do nothing when no pending referral exists", async () => {
@@ -312,7 +343,7 @@ describe("ReferralsService", () => {
         amount: 50000,
       });
 
-      expect(referralRepo.update).not.toHaveBeenCalled();
+      expect(referralRepo.save).not.toHaveBeenCalled();
       expect(loyaltyService.earnPoints).not.toHaveBeenCalled();
     });
   });

@@ -12,7 +12,7 @@ import {
   InternalServerErrorException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, Between } from "typeorm";
+import { Repository, Between, DataSource } from "typeorm";
 import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import { ConfigService } from "@nestjs/config";
 import { Referral, ReferralStatus } from "./entities/referral.entity";
@@ -47,6 +47,7 @@ export class ReferralsService {
     private readonly loyaltyService: LoyaltyService,
     private readonly eventEmitter: EventEmitter2,
     private readonly configService: ConfigService,
+    private readonly dataSource: DataSource,
   ) {
     this.appUrl = this.configService.get("APP_URL", "https://vendhub.uz");
   }
@@ -209,9 +210,6 @@ export class ReferralsService {
   // REFERRAL ACTIVATION
   // ============================================================================
 
-  /**
-   * Активировать реферал при первом заказе
-   */
   @OnEvent("order.completed")
   async handleOrderCompleted(payload: {
     userId: string;
@@ -220,69 +218,61 @@ export class ReferralsService {
   }): Promise<void> {
     const { userId, orderId, amount } = payload;
 
-    // Check if user has pending referral
-    const referral = await this.referralRepo.findOne({
-      where: {
-        referredId: userId,
-        status: ReferralStatus.PENDING,
-      },
-      relations: ["referrer"],
+    await this.dataSource.transaction(async (manager) => {
+      const referral = await manager.findOne(Referral, {
+        where: {
+          referredId: userId,
+          status: ReferralStatus.PENDING,
+        },
+        lock: { mode: "pessimistic_write" },
+        relations: ["referrer"],
+      });
+
+      if (!referral) {
+        return;
+      }
+
+      if (
+        referral.status === ReferralStatus.ACTIVATED ||
+        referral.status === ReferralStatus.REWARDED
+      ) {
+        return;
+      }
+
+      referral.status = ReferralStatus.ACTIVATED;
+      referral.activatedAt = new Date();
+      referral.activationOrderId = orderId;
+      referral.activationOrderAmount = amount;
+      await manager.save(Referral, referral);
+
+      await this.loyaltyService.earnPoints({
+        userId: referral.referrerId,
+        organizationId: referral.organizationId,
+        amount: referral.referrerRewardPoints,
+        source: PointsSource.REFERRAL,
+        referenceId: referral.id,
+        referenceType: "referral",
+        description: `За приглашенного друга`,
+        descriptionUz: `Taklif qilingan do'st uchun`,
+      });
+
+      referral.status = ReferralStatus.REWARDED;
+      referral.referrerRewardPaid = true;
+      await manager.save(Referral, referral);
+
+      this.eventEmitter.emit("referral.activated", {
+        referralId: referral.id,
+        referrerId: referral.referrerId,
+        referredId: referral.referredId,
+        orderId,
+        orderAmount: amount,
+        organizationId: referral.organizationId,
+      });
+
+      this.logger.log(
+        `Referral ${referral.id} activated. Rewarded referrer ${referral.referrerId}`,
+      );
     });
-
-    if (!referral) {
-      return; // No pending referral
-    }
-
-    // Activate referral
-    await this.activateReferral(referral, orderId, amount);
-  }
-
-  /**
-   * Активировать реферал
-   */
-  private async activateReferral(
-    referral: Referral,
-    orderId: string,
-    orderAmount: number,
-  ): Promise<void> {
-    // Update status
-    await this.referralRepo.update(referral.id, {
-      status: ReferralStatus.ACTIVATED,
-      activatedAt: new Date(),
-      activationOrderId: orderId,
-      activationOrderAmount: orderAmount,
-    });
-
-    // Award points to referrer
-    await this.loyaltyService.earnPoints({
-      userId: referral.referrerId,
-      organizationId: referral.organizationId,
-      amount: referral.referrerRewardPoints,
-      source: PointsSource.REFERRAL,
-      referenceId: referral.id,
-      referenceType: "referral",
-      description: `За приглашенного друга`,
-      descriptionUz: `Taklif qilingan do'st uchun`,
-    });
-
-    // Mark rewards as paid
-    await this.referralRepo.update(referral.id, {
-      status: ReferralStatus.REWARDED,
-      referrerRewardPaid: true,
-    });
-
-    this.eventEmitter.emit("referral.activated", {
-      referralId: referral.id,
-      referrerId: referral.referrerId,
-      referredId: referral.referredId,
-      orderId,
-      orderAmount,
-      organizationId: referral.organizationId,
-    });
-
-    this.logger.log(
-      `Referral ${referral.id} activated. Rewarded referrer ${referral.referrerId}`,
-    );
   }
 
   // ============================================================================
