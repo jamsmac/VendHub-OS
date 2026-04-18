@@ -89,6 +89,7 @@ export class OrdersService {
       const productIds = dto.items.map((item) => item.productId);
       const products = await txProductRepo.find({
         where: { id: In(productIds), organizationId },
+        take: 1000,
       });
 
       if (products.length !== productIds.length) {

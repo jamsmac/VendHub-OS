@@ -10,6 +10,8 @@ import { BotMachineOpsService } from "./services/bot-machine-ops.service";
 import { BotMenuService } from "./services/bot-menu.service";
 import { BotNotificationsService } from "./services/bot-notifications.service";
 import { BotAdminService } from "./services/bot-admin.service";
+import { BotRouteOpsService } from "./services/bot-route-ops.service";
+import { BotStatsService } from "./services/bot-stats.service";
 import { User } from "../users/entities/user.entity";
 import { Task } from "../tasks/entities/task.entity";
 import { Machine } from "../machines/entities/machine.entity";
@@ -93,6 +95,14 @@ describe("TelegramBotService", () => {
         BotMenuService,
         BotNotificationsService,
         BotAdminService,
+        {
+          provide: BotRouteOpsService,
+          useValue: { setBot: jest.fn() },
+        },
+        {
+          provide: BotStatsService,
+          useValue: { setBot: jest.fn() },
+        },
         {
           provide: ConfigService,
           useValue: {

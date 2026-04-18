@@ -1,3 +1,8 @@
+jest.mock("@nestjs/axios", () => ({
+  HttpService: class HttpService {},
+  HttpModule: class HttpModule {},
+}));
+
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository } from "typeorm";

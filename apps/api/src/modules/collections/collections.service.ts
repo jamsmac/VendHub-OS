@@ -369,6 +369,7 @@ export class CollectionsService {
           id: In(dto.ids),
           organizationId,
         },
+        take: 1000,
       });
     } else if (dto.useFilters) {
       const qb = this.collectionRepo
@@ -544,6 +545,7 @@ export class CollectionsService {
         status: CollectionStatus.COLLECTED,
       },
       order: { collectedAt: "ASC" },
+      take: 1000,
     });
   }
 
@@ -565,6 +567,7 @@ export class CollectionsService {
         collectedAt: Between(startOfDay, endOfDay),
       },
       order: { collectedAt: "DESC" },
+      take: 1000,
     });
   }
 
@@ -600,6 +603,7 @@ export class CollectionsService {
     return this.historyRepo.find({
       where: { collectionId: id },
       order: { createdAt: "ASC" },
+      take: 1000,
     });
   }
 

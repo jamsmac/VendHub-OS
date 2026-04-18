@@ -98,6 +98,7 @@ export class ContainersService {
     return this.containerRepository.find({
       where: { machineId, organizationId },
       order: { slotNumber: "ASC" },
+      take: 1000,
     });
   }
 
@@ -306,6 +307,7 @@ export class ContainersService {
     const containers = await this.containerRepository.find({
       where: { machineId, organizationId, status: ContainerStatus.ACTIVE },
       order: { slotNumber: "ASC" },
+      take: 1000,
     });
 
     return containers
@@ -337,6 +339,7 @@ export class ContainersService {
       where: { organizationId, status: ContainerStatus.ACTIVE },
       relations: ["machine"],
       order: { machineId: "ASC", slotNumber: "ASC" },
+      take: 1000,
     });
 
     return containers
@@ -365,6 +368,7 @@ export class ContainersService {
       where: { nomenclatureId, organizationId },
       relations: ["machine"],
       order: { machineId: "ASC", slotNumber: "ASC" },
+      take: 1000,
     });
   }
 
@@ -383,6 +387,7 @@ export class ContainersService {
   }> {
     const containers = await this.containerRepository.find({
       where: { machineId, organizationId },
+      take: 1000,
     });
 
     const total = containers.length;

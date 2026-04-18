@@ -199,7 +199,7 @@ describe("TripReconciliationService", () => {
     stopRepo.find.mockResolvedValue([
       {
         id: "stop-1",
-        durationSeconds: 30, // too short (min 120s)
+        actualDurationSeconds: 30, // too short (min 120s)
         machineId: "machine-1",
       },
     ]);

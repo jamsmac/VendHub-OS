@@ -6,6 +6,9 @@ import { CustomerCatalogService } from "./customer-catalog.service";
 import { CustomerLoyaltyService } from "./customer-loyalty.service";
 import { CustomerOrdersService } from "./customer-orders.service";
 import { CustomerComplaintsService } from "./customer-complaints.service";
+import { CustomerLocationService } from "./customer-location.service";
+import { CustomerCartService } from "./customer-cart.service";
+import { CustomerEngagementService } from "./customer-engagement.service";
 import { CustomerSessionState } from "./customer-types";
 
 function createMockContext(overrides: any = {}) {
@@ -59,9 +62,35 @@ describe("CustomerHandlersService", () => {
         CustomerHandlersService,
         CustomerMenuService,
         CustomerCatalogService,
-        CustomerLoyaltyService,
-        CustomerOrdersService,
         CustomerComplaintsService,
+        {
+          provide: CustomerLoyaltyService,
+          useValue: {
+            setBot: jest.fn(),
+            showLoyaltyOverview: jest.fn(),
+            showLoyaltyTiers: jest.fn(),
+          },
+        },
+        {
+          provide: CustomerOrdersService,
+          useValue: {
+            setBot: jest.fn(),
+            showOrderHistory: jest.fn(),
+            showOrderDetails: jest.fn(),
+          },
+        },
+        {
+          provide: CustomerLocationService,
+          useValue: { setBot: jest.fn() },
+        },
+        {
+          provide: CustomerCartService,
+          useValue: { setBot: jest.fn() },
+        },
+        {
+          provide: CustomerEngagementService,
+          useValue: { setBot: jest.fn() },
+        },
         { provide: DataSource, useValue: { query: jest.fn() } },
       ],
     }).compile();

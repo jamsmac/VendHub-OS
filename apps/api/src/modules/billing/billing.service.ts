@@ -477,6 +477,7 @@ export class BillingService {
   }> {
     const invoices = await this.invoiceRepo.find({
       where: { organizationId },
+      take: 1000,
     });
 
     let totalAmount = 0;

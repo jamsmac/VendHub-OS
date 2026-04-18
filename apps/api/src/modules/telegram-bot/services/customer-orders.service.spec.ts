@@ -1,5 +1,8 @@
 import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
 import { CustomerOrdersService } from "./customer-orders.service";
+import { ClientUser } from "../../client/entities/client-user.entity";
+import { ClientOrder } from "../../client/entities/client-order.entity";
 
 function createMockContext(overrides: any = {}) {
   return {
@@ -18,8 +21,21 @@ describe("CustomerOrdersService", () => {
   let service: CustomerOrdersService;
 
   beforeEach(async () => {
+    const mockRepo = () => ({
+      find: jest.fn(),
+      findOne: jest.fn(),
+      findAndCount: jest.fn().mockResolvedValue([[], 0]),
+      save: jest.fn(),
+      create: jest.fn(),
+      createQueryBuilder: jest.fn(),
+    });
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [CustomerOrdersService],
+      providers: [
+        CustomerOrdersService,
+        { provide: getRepositoryToken(ClientUser), useValue: mockRepo() },
+        { provide: getRepositoryToken(ClientOrder), useValue: mockRepo() },
+      ],
     }).compile();
 
     service = module.get<CustomerOrdersService>(CustomerOrdersService);
@@ -35,14 +51,14 @@ describe("CustomerOrdersService", () => {
   // ==========================================================================
 
   describe("showOrderHistory", () => {
-    it('should show "coming soon" placeholder via reply', async () => {
+    it("should show empty orders placeholder via reply", async () => {
       const ctx = createMockContext();
       await service.showOrderHistory(ctx);
 
       expect(ctx.reply).toHaveBeenCalledTimes(1);
       const text = ctx.reply.mock.calls[0][0] as string;
       expect(text).toContain("История заказов");
-      expect(text).toContain("скоро будет доступна");
+      expect(text).toContain("пока нет заказов");
     });
 
     it("should edit message when called from callback", async () => {
@@ -81,14 +97,13 @@ describe("CustomerOrdersService", () => {
   // ==========================================================================
 
   describe("showOrderDetails", () => {
-    it('should show "coming soon" placeholder', async () => {
+    it("should show not-found message when order is missing", async () => {
       const ctx = createMockContext();
       await service.showOrderDetails(ctx, "order-123");
 
       expect(ctx.reply).toHaveBeenCalledTimes(1);
       const text = ctx.reply.mock.calls[0][0] as string;
-      expect(text).toContain("Детали заказа");
-      expect(text).toContain("скоро будет доступна");
+      expect(text).toContain("Заказ не найден");
     });
 
     it("should include back-to-orders button", async () => {

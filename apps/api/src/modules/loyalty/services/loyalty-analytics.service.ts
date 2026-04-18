@@ -183,7 +183,7 @@ export class LoyaltyAnalyticsService {
 
     const userIds = results.map((r) => r.userId);
     const users = userIds.length
-      ? await this.userRepo.find({ where: { id: In(userIds) } })
+      ? await this.userRepo.find({ where: { id: In(userIds) }, take: 1000 })
       : [];
 
     const userMap = new Map(users.map((u) => [u.id, u]));

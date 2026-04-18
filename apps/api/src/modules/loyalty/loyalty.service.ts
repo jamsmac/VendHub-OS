@@ -358,6 +358,7 @@ export class LoyaltyService {
           remainingAmount: MoreThan(0),
         },
         order: { createdAt: "ASC" },
+        take: 1000,
       });
 
       let remaining = amount;
@@ -571,6 +572,7 @@ export class LoyaltyService {
         expiresAt: LessThan(now),
         remainingAmount: MoreThan(0),
       },
+      take: 500,
     });
 
     for (const tx of expiredTransactions) {

@@ -5,6 +5,8 @@ import { BotHandlersService } from "./bot-handlers.service";
 import { BotTaskOpsService } from "./bot-task-ops.service";
 import { BotMachineOpsService } from "./bot-machine-ops.service";
 import { BotMenuService } from "./bot-menu.service";
+import { BotRouteOpsService } from "./bot-route-ops.service";
+import { BotStatsService } from "./bot-stats.service";
 import { User } from "../../users/entities/user.entity";
 import { Task } from "../../tasks/entities/task.entity";
 import { Machine } from "../../machines/entities/machine.entity";
@@ -82,6 +84,14 @@ describe("BotHandlersService", () => {
         BotTaskOpsService,
         BotMachineOpsService,
         BotMenuService,
+        {
+          provide: BotRouteOpsService,
+          useValue: { setBot: jest.fn() },
+        },
+        {
+          provide: BotStatsService,
+          useValue: { setBot: jest.fn() },
+        },
         {
           provide: getRepositoryToken(User),
           useValue: createMockRepository<User>(),

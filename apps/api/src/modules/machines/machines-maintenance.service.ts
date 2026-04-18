@@ -81,6 +81,7 @@ export class MachinesMaintenanceService {
     return this.slotRepository.find({
       where: { machineId },
       order: { slotNumber: "ASC" },
+      take: 1000,
     });
   }
 
@@ -234,6 +235,7 @@ export class MachinesMaintenanceService {
     return this.componentRepository.find({
       where: { machineId },
       order: { createdAt: "DESC" },
+      take: 1000,
     });
   }
 
@@ -410,6 +412,7 @@ export class MachinesMaintenanceService {
         status: MaintenanceStatus.SCHEDULED,
       },
       order: { scheduledDate: "ASC" },
+      take: 1000,
     });
   }
 
@@ -486,6 +489,7 @@ export class MachinesMaintenanceService {
     return this.simUsageRepository.find({
       where: { machineId },
       order: { periodStart: "DESC" },
+      take: 1000,
     });
   }
 
@@ -533,6 +537,7 @@ export class MachinesMaintenanceService {
     return this.connectivityRepository.find({
       where: { machineId, organizationId },
       order: { startDate: "DESC" },
+      take: 1000,
     });
   }
 
@@ -600,6 +605,7 @@ export class MachinesMaintenanceService {
     return this.expenseRepository.find({
       where: { machineId, organizationId },
       order: { expenseDate: "DESC" },
+      take: 1000,
     });
   }
 
@@ -668,7 +674,11 @@ export class MachinesMaintenanceService {
     machineId: string;
     purchasePrice: number;
     depreciation: number;
-    connectivity: { total: number; monthly: number; items: MachineConnectivity[] };
+    connectivity: {
+      total: number;
+      monthly: number;
+      items: MachineConnectivity[];
+    };
     expenses: {
       capex: number;
       opex: number;
@@ -683,9 +693,16 @@ export class MachinesMaintenanceService {
     const [connectivityItems, expenseItems, simUsageLogs] = await Promise.all([
       this.connectivityRepository.find({
         where: { machineId, organizationId },
+        take: 1000,
       }),
-      this.expenseRepository.find({ where: { machineId, organizationId } }),
-      this.simUsageRepository.find({ where: { machineId, organizationId } }),
+      this.expenseRepository.find({
+        where: { machineId, organizationId },
+        take: 1000,
+      }),
+      this.simUsageRepository.find({
+        where: { machineId, organizationId },
+        take: 1000,
+      }),
     ]);
 
     // Connectivity totals

@@ -442,6 +442,7 @@ describe("CollectionsService", () => {
       expect(mockCollectionRepo.find).toHaveBeenCalledWith({
         where: { organizationId: orgId, status: CollectionStatus.COLLECTED },
         order: { collectedAt: "ASC" },
+        take: 1000,
       });
       expect(result).toHaveLength(2);
     });
@@ -592,6 +593,7 @@ describe("CollectionsService", () => {
       expect(mockHistoryRepo.find).toHaveBeenCalledWith({
         where: { collectionId: "c1" },
         order: { createdAt: "ASC" },
+        take: 1000,
       });
       expect(result).toHaveLength(2);
     });

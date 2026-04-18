@@ -440,6 +440,7 @@ export class InventoryReservationService {
     return this.reservationRepo.find({
       where: { organizationId, taskId },
       order: { createdAt: "DESC" },
+      take: 1000,
     });
   }
 
@@ -626,6 +627,7 @@ export class InventoryReservationService {
           expiresAt: LessThanOrEqual(now),
         },
       ],
+      take: 500,
     });
 
     if (expiredReservations.length === 0) {

@@ -45,8 +45,8 @@ describe("PaymentReportImportService", () => {
     newRows: 3,
     importedRows: 0,
     importErrors: 0,
-    importedAt: null,
-    importedBy: null,
+    importedAt: undefined,
+    importedBy: undefined,
     mimeType:
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   };

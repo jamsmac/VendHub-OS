@@ -8,6 +8,7 @@ import { ComplaintsService } from "./complaints.service";
 import { ComplaintsCoreService } from "./complaints-core.service";
 import { ComplaintsRefundService } from "./complaints-refund.service";
 import { ComplaintsAnalyticsService } from "./complaints-analytics.service";
+import { Organization } from "../organizations/entities/organization.entity";
 import { CreateComplaintDto, QueryComplaintsDto } from "./complaints.types";
 import {
   Complaint,
@@ -115,6 +116,14 @@ describe("ComplaintsService", () => {
         ComplaintsCoreService,
         ComplaintsRefundService,
         ComplaintsAnalyticsService,
+        {
+          provide: getRepositoryToken(Organization),
+          useValue: {
+            findOne: jest.fn(),
+            find: jest.fn(),
+            manager: { query: jest.fn() },
+          },
+        },
         {
           provide: DataSource,
           useValue: {

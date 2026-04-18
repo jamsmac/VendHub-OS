@@ -52,9 +52,7 @@ function makeMockReservation(
 
   Object.defineProperty(base, "quantityRemaining", {
     get(this: typeof base) {
-      return (
-        Number(this.quantityReserved) - Number(this.quantityFulfilled)
-      );
+      return Number(this.quantityReserved) - Number(this.quantityFulfilled);
     },
     configurable: true,
   });
@@ -90,12 +88,19 @@ const mockDataSource = {
 
 const createMockQB = () => {
   const qb: Record<string, jest.Mock> = {};
-  const chain = (name: string) =>
-    (qb[name] = jest.fn().mockReturnValue(qb));
+  const chain = (name: string) => (qb[name] = jest.fn().mockReturnValue(qb));
 
   // builder chain methods
-  ["where", "andWhere", "orderBy", "skip", "take", "select",
-    "addSelect", "groupBy"].forEach(chain);
+  [
+    "where",
+    "andWhere",
+    "orderBy",
+    "skip",
+    "take",
+    "select",
+    "addSelect",
+    "groupBy",
+  ].forEach(chain);
 
   qb["getCount"] = jest.fn().mockResolvedValue(0);
   qb["getMany"] = jest.fn().mockResolvedValue([]);
@@ -149,10 +154,22 @@ describe("InventoryReservationService (unit)", () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         InventoryReservationService,
-        { provide: getRepositoryToken(WarehouseInventory), useValue: mockWarehouseRepo },
-        { provide: getRepositoryToken(OperatorInventory), useValue: mockOperatorRepo },
-        { provide: getRepositoryToken(InventoryMovement), useValue: mockMovementRepo },
-        { provide: getRepositoryToken(InventoryReservation), useValue: mockReservationRepo },
+        {
+          provide: getRepositoryToken(WarehouseInventory),
+          useValue: mockWarehouseRepo,
+        },
+        {
+          provide: getRepositoryToken(OperatorInventory),
+          useValue: mockOperatorRepo,
+        },
+        {
+          provide: getRepositoryToken(InventoryMovement),
+          useValue: mockMovementRepo,
+        },
+        {
+          provide: getRepositoryToken(InventoryReservation),
+          useValue: mockReservationRepo,
+        },
         { provide: DataSource, useValue: mockDataSource },
       ],
     }).compile();
@@ -193,22 +210,23 @@ describe("InventoryReservationService (unit)", () => {
       const mockRes = makeMockReservation({ quantityReserved: 5 });
       const mockMovement = { id: "mv-1" };
 
-      mockManager.findOne
-        .mockResolvedValueOnce(warehouseItem);           // warehouse stock check
+      mockManager.findOne.mockResolvedValueOnce(warehouseItem); // warehouse stock check
       mockManager.create
-        .mockReturnValueOnce(mockRes)                   // reservation create
-        .mockReturnValueOnce(mockMovement);             // movement create
+        .mockReturnValueOnce(mockRes) // reservation create
+        .mockReturnValueOnce(mockMovement); // movement create
       mockManager.save
-        .mockResolvedValueOnce(warehouseItem)           // save updated warehouse
-        .mockResolvedValueOnce(mockRes)                 // save reservation
-        .mockResolvedValueOnce(mockMovement);           // save movement
+        .mockResolvedValueOnce(warehouseItem) // save updated warehouse
+        .mockResolvedValueOnce(mockRes) // save reservation
+        .mockResolvedValueOnce(mockMovement); // save movement
 
       const result = await service.createReservation(baseDto);
 
       expect(mockDataSource.transaction).toHaveBeenCalled();
       expect(mockManager.findOne).toHaveBeenCalledWith(
         WarehouseInventory,
-        expect.objectContaining({ where: { organizationId: "org-1", productId: "prod-1" } }),
+        expect.objectContaining({
+          where: { organizationId: "org-1", productId: "prod-1" },
+        }),
       );
       expect(result).toEqual(mockRes);
     });
@@ -217,7 +235,9 @@ describe("InventoryReservationService (unit)", () => {
       const warehouseItem = {
         currentQuantity: 2,
         reservedQuantity: 0,
-        get availableQuantity() { return 2; },
+        get availableQuantity() {
+          return 2;
+        },
       };
       mockManager.findOne.mockResolvedValueOnce(warehouseItem);
 
@@ -243,7 +263,9 @@ describe("InventoryReservationService (unit)", () => {
       const operatorItem = {
         currentQuantity: 20,
         reservedQuantity: 0,
-        get availableQuantity() { return 20; },
+        get availableQuantity() {
+          return 20;
+        },
       };
       const mockRes = makeMockReservation({
         inventoryLevel: InventoryLevel.OPERATOR,
@@ -265,7 +287,11 @@ describe("InventoryReservationService (unit)", () => {
       expect(mockManager.findOne).toHaveBeenCalledWith(
         OperatorInventory,
         expect.objectContaining({
-          where: { organizationId: "org-1", operatorId: "op-1", productId: "prod-1" },
+          where: {
+            organizationId: "org-1",
+            operatorId: "op-1",
+            productId: "prod-1",
+          },
         }),
       );
       expect(result).toEqual(mockRes);
@@ -283,7 +309,9 @@ describe("InventoryReservationService (unit)", () => {
       const mockMovement = { id: "mv-1" };
 
       mockManager.findOne.mockResolvedValueOnce(warehouseItem);
-      mockManager.create.mockReturnValueOnce(mockRes).mockReturnValueOnce(mockMovement);
+      mockManager.create
+        .mockReturnValueOnce(mockRes)
+        .mockReturnValueOnce(mockMovement);
       mockManager.save
         .mockResolvedValueOnce(warehouseItem)
         .mockResolvedValueOnce(mockRes)
@@ -317,8 +345,8 @@ describe("InventoryReservationService (unit)", () => {
       };
 
       mockManager.findOne
-        .mockResolvedValueOnce(reservation)     // reservation fetch
-        .mockResolvedValueOnce(warehouseItem);  // warehouse fetch
+        .mockResolvedValueOnce(reservation) // reservation fetch
+        .mockResolvedValueOnce(warehouseItem); // warehouse fetch
       mockManager.save
         .mockResolvedValueOnce(reservation)
         .mockResolvedValueOnce(warehouseItem);
@@ -354,9 +382,9 @@ describe("InventoryReservationService (unit)", () => {
     it("should throw NotFoundException when reservation not found", async () => {
       mockManager.findOne.mockResolvedValueOnce(null);
 
-      await expect(service.fulfillReservation("nonexistent", 5)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.fulfillReservation("nonexistent", 5),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it("should throw BadRequestException when reservation is not active", async () => {
@@ -443,7 +471,10 @@ describe("InventoryReservationService (unit)", () => {
         .mockResolvedValueOnce(reservation)
         .mockResolvedValueOnce(mockMovement);
 
-      const result = await service.cancelReservation("res-1", "No longer needed");
+      const result = await service.cancelReservation(
+        "res-1",
+        "No longer needed",
+      );
 
       expect(result.notes).toBe("No longer needed");
     });
@@ -543,7 +574,9 @@ describe("InventoryReservationService (unit)", () => {
       const warehouseItem = {
         currentQuantity: 12,
         reservedQuantity: 10,
-        get availableQuantity() { return 2; },
+        get availableQuantity() {
+          return 2;
+        },
       };
 
       mockManager.findOne
@@ -574,6 +607,7 @@ describe("InventoryReservationService (unit)", () => {
       expect(mockReservationRepo.find).toHaveBeenCalledWith({
         where: { organizationId: "org-1", taskId: "task-1" },
         order: { createdAt: "DESC" },
+        take: 1000,
       });
       expect(result).toHaveLength(2);
     });
@@ -595,7 +629,10 @@ describe("InventoryReservationService (unit)", () => {
     it("should return active reservations with status filter", async () => {
       const activeReservations = [
         makeMockReservation({ status: ReservationStatus.PENDING }),
-        makeMockReservation({ id: "res-2", status: ReservationStatus.CONFIRMED }),
+        makeMockReservation({
+          id: "res-2",
+          status: ReservationStatus.CONFIRMED,
+        }),
       ];
       mockReservationRepo.find.mockResolvedValue(activeReservations);
 
@@ -630,9 +667,9 @@ describe("InventoryReservationService (unit)", () => {
     it("should throw NotFoundException when reservation not found", async () => {
       mockReservationRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.getReservationById("org-1", "nonexistent")).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.getReservationById("org-1", "nonexistent"),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -674,7 +711,7 @@ describe("InventoryReservationService (unit)", () => {
 
       const result = await service.getReservations("org-1");
 
-      expect(qb["skip"]).toHaveBeenCalledWith(0);   // (1-1)*50 = 0
+      expect(qb["skip"]).toHaveBeenCalledWith(0); // (1-1)*50 = 0
       expect(qb["take"]).toHaveBeenCalledWith(50);
       expect(result).toEqual({ data: [], total: 0 });
     });
@@ -780,8 +817,8 @@ describe("InventoryReservationService (unit)", () => {
       const mockMovement = { id: "mv-exp-1" };
 
       mockManager.findOne
-        .mockResolvedValueOnce(lockedReservation)   // re-fetch with lock
-        .mockResolvedValueOnce(warehouseItem);       // warehouse
+        .mockResolvedValueOnce(lockedReservation) // re-fetch with lock
+        .mockResolvedValueOnce(warehouseItem); // warehouse
       mockManager.create.mockReturnValueOnce(mockMovement);
       mockManager.save
         .mockResolvedValueOnce(warehouseItem)
@@ -815,7 +852,9 @@ describe("InventoryReservationService (unit)", () => {
     });
 
     it("should skip reservation when re-fetch returns null", async () => {
-      const expired = makeMockReservation({ status: ReservationStatus.CONFIRMED });
+      const expired = makeMockReservation({
+        status: ReservationStatus.CONFIRMED,
+      });
       mockReservationRepo.find.mockResolvedValue([expired]);
 
       mockManager.findOne.mockResolvedValueOnce(null); // null = already deleted
@@ -826,8 +865,14 @@ describe("InventoryReservationService (unit)", () => {
     });
 
     it("should continue processing remaining reservations after one fails", async () => {
-      const expired1 = makeMockReservation({ id: "res-1", status: ReservationStatus.PENDING });
-      const expired2 = makeMockReservation({ id: "res-2", status: ReservationStatus.CONFIRMED });
+      const expired1 = makeMockReservation({
+        id: "res-1",
+        status: ReservationStatus.PENDING,
+      });
+      const expired2 = makeMockReservation({
+        id: "res-2",
+        status: ReservationStatus.CONFIRMED,
+      });
       mockReservationRepo.find.mockResolvedValue([expired1, expired2]);
 
       // First transaction throws, second succeeds

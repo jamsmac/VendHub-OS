@@ -148,6 +148,7 @@ export class AchievementService {
     if (userId) {
       const userAchievements = await this.userAchievementRepo.find({
         where: { userId, organizationId },
+        take: 1000,
       });
       userUnlockMap = new Map(
         userAchievements.map((ua) => [ua.achievementId, ua.unlockedAt]),
@@ -217,6 +218,7 @@ export class AchievementService {
       where: { userId, organizationId },
       relations: ["achievement"],
       order: { unlockedAt: "DESC" },
+      take: 1000,
     });
 
     return userAchievements.map((ua) => ({
@@ -271,6 +273,7 @@ export class AchievementService {
     // Get all active achievements for the organization
     const achievements = await this.achievementRepo.find({
       where: { organizationId, isActive: true },
+      take: 1000,
     });
 
     if (achievements.length === 0) return [];
@@ -279,6 +282,7 @@ export class AchievementService {
     const unlocked = await this.userAchievementRepo.find({
       where: { userId, organizationId },
       select: ["achievementId"],
+      take: 1000,
     });
     const unlockedIds = new Set(unlocked.map((ua) => ua.achievementId));
 

@@ -107,7 +107,7 @@ describe("Vhm24IntegrationService", () => {
     it("should create and save task links", async () => {
       const createdLinks = tasks.map((t, i) => ({
         id: `link-uuid-${i}`,
-        tripId,
+        routeId: tripId,
         ...t,
         verificationRadiusM: t.verificationRadiusM ?? 100,
         verificationStatus: "pending",
@@ -155,16 +155,16 @@ describe("Vhm24IntegrationService", () => {
     const tripId = "trip-uuid-1";
     const stop: Partial<TripStop> = {
       id: "stop-uuid-1",
-      tripId,
+      routeId: tripId,
       latitude: 41.3111,
       longitude: 69.2797,
-      durationSeconds: 300,
+      actualDurationSeconds: 300,
     };
 
     it("should verify tasks within radius", async () => {
       const pendingLink = {
         id: "link-1",
-        tripId,
+        routeId: tripId,
         vhm24TaskId: "task-1",
         verificationStatus: "pending",
         expectedLatitude: 41.3112,
@@ -198,7 +198,7 @@ describe("Vhm24IntegrationService", () => {
     it("should not verify tasks outside radius", async () => {
       const pendingLink = {
         id: "link-1",
-        tripId,
+        routeId: tripId,
         vhm24TaskId: "task-1",
         verificationStatus: "pending",
         expectedLatitude: 41.5,
@@ -218,7 +218,7 @@ describe("Vhm24IntegrationService", () => {
     it("should skip tasks without expected coordinates", async () => {
       const pendingLink = {
         id: "link-1",
-        tripId,
+        routeId: tripId,
         vhm24TaskId: "task-1",
         verificationStatus: "pending",
         expectedLatitude: null,
@@ -245,14 +245,14 @@ describe("Vhm24IntegrationService", () => {
       const stops = [
         {
           id: "s1",
-          tripId,
+          routeId: tripId,
           latitude: 41.31,
           longitude: 69.28,
           startedAt: new Date(),
         },
         {
           id: "s2",
-          tripId,
+          routeId: tripId,
           latitude: 41.32,
           longitude: 69.29,
           startedAt: new Date(),
@@ -261,7 +261,7 @@ describe("Vhm24IntegrationService", () => {
 
       const pendingLink = {
         id: "link-1",
-        tripId,
+        routeId: tripId,
         verificationStatus: "pending",
         expectedLatitude: 41.31,
         expectedLongitude: 69.28,
@@ -291,7 +291,7 @@ describe("Vhm24IntegrationService", () => {
       const stops = [
         {
           id: "s1",
-          tripId,
+          routeId: tripId,
           latitude: 41.5,
           longitude: 69.5,
           startedAt: new Date(),
@@ -300,7 +300,7 @@ describe("Vhm24IntegrationService", () => {
 
       const pendingLink = {
         id: "link-1",
-        tripId,
+        routeId: tripId,
         verificationStatus: "pending",
         expectedLatitude: 41.31,
         expectedLongitude: 69.28,
@@ -323,7 +323,7 @@ describe("Vhm24IntegrationService", () => {
     it("should mark as skipped when no stops exist", async () => {
       const pendingLink = {
         id: "link-1",
-        tripId,
+        routeId: tripId,
         verificationStatus: "pending",
         expectedLatitude: 41.31,
         expectedLongitude: 69.28,
@@ -342,7 +342,7 @@ describe("Vhm24IntegrationService", () => {
     it("should skip tasks without expected coordinates", async () => {
       const pendingLink = {
         id: "link-1",
-        tripId,
+        routeId: tripId,
         verificationStatus: "pending",
         expectedLatitude: null,
         expectedLongitude: null,

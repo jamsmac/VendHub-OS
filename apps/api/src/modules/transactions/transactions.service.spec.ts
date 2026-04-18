@@ -23,6 +23,8 @@ import {
   RecipeIngredient,
   IngredientBatch,
 } from "../products/entities/product.entity";
+import { SaleIngredient } from "./entities/sale-ingredient.entity";
+import { ContainersService } from "../containers/containers.service";
 
 describe("TransactionsService", () => {
   let service: TransactionsService;
@@ -191,6 +193,23 @@ describe("TransactionsService", () => {
             create: jest.fn(),
             save: jest.fn(),
             createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
+          },
+        },
+        {
+          provide: getRepositoryToken(SaleIngredient),
+          useValue: {
+            findOne: jest.fn(),
+            find: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+            createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
+          },
+        },
+        {
+          provide: ContainersService,
+          useValue: {
+            deductIngredients: jest.fn(),
+            getContainersByMachine: jest.fn().mockResolvedValue([]),
           },
         },
         {

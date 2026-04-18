@@ -1,3 +1,8 @@
+jest.mock("@nestjs/axios", () => ({
+  HttpService: class HttpService {},
+  HttpModule: class HttpModule {},
+}));
+
 import request from "supertest";
 import { HttpStatus } from "@nestjs/common";
 import {

@@ -1,5 +1,9 @@
 import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
 import { CustomerLoyaltyService } from "./customer-loyalty.service";
+import { ClientUser } from "../../client/entities/client-user.entity";
+import { ClientLoyaltyAccount } from "../../client/entities/client-loyalty-account.entity";
+import { ClientLoyaltyLedger } from "../../client/entities/client-loyalty-ledger.entity";
 
 function createMockContext(overrides: any = {}) {
   return {
@@ -18,8 +22,27 @@ describe("CustomerLoyaltyService", () => {
   let service: CustomerLoyaltyService;
 
   beforeEach(async () => {
+    const mockRepo = () => ({
+      find: jest.fn(),
+      findOne: jest.fn(),
+      save: jest.fn(),
+      create: jest.fn(),
+      createQueryBuilder: jest.fn(),
+    });
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [CustomerLoyaltyService],
+      providers: [
+        CustomerLoyaltyService,
+        { provide: getRepositoryToken(ClientUser), useValue: mockRepo() },
+        {
+          provide: getRepositoryToken(ClientLoyaltyAccount),
+          useValue: mockRepo(),
+        },
+        {
+          provide: getRepositoryToken(ClientLoyaltyLedger),
+          useValue: mockRepo(),
+        },
+      ],
     }).compile();
 
     service = module.get<CustomerLoyaltyService>(CustomerLoyaltyService);
@@ -35,14 +58,14 @@ describe("CustomerLoyaltyService", () => {
   // ==========================================================================
 
   describe("showLoyaltyOverview", () => {
-    it('should reply with loyalty "coming soon" message', async () => {
+    it("should reply with registration prompt when user not found", async () => {
       const ctx = createMockContext();
       await service.showLoyaltyOverview(ctx);
 
       expect(ctx.reply).toHaveBeenCalledTimes(1);
       const text = ctx.reply.mock.calls[0][0] as string;
       expect(text).toContain("Бонусная программа");
-      expect(text).toContain("скоро будет запущена");
+      expect(text).toContain("Зарегистрируйтесь");
     });
 
     it("should edit message when called from callback", async () => {
@@ -62,15 +85,6 @@ describe("CustomerLoyaltyService", () => {
       expect(ctx.reply).toHaveBeenCalledTimes(1);
     });
 
-    it("should mention loyalty tiers in the overview", async () => {
-      const ctx = createMockContext();
-      await service.showLoyaltyOverview(ctx);
-
-      const text = ctx.reply.mock.calls[0][0] as string;
-      expect(text).toContain("Bronze");
-      expect(text).toContain("Diamond");
-    });
-
     it('should include a "tiers" button', async () => {
       const ctx = createMockContext();
       await service.showLoyaltyOverview(ctx);
@@ -85,14 +99,14 @@ describe("CustomerLoyaltyService", () => {
   // ==========================================================================
 
   describe("showPointsHistory", () => {
-    it('should show "coming soon" placeholder for points history', async () => {
+    it("should show empty history when user has no entries", async () => {
       const ctx = createMockContext();
       await service.showPointsHistory(ctx);
 
       expect(ctx.reply).toHaveBeenCalledTimes(1);
       const text = ctx.reply.mock.calls[0][0] as string;
       expect(text).toContain("История баллов");
-      expect(text).toContain("скоро будет доступна");
+      expect(text).toContain("Пока нет начислений");
     });
 
     it("should edit message when called from callback", async () => {

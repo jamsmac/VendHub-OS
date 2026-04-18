@@ -3,6 +3,16 @@ import { getRepositoryToken } from "@nestjs/typeorm";
 import { ConfigService } from "@nestjs/config";
 import { Repository, ObjectLiteral } from "typeorm";
 import { TelegramCustomerBotService } from "./telegram-customer-bot.service";
+import { CustomerHandlersService } from "./services/customer-handlers.service";
+import { CustomerMenuService } from "./services/customer-menu.service";
+import { CustomerCatalogService } from "./services/customer-catalog.service";
+import { CustomerLoyaltyService } from "./services/customer-loyalty.service";
+import { CustomerOrdersService } from "./services/customer-orders.service";
+import { CustomerComplaintsService } from "./services/customer-complaints.service";
+import { CustomerLocationService } from "./services/customer-location.service";
+import { CustomerCartService } from "./services/customer-cart.service";
+import { CustomerEngagementService } from "./services/customer-engagement.service";
+import { ClientUser } from "../client/entities/client-user.entity";
 import { Transaction } from "../transactions/entities/transaction.entity";
 import {
   Complaint,
@@ -53,10 +63,29 @@ describe("TelegramCustomerBotService", () => {
     machineRepo = createMockRepository<Machine>();
     configService = { get: jest.fn().mockReturnValue(undefined) }; // No token = bot disabled
 
+    const mockSubService = () => ({ setBot: jest.fn() });
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TelegramCustomerBotService,
         { provide: ConfigService, useValue: configService },
+        {
+          provide: getRepositoryToken(ClientUser),
+          useValue: createMockRepository<ClientUser>(),
+        },
+        {
+          provide: CustomerHandlersService,
+          useValue: mockSubService(),
+        },
+        { provide: CustomerMenuService, useValue: mockSubService() },
+        { provide: CustomerCatalogService, useValue: mockSubService() },
+        { provide: CustomerLoyaltyService, useValue: mockSubService() },
+        { provide: CustomerOrdersService, useValue: mockSubService() },
+        { provide: CustomerComplaintsService, useValue: mockSubService() },
+        { provide: CustomerLocationService, useValue: mockSubService() },
+        { provide: CustomerCartService, useValue: mockSubService() },
+        { provide: CustomerEngagementService, useValue: mockSubService() },
+        // Legacy repos kept for integration-like tests below
         { provide: getRepositoryToken(Transaction), useValue: transactionRepo },
         { provide: getRepositoryToken(Complaint), useValue: complaintRepo },
         { provide: getRepositoryToken(Machine), useValue: machineRepo },
@@ -104,30 +133,43 @@ describe("TelegramCustomerBotService", () => {
   });
 
   // ==========================================================================
-  // sendComplaintStatusUpdate
+  // sendMessage
   // ==========================================================================
 
-  describe("sendComplaintStatusUpdate", () => {
-    it("should not throw when bot is not initialized", async () => {
-      await expect(
-        service.sendComplaintStatusUpdate("123456", {
-          id: "c1",
-          ticketNumber: "TK-001",
-          status: ComplaintStatus.PENDING,
-        } as any),
-      ).resolves.not.toThrow();
+  describe("sendMessage", () => {
+    it("should return false when bot is not initialized", async () => {
+      const result = await service.sendMessage("123456", "Hello");
+      expect(result).toBe(false);
     });
   });
 
   // ==========================================================================
-  // sendRefundNotification
+  // sendOrderStatusNotification
   // ==========================================================================
 
-  describe("sendRefundNotification", () => {
-    it("should not throw when bot is not initialized", async () => {
-      await expect(
-        service.sendRefundNotification("123456", 50000, "approved"),
-      ).resolves.not.toThrow();
+  describe("sendOrderStatusNotification", () => {
+    it("should return false when bot is not initialized", async () => {
+      const result = await service.sendOrderStatusNotification(
+        "123456",
+        "ORD-001",
+        "COMPLETED",
+      );
+      expect(result).toBe(false);
+    });
+  });
+
+  // ==========================================================================
+  // sendComplaintStatusNotification
+  // ==========================================================================
+
+  describe("sendComplaintStatusNotification", () => {
+    it("should return false when bot is not initialized", async () => {
+      const result = await service.sendComplaintStatusNotification(
+        "123456",
+        "TK-001",
+        "IN_PROGRESS",
+      );
+      expect(result).toBe(false);
     });
   });
 

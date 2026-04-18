@@ -168,6 +168,7 @@ describe("ContainersService", () => {
       expect(containerRepository.find).toHaveBeenCalledWith({
         where: { machineId, organizationId: orgId },
         order: { slotNumber: "ASC" },
+        take: 1000,
       });
     });
   });

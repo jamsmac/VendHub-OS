@@ -319,6 +319,7 @@ export class PaymentsService {
         organizationId,
         status: PaymentRefundStatus.COMPLETED,
       },
+      take: 1000,
     });
     const totalRefunded = existingRefunds.reduce(
       (sum, r) => sum + Number(r.amount),
@@ -453,6 +454,7 @@ export class PaymentsService {
           paymentTransactionId: transaction.id,
           organizationId: transaction.organizationId,
         },
+        take: 1000,
       });
       const totalRefunded = allRefunds
         .filter(

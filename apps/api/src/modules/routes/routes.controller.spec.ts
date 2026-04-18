@@ -7,6 +7,7 @@ import {
 import { RoutesController } from "./routes.controller";
 import { RoutesService } from "./routes.service";
 import { RouteOptimizationService } from "./route-optimization.service";
+import { RouteAnalyticsService } from "./services/route-analytics.service";
 
 describe("RoutesController", () => {
   let app: any;
@@ -15,6 +16,15 @@ describe("RoutesController", () => {
   beforeAll(async () => {
     const mockOptService = {
       optimizeRoute: jest.fn().mockResolvedValue({ optimized: true }),
+    };
+
+    const mockAnalyticsService = {
+      getMainDashboard: jest.fn().mockResolvedValue({}),
+      getActivityDashboard: jest.fn().mockResolvedValue({}),
+      getEmployeeDashboard: jest.fn().mockResolvedValue({}),
+      getVehiclesDashboard: jest.fn().mockResolvedValue({}),
+      getAnomaliesDashboard: jest.fn().mockResolvedValue({}),
+      getTaxiDashboard: jest.fn().mockResolvedValue({}),
     };
 
     ({ app, mockService } = await createControllerTestApp(
@@ -27,14 +37,30 @@ describe("RoutesController", () => {
         "update",
         "remove",
         "startRoute",
-        "completeRoute",
+        "endRoute",
+        "cancelRoute",
+        "getActiveRoutes",
+        "getRoutesSummary",
+        "listUnresolvedAnomalies",
         "getStops",
         "addStop",
         "updateStop",
         "removeStop",
         "reorderStops",
+        "addPoint",
+        "addPointsBatch",
+        "getRouteTrack",
+        "updateLiveLocationStatus",
+        "getRouteTasks",
+        "linkTask",
+        "completeLinkedTask",
+        "getRouteAnomalies",
+        "resolveAnomaly",
       ],
-      [{ provide: RouteOptimizationService, useValue: mockOptService }],
+      [
+        { provide: RouteOptimizationService, useValue: mockOptService },
+        { provide: RouteAnalyticsService, useValue: mockAnalyticsService },
+      ],
     ));
   });
 
@@ -118,10 +144,10 @@ describe("RoutesController", () => {
       .expect(HttpStatus.CREATED);
   });
 
-  it("POST /routes/:id/complete returns 201", async () => {
-    mockService.completeRoute.mockResolvedValue({});
+  it("POST /routes/:id/end returns 201", async () => {
+    mockService.endRoute.mockResolvedValue({});
     await request(app.getHttpServer())
-      .post(`/routes/${TEST_UUID}/complete`)
+      .post(`/routes/${TEST_UUID}/end`)
       .set("Authorization", "Bearer operator-token")
       .send({})
       .expect(HttpStatus.CREATED);
