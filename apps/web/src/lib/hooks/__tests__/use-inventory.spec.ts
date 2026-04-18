@@ -112,7 +112,7 @@ beforeEach(() => {
 describe("useWarehouses", () => {
   it("fetches warehouses", async () => {
     mockWarehousesGetAll.mockResolvedValueOnce({
-      data: sampleWarehouses,
+      data: { data: sampleWarehouses },
     } as never);
 
     const { result } = renderHook(() => useWarehouses(), {
@@ -127,7 +127,9 @@ describe("useWarehouses", () => {
 
 describe("useAllInventory", () => {
   it("fetches all inventory items", async () => {
-    mockInventoryGetWarehouse.mockResolvedValueOnce({ data: [] } as never);
+    mockInventoryGetWarehouse.mockResolvedValueOnce({
+      data: { data: [] },
+    } as never);
 
     const { result } = renderHook(() => useAllInventory(), {
       wrapper: createWrapperWithClient().wrapper,

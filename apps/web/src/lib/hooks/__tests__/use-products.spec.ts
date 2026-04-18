@@ -116,7 +116,9 @@ beforeEach(() => {
 
 describe("useProducts", () => {
   it("fetches all products", async () => {
-    mockGetAll.mockResolvedValueOnce({ data: sampleProducts } as never);
+    mockGetAll.mockResolvedValueOnce({
+      data: { data: sampleProducts },
+    } as never);
 
     const { result } = renderHook(() => useProducts(), {
       wrapper: createWrapperWithClient().wrapper,
@@ -151,7 +153,9 @@ describe("useProduct", () => {
 
 describe("useProductStats", () => {
   it("calculates stats from products data", async () => {
-    mockGetAll.mockResolvedValueOnce({ data: sampleProducts } as never);
+    mockGetAll.mockResolvedValueOnce({
+      data: { data: sampleProducts },
+    } as never);
 
     const { result } = renderHook(() => useProductStats(), {
       wrapper: createWrapperWithClient().wrapper,

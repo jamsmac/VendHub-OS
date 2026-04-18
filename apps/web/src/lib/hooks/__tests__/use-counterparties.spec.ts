@@ -41,7 +41,9 @@ beforeEach(() => {
 
 describe("useCounterparties", () => {
   it("fetches all counterparties", async () => {
-    mockGet.mockResolvedValueOnce({ data: sampleCounterparties } as never);
+    mockGet.mockResolvedValueOnce({
+      data: { items: sampleCounterparties },
+    } as never);
 
     const { result } = renderHook(() => useCounterparties(), {
       wrapper: createWrapperWithClient().wrapper,
@@ -87,7 +89,7 @@ describe("useContracts", () => {
         status: "active",
       },
     ];
-    mockGet.mockResolvedValueOnce({ data: contracts } as never);
+    mockGet.mockResolvedValueOnce({ data: { items: contracts } } as never);
 
     const { result } = renderHook(() => useContracts(), {
       wrapper: createWrapperWithClient().wrapper,

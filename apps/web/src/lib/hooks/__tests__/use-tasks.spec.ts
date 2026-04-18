@@ -114,7 +114,7 @@ beforeEach(() => {
 
 describe("useTasks", () => {
   it("fetches tasks with default limit 100", async () => {
-    mockGetAll.mockResolvedValueOnce({ data: sampleTasks } as never);
+    mockGetAll.mockResolvedValueOnce({ data: { data: sampleTasks } } as never);
 
     const { result } = renderHook(() => useTasks(), {
       wrapper: createWrapperWithClient().wrapper,
@@ -126,7 +126,7 @@ describe("useTasks", () => {
   });
 
   it("accepts custom limit", async () => {
-    mockGetAll.mockResolvedValueOnce({ data: sampleTasks } as never);
+    mockGetAll.mockResolvedValueOnce({ data: { data: sampleTasks } } as never);
 
     renderHook(() => useTasks(50), {
       wrapper: createWrapperWithClient().wrapper,
@@ -173,7 +173,7 @@ describe("useTaskStats", () => {
   });
 
   it("calculates correct stats including overdue", async () => {
-    mockGetAll.mockResolvedValueOnce({ data: sampleTasks } as never);
+    mockGetAll.mockResolvedValueOnce({ data: { data: sampleTasks } } as never);
 
     const { result } = renderHook(() => useTaskStats(), {
       wrapper: createWrapperWithClient().wrapper,
@@ -193,7 +193,9 @@ describe("useTaskStats", () => {
 describe("useTasksByAssignee", () => {
   it("fetches tasks filtered by assignee", async () => {
     const assigneeTasks = sampleTasks.filter((t) => t.assignee_id === "u-1");
-    mockGetAll.mockResolvedValueOnce({ data: assigneeTasks } as never);
+    mockGetAll.mockResolvedValueOnce({
+      data: { data: assigneeTasks },
+    } as never);
 
     const { result } = renderHook(() => useTasksByAssignee("u-1"), {
       wrapper: createWrapperWithClient().wrapper,
@@ -214,7 +216,9 @@ describe("useTasksByAssignee", () => {
 
 describe("useTasksByMachine", () => {
   it("fetches tasks filtered by machine", async () => {
-    mockGetAll.mockResolvedValueOnce({ data: [sampleTasks[0]] } as never);
+    mockGetAll.mockResolvedValueOnce({
+      data: { data: [sampleTasks[0]] },
+    } as never);
 
     const { result } = renderHook(() => useTasksByMachine("m-1"), {
       wrapper: createWrapperWithClient().wrapper,

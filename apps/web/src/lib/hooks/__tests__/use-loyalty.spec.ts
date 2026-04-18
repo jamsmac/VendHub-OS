@@ -89,7 +89,9 @@ describe("useTopLoyaltyUsers", () => {
         joinedAt: "2026-01-01T00:00:00Z",
       },
     ];
-    mockGetLeaderboard.mockResolvedValueOnce({ data: users } as never);
+    mockGetLeaderboard.mockResolvedValueOnce({
+      data: { entries: users },
+    } as never);
 
     const { result } = renderHook(() => useTopLoyaltyUsers(), {
       wrapper: createWrapperWithClient().wrapper,
@@ -101,7 +103,9 @@ describe("useTopLoyaltyUsers", () => {
   });
 
   it("accepts custom limit", async () => {
-    mockGetLeaderboard.mockResolvedValueOnce({ data: [] } as never);
+    mockGetLeaderboard.mockResolvedValueOnce({
+      data: { entries: [] },
+    } as never);
 
     renderHook(() => useTopLoyaltyUsers(5), {
       wrapper: createWrapperWithClient().wrapper,
@@ -115,7 +119,9 @@ describe("useTopLoyaltyUsers", () => {
 
 describe("useLoyaltyTiers", () => {
   it("fetches tiers", async () => {
-    mockGetLevelsInfo.mockResolvedValueOnce({ data: sampleTiers } as never);
+    mockGetLevelsInfo.mockResolvedValueOnce({
+      data: { levels: sampleTiers },
+    } as never);
 
     const { result } = renderHook(() => useLoyaltyTiers(), {
       wrapper: createWrapperWithClient().wrapper,
@@ -129,7 +135,9 @@ describe("useLoyaltyTiers", () => {
 
 describe("useLoyaltyPrivileges", () => {
   it("derives privileges from tiers", async () => {
-    mockGetLevelsInfo.mockResolvedValueOnce({ data: sampleTiers } as never);
+    mockGetLevelsInfo.mockResolvedValueOnce({
+      data: { levels: sampleTiers },
+    } as never);
 
     const { result } = renderHook(() => useLoyaltyPrivileges(), {
       wrapper: createWrapperWithClient().wrapper,

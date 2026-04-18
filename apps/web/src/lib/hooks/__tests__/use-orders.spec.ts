@@ -107,7 +107,9 @@ beforeEach(() => {
 
 describe("useOrders", () => {
   it("fetches orders with default limit 50", async () => {
-    mockGetAll.mockResolvedValueOnce({ data: sampleOrders } as never);
+    mockGetAll.mockResolvedValueOnce({
+      data: { items: sampleOrders },
+    } as never);
 
     const { result } = renderHook(() => useOrders(), {
       wrapper: createWrapperWithClient().wrapper,
@@ -119,7 +121,7 @@ describe("useOrders", () => {
   });
 
   it("accepts custom limit", async () => {
-    mockGetAll.mockResolvedValueOnce({ data: [] } as never);
+    mockGetAll.mockResolvedValueOnce({ data: { items: [] } } as never);
 
     renderHook(() => useOrders(10), {
       wrapper: createWrapperWithClient().wrapper,

@@ -91,7 +91,9 @@ describe("useTeamMembers", () => {
 
 describe("useTeamStats", () => {
   it("computes team stats client-side from usersApi.getAll()", async () => {
-    mockGetAll.mockResolvedValueOnce({ data: sampleMembers } as never);
+    mockGetAll.mockResolvedValueOnce({
+      data: { data: sampleMembers },
+    } as never);
 
     const { result } = renderHook(() => useTeamStats(), {
       wrapper: createWrapperWithClient().wrapper,
@@ -110,7 +112,9 @@ describe("useTeamStats", () => {
 
 describe("useUsersByRole", () => {
   it("filters users by role client-side from usersApi.getAll()", async () => {
-    mockGetAll.mockResolvedValueOnce({ data: sampleMembers } as never);
+    mockGetAll.mockResolvedValueOnce({
+      data: { data: sampleMembers },
+    } as never);
 
     const { result } = renderHook(() => useUsersByRole("admin"), {
       wrapper: createWrapperWithClient().wrapper,

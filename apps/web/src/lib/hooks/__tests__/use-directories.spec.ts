@@ -58,7 +58,9 @@ beforeEach(() => {
 
 describe("useDirectories", () => {
   it("fetches all directories", async () => {
-    mockGetAll.mockResolvedValueOnce({ data: sampleDirectories } as never);
+    mockGetAll.mockResolvedValueOnce({
+      data: { data: sampleDirectories },
+    } as never);
 
     const { result } = renderHook(() => useDirectories(), {
       wrapper: createWrapperWithClient().wrapper,
@@ -105,7 +107,7 @@ describe("useDirectoryEntries", () => {
         updated_at: "2026-03-01T00:00:00Z",
       },
     ];
-    mockGetEntries.mockResolvedValueOnce({ data: entries } as never);
+    mockGetEntries.mockResolvedValueOnce({ data: { data: entries } } as never);
 
     const { result } = renderHook(() => useDirectoryEntries("d-1"), {
       wrapper: createWrapperWithClient().wrapper,
