@@ -99,12 +99,12 @@ jobs:
           CI: true
 
       - name: Run site unit tests
-        run: pnpm --filter site test --passWithNoTests
+        run: pnpm --filter site test -- --passWithNoTests
         env:
           CI: true
 
       - name: Run mobile unit tests
-        run: pnpm --filter mobile test --passWithNoTests
+        run: pnpm --filter mobile test -- --passWithNoTests
         env:
           CI: true
 
@@ -465,8 +465,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
