@@ -98,16 +98,36 @@ export const appConfig = registerAs("app", () => ({
     process.env.AGENT_MODE === "true" && process.env.NODE_ENV !== "production",
   sentryDsn: process.env.SENTRY_DSN || undefined,
   jwtSecret: (() => {
-    const secret = process.env.JWT_SECRET;
-    if (!secret && process.env.NODE_ENV === "production") {
-      throw new Error("JWT_SECRET must be set in production");
-    }
-    if (!secret) {
+    let jwtSecret = process.env.JWT_SECRET;
+    const env = process.env.NODE_ENV ?? "development";
+    const DEV_SENTINEL = "vendhub-dev-secret-unsafe";
+    const allowDevFallback = process.env.ALLOW_DEV_FALLBACK === "true";
+    const isDevEnv = env === "development";
+    const isProdLike = ["production", "staging", "preview"].includes(env);
+
+    if (!jwtSecret || jwtSecret.length < 32) {
+      if (isProdLike) {
+        throw new Error(
+          `JWT_SECRET must be set and >=32 chars in ${env}. Refusing to boot.`,
+        );
+      }
+      if (env === "test" && !allowDevFallback) {
+        throw new Error(
+          "JWT_SECRET missing in test env. Set a real secret or ALLOW_DEV_FALLBACK=true explicitly.",
+        );
+      }
+      if (!isDevEnv && !allowDevFallback) {
+        throw new Error(
+          `JWT_SECRET missing in ${env}. Set ALLOW_DEV_FALLBACK=true to opt into the dev sentinel.`,
+        );
+      }
+      jwtSecret = DEV_SENTINEL;
+
       console.warn(
-        "⚠ JWT_SECRET not set — using insecure dev-only fallback. Do NOT use in staging or production.",
+        `[env.config] Using insecure dev JWT sentinel in ${env} (ALLOW_DEV_FALLBACK=${allowDevFallback}).`,
       );
     }
-    return secret || "change-me-dev-only";
+    return jwtSecret;
   })(),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "15m",
   apiUrl: process.env.API_URL || "http://localhost:4000",

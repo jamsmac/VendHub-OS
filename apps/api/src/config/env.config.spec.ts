@@ -78,47 +78,102 @@ describe("parseRedisUrl", () => {
 describe("appConfig — jwtSecret invariant", () => {
   const originalEnv = process.env;
 
-  beforeEach(() => {
-    jest.resetModules();
-    process.env = { ...originalEnv };
-    delete process.env.JWT_SECRET;
-  });
+  function loadAppConfig(
+    envOverrides: Record<string, string | undefined>,
+  ): Record<string, unknown> {
+    let result: Record<string, unknown>;
+    jest.isolateModules(() => {
+      process.env = { ...originalEnv, ...envOverrides };
+      delete process.env.JWT_SECRET;
+      if (envOverrides.JWT_SECRET !== undefined) {
+        process.env.JWT_SECRET = envOverrides.JWT_SECRET;
+      }
 
-  afterAll(() => {
+      const mod = require("./env.config");
+      const factory = mod.appConfig as unknown as () => Record<string, unknown>;
+      result = factory();
+    });
+    return result!;
+  }
+
+  function loadAppConfigThrows(
+    envOverrides: Record<string, string | undefined>,
+  ): void {
+    jest.isolateModules(() => {
+      process.env = { ...originalEnv, ...envOverrides };
+      delete process.env.JWT_SECRET;
+      if (envOverrides.JWT_SECRET !== undefined) {
+        process.env.JWT_SECRET = envOverrides.JWT_SECRET;
+      }
+
+      const mod = require("./env.config");
+      const factory = mod.appConfig as unknown as () => Record<string, unknown>;
+      factory();
+    });
+  }
+
+  afterEach(() => {
     process.env = originalEnv;
+    jest.restoreAllMocks();
   });
 
-  it("throws in production when JWT_SECRET is missing", async () => {
-    process.env.NODE_ENV = "production";
-
-    const mod = await import("./env.config");
-    const factory = mod.appConfig as unknown as () => Record<string, unknown>;
-    expect(() => factory()).toThrow("JWT_SECRET must be set in production");
-  });
-
-  it("falls back to dev-only value in development (with warning)", async () => {
-    process.env.NODE_ENV = "development";
-    const warnSpy = jest.spyOn(console, "warn").mockImplementation();
-
-    const mod = await import("./env.config");
-    const factory = mod.appConfig as unknown as () => Record<string, unknown>;
-    const config = factory();
-
-    expect(config.jwtSecret).toBe("change-me-dev-only");
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining("JWT_SECRET not set"),
+  it("throws in production without JWT_SECRET", () => {
+    expect(() => loadAppConfigThrows({ NODE_ENV: "production" })).toThrow(
+      /JWT_SECRET must be set.*production/,
     );
-    warnSpy.mockRestore();
   });
 
-  it("uses the provided JWT_SECRET when set", async () => {
-    process.env.NODE_ENV = "production";
-    process.env.JWT_SECRET = "real-production-secret-value";
+  it("throws in staging without JWT_SECRET", () => {
+    expect(() => loadAppConfigThrows({ NODE_ENV: "staging" })).toThrow(
+      /JWT_SECRET must be set.*staging/,
+    );
+  });
 
-    const mod = await import("./env.config");
-    const factory = mod.appConfig as unknown as () => Record<string, unknown>;
-    const config = factory();
+  it("throws in preview without JWT_SECRET", () => {
+    expect(() => loadAppConfigThrows({ NODE_ENV: "preview" })).toThrow(
+      /JWT_SECRET must be set.*preview/,
+    );
+  });
 
-    expect(config.jwtSecret).toBe("real-production-secret-value");
+  it("throws in test without JWT_SECRET and without ALLOW_DEV_FALLBACK", () => {
+    expect(() => loadAppConfigThrows({ NODE_ENV: "test" })).toThrow(
+      /JWT_SECRET missing in test/,
+    );
+  });
+
+  it("uses sentinel in test with ALLOW_DEV_FALLBACK=true", () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation();
+    const config = loadAppConfig({
+      NODE_ENV: "test",
+      ALLOW_DEV_FALLBACK: "true",
+    });
+    expect(config.jwtSecret).toBe("vendhub-dev-secret-unsafe");
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("insecure dev JWT sentinel"),
+    );
+  });
+
+  it("uses sentinel in development without JWT_SECRET (no opt-in needed)", () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation();
+    const config = loadAppConfig({ NODE_ENV: "development" });
+    expect(config.jwtSecret).toBe("vendhub-dev-secret-unsafe");
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("insecure dev JWT sentinel"),
+    );
+  });
+
+  it("uses the real secret in any env when JWT_SECRET >=32 chars is set", () => {
+    const secret = "a]3kF9!mPqR7xZ2w@LnYv5dH8cBtG0jE";
+    const config = loadAppConfig({
+      NODE_ENV: "production",
+      JWT_SECRET: secret,
+    });
+    expect(config.jwtSecret).toBe(secret);
+  });
+
+  it("rejects a short JWT_SECRET (<32 chars) in production", () => {
+    expect(() =>
+      loadAppConfigThrows({ NODE_ENV: "production", JWT_SECRET: "tooshort" }),
+    ).toThrow(/JWT_SECRET must be set and >=32 chars/);
   });
 });
