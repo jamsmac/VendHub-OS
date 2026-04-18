@@ -76,19 +76,25 @@
       "diff": ">=5.0.0",
       "qs": ">=6.14.2",
       "rollup": ">=4.59.0",
-      "serialize-javascript": ">=7.0.3",
+      "serialize-javascript": ">=7.0.5",
       "esbuild": ">=0.25.0",
       "is-fullwidth-code-point": "3.0.0",
-      "react-server-dom-webpack": ">=19.0.2",
+      "react-server-dom-webpack": ">=19.2.5",
       "flatted": ">=3.4.2",
       "undici": ">=6.24.0",
       "socket.io-parser": ">=4.2.6",
       "handlebars": ">=4.7.9",
-      "path-to-regexp": ">=0.1.13",
+      "path-to-regexp": ">=8.4.0",
       "node-forge": ">=1.4.0",
-      "picomatch": ">=2.3.2",
+      "picomatch": ">=4.0.4",
+      "brace-expansion": ">=5.0.5",
+      "ajv": ">=8.18.0",
+      "follow-redirects": ">=1.16.0",
+      "yaml": ">=2.8.3",
+      "@tootallnate/once": ">=3.0.1",
       "axios": ">=1.15.0",
-      "@xmldom/xmldom": ">=0.9.9"
+      "@xmldom/xmldom": ">=0.9.9",
+      "typescript": "~5.9.3"
     }
   }
 }
