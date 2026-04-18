@@ -354,7 +354,7 @@ export const navigation: NavItem[] = [
   {
     nameKey: "achievements",
     fallback: "Achievements",
-    href: "/dashboard/achievements",
+    href: "/dashboard/loyalty/achievements",
     icon: Trophy,
     roles: MANAGEMENT,
     section: "marketing",
@@ -362,7 +362,7 @@ export const navigation: NavItem[] = [
   {
     nameKey: "promoCodes",
     fallback: "Promo Codes",
-    href: "/dashboard/promo-codes",
+    href: "/dashboard/loyalty/promo-codes",
     icon: Ticket,
     roles: MANAGEMENT,
     section: "marketing",
@@ -370,7 +370,7 @@ export const navigation: NavItem[] = [
   {
     nameKey: "quests",
     fallback: "Quests",
-    href: "/dashboard/quests",
+    href: "/dashboard/loyalty/quests",
     icon: Swords,
     roles: MANAGEMENT,
     section: "marketing",

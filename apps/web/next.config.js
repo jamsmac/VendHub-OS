@@ -41,6 +41,31 @@ const nextConfig = {
     unoptimized: process.env.NODE_ENV === "development",
   },
 
+  async redirects() {
+    return [
+      {
+        source: "/dashboard/achievements",
+        destination: "/dashboard/loyalty/achievements",
+        permanent: true,
+      },
+      {
+        source: "/dashboard/counterparty",
+        destination: "/dashboard/counterparties",
+        permanent: true,
+      },
+      {
+        source: "/dashboard/promo-codes",
+        destination: "/dashboard/loyalty/promo-codes",
+        permanent: true,
+      },
+      {
+        source: "/dashboard/quests",
+        destination: "/dashboard/loyalty/quests",
+        permanent: true,
+      },
+    ];
+  },
+
   async rewrites() {
     return [
       {
