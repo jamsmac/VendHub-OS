@@ -38,7 +38,8 @@ describe("ComplaintsController", () => {
         "resolve",
         "escalate",
         "reject",
-        "submitFeedback",
+        "submitFeedbackByToken",
+        "generateFeedbackToken",
         "getComments",
         "addComment",
         "createRefund",
@@ -84,11 +85,10 @@ describe("ComplaintsController", () => {
       .expect(HttpStatus.OK);
   });
 
-  it("POST /complaints/:id/feedback returns 200", async () => {
-    mockService.submitFeedback.mockResolvedValue({});
+  it("POST /complaints/feedback/:token returns 200", async () => {
+    mockService.submitFeedbackByToken.mockResolvedValue({});
     await request(app.getHttpServer())
-      .post(`/complaints/${TEST_UUID}/feedback`)
-      .set("Authorization", "Bearer admin-token")
+      .post("/complaints/feedback/valid-test-token")
       .send({ rating: 5, comment: "Great" })
       .expect(HttpStatus.OK);
   });

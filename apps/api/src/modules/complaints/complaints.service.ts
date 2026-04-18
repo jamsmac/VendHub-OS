@@ -81,7 +81,10 @@ export class ComplaintsService {
     return this.core.findById(id, organizationId);
   }
 
-  findByNumber(ticketNumber: string, organizationId?: string): Promise<Complaint> {
+  findByNumber(
+    ticketNumber: string,
+    organizationId?: string,
+  ): Promise<Complaint> {
     return this.core.findByNumber(ticketNumber, organizationId);
   }
 
@@ -177,7 +180,10 @@ export class ComplaintsService {
 
   // ── Comments & Feedback ────────────────────────────────
 
-  addComment(dto: CreateCommentDto, organizationId?: string): Promise<ComplaintComment> {
+  addComment(
+    dto: CreateCommentDto,
+    organizationId?: string,
+  ): Promise<ComplaintComment> {
     return this.core.addComment(dto, organizationId);
   }
 
@@ -188,13 +194,19 @@ export class ComplaintsService {
     return this.core.getComments(complaintId, includeInternal);
   }
 
-  submitFeedback(
+  generateFeedbackToken(
     complaintId: string,
+    organizationId: string,
+  ): Promise<string> {
+    return this.core.generateFeedbackToken(complaintId, organizationId);
+  }
+
+  submitFeedbackByToken(
+    token: string,
     rating: number,
     comment?: string,
-    organizationId?: string,
   ): Promise<Complaint> {
-    return this.core.submitFeedback(complaintId, rating, comment, organizationId);
+    return this.core.submitFeedbackByToken(token, rating, comment);
   }
 
   // ── Refunds ────────────────────────────────────────────
@@ -231,7 +243,12 @@ export class ComplaintsService {
     reason: string,
     organizationId?: string,
   ): Promise<ComplaintRefund> {
-    return this.refund.rejectRefund(refundId, rejectedById, reason, organizationId);
+    return this.refund.rejectRefund(
+      refundId,
+      rejectedById,
+      reason,
+      organizationId,
+    );
   }
 
   // ── QR Codes ───────────────────────────────────────────
@@ -341,9 +358,7 @@ export class ComplaintsService {
     const merged = {
       ...current,
       ...(dto.sla !== undefined ? { sla: dto.sla } : {}),
-      ...(dto.autoAssign !== undefined
-        ? { autoAssign: dto.autoAssign }
-        : {}),
+      ...(dto.autoAssign !== undefined ? { autoAssign: dto.autoAssign } : {}),
       ...(dto.autoEscalate !== undefined
         ? { autoEscalate: dto.autoEscalate }
         : {}),

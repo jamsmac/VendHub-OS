@@ -1,8 +1,14 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
-import { NotFoundException, BadRequestException } from "@nestjs/common";
+import {
+  NotFoundException,
+  BadRequestException,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
+import { JwtService } from "@nestjs/jwt";
+import { ConfigService } from "@nestjs/config";
 
 import { ComplaintsService } from "./complaints.service";
 import { ComplaintsCoreService } from "./complaints-core.service";
@@ -29,6 +35,7 @@ const ORG_ID = "org-uuid-00000000-0000-0000-0000-000000000001";
 const USER_ID = "user-uuid-00000000-0000-0000-0000-000000000001";
 
 describe("ComplaintsService", () => {
+  let module: TestingModule;
   let service: ComplaintsService;
   let complaintRepo: jest.Mocked<Repository<Complaint>>;
   let commentRepo: jest.Mocked<Repository<ComplaintComment>>;
@@ -110,7 +117,7 @@ describe("ComplaintsService", () => {
   };
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       providers: [
         ComplaintsService,
         ComplaintsCoreService,
@@ -121,6 +128,7 @@ describe("ComplaintsService", () => {
           useValue: {
             findOne: jest.fn(),
             find: jest.fn(),
+            save: jest.fn(),
             manager: { query: jest.fn() },
           },
         },
@@ -219,6 +227,19 @@ describe("ComplaintsService", () => {
           provide: EventEmitter2,
           useValue: {
             emit: jest.fn(),
+          },
+        },
+        {
+          provide: JwtService,
+          useValue: {
+            signAsync: jest.fn(),
+            verifyAsync: jest.fn(),
+          },
+        },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn().mockReturnValue("test-jwt-secret-32chars-minimum!!"),
           },
         },
       ],
@@ -613,15 +634,26 @@ describe("ComplaintsService", () => {
   // SUBMIT FEEDBACK
   // ============================================================================
 
-  describe("submitFeedback", () => {
-    it("should submit satisfaction rating for resolved complaint", async () => {
+  describe("submitFeedbackByToken", () => {
+    let jwtService: jest.Mocked<JwtService>;
+
+    beforeEach(() => {
+      jwtService = module.get(JwtService) as jest.Mocked<JwtService>;
+    });
+
+    it("should accept feedback with a valid token", async () => {
+      jwtService.verifyAsync.mockResolvedValue({
+        cid: "cmp-uuid-2",
+        oid: ORG_ID,
+        scope: "complaint.feedback",
+      });
       complaintRepo.findOne.mockResolvedValue({
         ...mockResolvedComplaint,
       } as any);
       complaintRepo.save.mockImplementation(async (c) => c as Complaint);
 
-      const result = await service.submitFeedback(
-        "cmp-uuid-2",
+      const result = await service.submitFeedbackByToken(
+        "valid-token",
         4,
         "Good support",
       );
@@ -630,22 +662,82 @@ describe("ComplaintsService", () => {
       expect(result.satisfactionFeedback).toBe("Good support");
     });
 
-    it("should throw BadRequestException for non-resolved complaint", async () => {
-      complaintRepo.findOne.mockResolvedValue(mockComplaint); // status is NEW
+    it("should throw UnauthorizedException for expired/invalid token", async () => {
+      jwtService.verifyAsync.mockRejectedValue(new Error("jwt expired"));
 
-      await expect(service.submitFeedback("cmp-uuid-1", 4)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.submitFeedbackByToken("expired-token", 4),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it("should throw UnauthorizedException for wrong scope", async () => {
+      jwtService.verifyAsync.mockResolvedValue({
+        cid: "cmp-uuid-2",
+        oid: ORG_ID,
+        scope: "password.reset",
+      });
+
+      await expect(
+        service.submitFeedbackByToken("wrong-scope-token", 4),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it("should throw NotFoundException for mismatched org", async () => {
+      jwtService.verifyAsync.mockResolvedValue({
+        cid: "cmp-uuid-2",
+        oid: "wrong-org-id",
+        scope: "complaint.feedback",
+      });
+      complaintRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.submitFeedbackByToken("wrong-org-token", 4),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it("should accept reused token (multi-use)", async () => {
+      jwtService.verifyAsync.mockResolvedValue({
+        cid: "cmp-uuid-2",
+        oid: ORG_ID,
+        scope: "complaint.feedback",
+      });
+      complaintRepo.findOne.mockResolvedValue({
+        ...mockResolvedComplaint,
+        satisfactionRating: 3,
+        feedbackReceivedAt: new Date(),
+      } as any);
+      complaintRepo.save.mockImplementation(async (c) => c as Complaint);
+
+      const result = await service.submitFeedbackByToken("valid-token", 5);
+      expect(result.satisfactionRating).toBe(5);
+    });
+
+    it("should throw BadRequestException for non-resolved complaint", async () => {
+      jwtService.verifyAsync.mockResolvedValue({
+        cid: "cmp-uuid-1",
+        oid: ORG_ID,
+        scope: "complaint.feedback",
+      });
+      complaintRepo.findOne.mockResolvedValue(mockComplaint as any);
+
+      await expect(
+        service.submitFeedbackByToken("valid-token", 4),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it("should throw BadRequestException for invalid rating", async () => {
+      jwtService.verifyAsync.mockResolvedValue({
+        cid: "cmp-uuid-2",
+        oid: ORG_ID,
+        scope: "complaint.feedback",
+      });
       complaintRepo.findOne.mockResolvedValue({
         ...mockResolvedComplaint,
       } as any);
 
-      await expect(service.submitFeedback("cmp-uuid-2", 6)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.submitFeedbackByToken("valid-token", 6),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 });

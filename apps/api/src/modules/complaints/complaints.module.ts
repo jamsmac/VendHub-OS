@@ -4,6 +4,7 @@
 
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { JwtModule } from "@nestjs/jwt";
 import { ComplaintsController } from "./complaints.controller";
 import { ComplaintsService } from "./complaints.service";
 import { ComplaintsCoreService } from "./complaints-core.service";
@@ -33,6 +34,7 @@ import { StorageModule } from "../storage/storage.module";
       ComplaintAutomationRule,
       Organization,
     ]),
+    JwtModule.register({}),
     StorageModule,
     // EventEmitterModule is configured globally in AppModule
   ],

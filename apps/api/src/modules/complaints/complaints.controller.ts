@@ -424,16 +424,31 @@ export class ComplaintsController {
     return this.complaintsService.reject(id, dto.reason, userId, orgId);
   }
 
-  @Post(":id/feedback")
+  @Post("feedback/:token")
   @Public()
-  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 feedback submissions/min per IP
-  @ApiOperation({ summary: "Submit customer feedback" })
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: "Submit customer feedback via signed token" })
   @HttpCode(HttpStatus.OK)
   async submitFeedback(
-    @Param("id", ParseUUIDPipe) id: string,
+    @Param("token") token: string,
     @Body() dto: SubmitFeedbackDto,
   ) {
-    return this.complaintsService.submitFeedback(id, dto.rating, dto.comment);
+    return this.complaintsService.submitFeedbackByToken(
+      token,
+      dto.rating,
+      dto.comment,
+    );
+  }
+
+  @Post(":id/feedback-token")
+  @Roles("owner", "admin", "manager")
+  @ApiOperation({ summary: "Generate a signed feedback token for a complaint" })
+  async generateFeedbackToken(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentOrganizationId() orgId: string,
+  ) {
+    const token = await this.complaintsService.generateFeedbackToken(id, orgId);
+    return { token };
   }
 
   // ============================================================================
@@ -540,7 +555,12 @@ export class ComplaintsController {
     @CurrentUserId() userId: string,
     @CurrentOrganizationId() orgId: string,
   ) {
-    return this.complaintsService.rejectRefund(refundId, userId, dto.reason, orgId);
+    return this.complaintsService.rejectRefund(
+      refundId,
+      userId,
+      dto.reason,
+      orgId,
+    );
   }
 
   // ============================================================================

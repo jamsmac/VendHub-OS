@@ -8,6 +8,7 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
@@ -19,6 +20,8 @@ import {
   DataSource,
 } from "typeorm";
 import { EventEmitter2 } from "@nestjs/event-emitter";
+import { JwtService } from "@nestjs/jwt";
+import { ConfigService } from "@nestjs/config";
 import {
   Complaint,
   ComplaintComment,
@@ -66,6 +69,8 @@ export class ComplaintsCoreService {
     private automationRepo: Repository<ComplaintAutomationRule>,
     private dataSource: DataSource,
     private eventEmitter: EventEmitter2,
+    private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   // ============================================================================
@@ -462,13 +467,49 @@ export class ComplaintsCoreService {
   // CUSTOMER FEEDBACK
   // ============================================================================
 
-  async submitFeedback(
+  async generateFeedbackToken(
     complaintId: string,
+    organizationId: string,
+  ): Promise<string> {
+    return this.jwtService.signAsync(
+      {
+        cid: complaintId,
+        oid: organizationId,
+        scope: "complaint.feedback",
+      },
+      {
+        secret: this.configService.get<string>("JWT_SECRET"),
+        expiresIn: "14d",
+      },
+    );
+  }
+
+  async submitFeedbackByToken(
+    token: string,
     rating: number,
     comment?: string,
-    organizationId?: string,
   ): Promise<Complaint> {
-    const complaint = await this.findById(complaintId, organizationId);
+    let decoded: { cid: string; oid: string; scope: string };
+    try {
+      decoded = await this.jwtService.verifyAsync(token, {
+        secret: this.configService.get<string>("JWT_SECRET"),
+      });
+    } catch {
+      throw new UnauthorizedException(
+        "Ссылка для оценки недействительна или истекла",
+      );
+    }
+
+    if (decoded.scope !== "complaint.feedback") {
+      throw new UnauthorizedException("Неверный тип ссылки");
+    }
+
+    const complaint = await this.complaintRepo.findOne({
+      where: { id: decoded.cid, organizationId: decoded.oid },
+    });
+    if (!complaint) {
+      throw new NotFoundException("Жалоба не найдена");
+    }
 
     if (
       ![ComplaintStatus.RESOLVED, ComplaintStatus.CLOSED].includes(
