@@ -117,13 +117,13 @@ jobs:
           CI: true
           ALLOW_DEV_FALLBACK: "true"
 
-      - name: Run web unit tests
-        run: pnpm --filter web test -- --runInBand --forceExit
+      - name: Run web unit tests with coverage
+        run: pnpm --filter web test -- --runInBand --forceExit --coverage
         env:
           CI: true
 
-      - name: Run client unit tests
-        run: pnpm --filter client test
+      - name: Run client unit tests with coverage
+        run: pnpm --filter client test:coverage
         env:
           CI: true
 
