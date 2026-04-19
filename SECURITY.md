@@ -6,7 +6,7 @@ We take security seriously and appreciate responsible disclosure of security vul
 
 ### Reporting a Vulnerability
 
-**Email:** security@vendhub.uz
+**Email:** jamshidsmac@gmail.com
 
 When reporting a vulnerability, please include:
 
@@ -66,13 +66,22 @@ VendHub OS includes the following security features to protect your data and ope
 - **Secure Code Transmission**: OTP codes sent via SMS or email
 - **Session Validation**: 2FA codes are time-sensitive and single-use
 
+### Payment Webhook Security
+
+- **Payme**: Basic Auth verification per Payme JSON-RPC spec
+- **Click**: MD5 signature with `crypto.timingSafeEqual` (constant-time comparison)
+- **Uzum Bank**: HMAC-SHA256 signature with `crypto.timingSafeEqual`
+- **Pessimistic locks**: All payment state transitions use `pessimistic_write` DB locks
+- **Idempotency**: Duplicate webhook calls return existing state without re-processing
+
 ### API Security
 
 - **Rate Limiting**: Request throttling to prevent abuse and DoS attacks
 - **CORS (Cross-Origin Resource Sharing)**: Strict origin validation
 - **Helmet.js**: Security headers (CSP, X-Frame-Options, X-Content-Type-Options, etc.)
-- **Request Validation**: Input sanitization and schema validation
+- **Request Validation**: Input sanitization and schema validation via class-validator
 - **HTTPS Enforcement**: All production traffic is encrypted
+- **Telegram Webhooks**: `X-Telegram-Bot-Api-Secret-Token` header with `crypto.timingSafeEqual`
 
 ### Data Protection
 
@@ -163,7 +172,7 @@ Keep these dependencies updated for the latest security patches.
 
 For security questions or concerns (non-vulnerability related), please contact us at:
 
-- Email: security@vendhub.uz
+- Email: jamshidsmac@gmail.com
 - Website: https://vendhub.uz
 
 Thank you for helping us keep VendHub OS secure!

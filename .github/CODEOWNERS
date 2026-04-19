@@ -1,0 +1,14 @@
+# Global owner
+* @jamsmac
+
+# Payments — critical security area
+/apps/api/src/modules/payments/ @jamsmac
+
+# Auth & RBAC
+/apps/api/src/modules/auth/ @jamsmac
+
+# Infra & CI
+/.github/ @jamsmac
+/infrastructure/ @jamsmac
+/turbo.json @jamsmac
+/pnpm-workspace.yaml @jamsmac
