@@ -931,13 +931,8 @@ export const DEFAULT_MACHINE_SETTINGS: IMachineSettings = {
 };
 
 export const DEFAULT_TELEMETRY: IMachineTelemetry = {
-  temperature: undefined,
-  humidity: undefined,
   doorOpen: false,
   errorCodes: [],
-  signalStrength: undefined,
-  powerVoltage: undefined,
-  lastUpdatedAt: undefined,
 };
 
 // ============================================================================
