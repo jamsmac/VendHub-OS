@@ -68,13 +68,23 @@ async function bootstrap() {
       release: process.env.npm_package_version || "1.0.0",
       tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
       integrations: [Sentry.httpIntegration(), Sentry.expressIntegration()],
+      ignoreErrors: [
+        "UnauthorizedException",
+        "ForbiddenException",
+        "NotFoundException",
+        "ThrottlerException",
+      ],
       beforeSend(event: Sentry.ErrorEvent) {
-        // Don't send events in development unless explicitly enabled
         if (
           process.env.NODE_ENV === "development" &&
           !process.env.SENTRY_DEV_ENABLED
         ) {
           return null;
+        }
+        if (event.request?.headers) {
+          delete event.request.headers.authorization;
+          delete event.request.headers.cookie;
+          delete event.request.headers["x-telegram-bot-api-secret-token"];
         }
         return event;
       },
