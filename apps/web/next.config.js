@@ -68,6 +68,16 @@ const nextConfig = {
         destination: "/dashboard/loyalty/promo-codes",
         permanent: true,
       },
+      {
+        source: "/dashboard/dashboard",
+        destination: "/dashboard",
+        permanent: true,
+      },
+      {
+        source: "/dashboard/dashboard/:path*",
+        destination: "/dashboard/:path*",
+        permanent: true,
+      },
     ];
   },
 

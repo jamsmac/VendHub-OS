@@ -1,146 +1,104 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
-import {
-  Coffee,
-  Package,
-  ClipboardList,
-  TrendingUp,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  MapPin,
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { api } from "@/lib/api";
-import { formatPrice } from "@/lib/utils";
+import { RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { formatDate } from "@/lib/utils";
+import { TAB_IDS, type TabId } from "./components/constants";
+import { KpiCards } from "./components/KpiCards";
+import { HourlyChart } from "./components/HourlyChart";
+import { MachineStatusMini } from "./components/MachineStatusMini";
+import { QuickActions } from "./components/QuickActions";
+import { TopProducts } from "./components/TopProducts";
+import { AlertsList } from "./components/AlertsList";
+import { RecentOrders } from "./components/RecentOrders";
+import { SalesTab } from "./components/SalesTab";
+import { MachinesTab } from "./components/MachinesTab";
+import { ActivityTab } from "./components/ActivityTab";
 
 export default function DashboardPage() {
-  const t = useTranslations("dashboardRoot");
-
-  const { data: dashData, isLoading } = useQuery({
-    queryKey: ["dashboard-stats"],
-    queryFn: () => api.get("/analytics/dashboard").then((res) => res.data),
-  });
-
-  // Map from API response { latestStats } to dashboard display
-  const stats = dashData?.latestStats || dashData;
-
-  const totalMachines =
-    (stats?.activeMachinesCount ?? 0) + (stats?.offlineMachinesCount ?? 0);
-
-  const statCards = [
-    {
-      title: t("totalMachines"),
-      value: totalMachines || stats?.totalMachines || 0,
-      icon: Coffee,
-      color: "text-blue-600",
-      bgColor: "bg-blue-100 dark:bg-blue-900/30",
-    },
-    {
-      title: t("activeMachines"),
-      value: stats?.activeMachinesCount ?? stats?.activeMachines ?? 0,
-      icon: CheckCircle,
-      color: "text-green-600",
-      bgColor: "bg-green-100 dark:bg-green-900/30",
-    },
-    {
-      title: t("todaySales"),
-      value: stats?.totalSalesCount ?? stats?.todaySales ?? 0,
-      icon: TrendingUp,
-      color: "text-purple-600",
-      bgColor: "bg-purple-100 dark:bg-purple-900/30",
-    },
-    {
-      title: t("todayRevenue"),
-      value: formatPrice(stats?.totalRevenue ?? stats?.todayRevenue ?? 0),
-      icon: Package,
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-100 dark:bg-yellow-900/30",
-    },
-    {
-      title: t("lowStock"),
-      value: stats?.lowStockAlerts || 0,
-      icon: AlertTriangle,
-      color: "text-red-600",
-      bgColor: "bg-red-100 dark:bg-red-900/30",
-    },
-    {
-      title: t("pendingTasks"),
-      value: stats?.pendingTasks || 0,
-      icon: ClipboardList,
-      color: "text-orange-600",
-      bgColor: "bg-orange-100 dark:bg-orange-900/30",
-    },
-  ];
+  const [activeTab, setActiveTab] = useState<TabId>("overview");
+  const t = useTranslations("dashboardMain");
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">{t("title")}</h1>
-        <p className="text-muted-foreground">{t("subtitle")}</p>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-espresso-dark font-display">
+            {t("title")}
+          </h1>
+          <p className="mt-1 text-sm text-espresso-light">
+            {formatDate(new Date(), {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2 text-espresso-light"
+        >
+          <RefreshCw className="h-4 w-4" />
+          {t("refresh")}
+        </Button>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {statCards.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-              <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                <stat.icon className={`h-4 w-4 ${stat.color}`} />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {isLoading ? "..." : stat.value}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              {t("recentTasks")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground text-sm">
-              {t("noActiveTasks")}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
-              {t("machineMap")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <a
-              href="/dashboard/map"
-              className="flex h-48 items-center justify-center rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-espresso/10 pb-1 overflow-x-auto">
+        {TAB_IDS.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <Button
+              key={tab.id}
+              variant="ghost"
+              size="sm"
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 rounded-t-lg px-4 py-2 whitespace-nowrap ${
+                activeTab === tab.id
+                  ? "bg-espresso text-white"
+                  : "text-espresso-light hover:bg-espresso-50"
+              }`}
             >
-              <div className="text-center">
-                <MapPin className="mx-auto h-8 w-8 text-muted-foreground/50 mb-2" />
-                <p className="text-muted-foreground text-sm">
-                  {t("openMap", { fallback: "Open machine map" })}
-                </p>
-              </div>
-            </a>
-          </CardContent>
-        </Card>
+              <Icon className="h-4 w-4" />
+              {t(`tabs.${tab.id}`)}
+            </Button>
+          );
+        })}
       </div>
+
+      {/* Tab: Overview */}
+      {activeTab === "overview" && (
+        <div className="space-y-6">
+          <KpiCards />
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <HourlyChart />
+            <MachineStatusMini />
+          </div>
+
+          <QuickActions />
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <TopProducts />
+            <AlertsList />
+            <RecentOrders />
+          </div>
+        </div>
+      )}
+
+      {/* Tab: Sales */}
+      {activeTab === "sales" && <SalesTab />}
+
+      {/* Tab: Machines */}
+      {activeTab === "machines" && <MachinesTab />}
+
+      {/* Tab: Activity */}
+      {activeTab === "activity" && <ActivityTab />}
     </div>
   );
 }
