@@ -124,6 +124,14 @@ export const navigation: NavItem[] = [
     section: "operations",
   },
   {
+    nameKey: "predictiveRefill",
+    fallback: "Predictive Refill",
+    href: "/dashboard/predictive-refill",
+    icon: BarChart3,
+    roles: OPERATIONS,
+    section: "operations",
+  },
+  {
     nameKey: "products",
     fallback: "Products",
     href: "/dashboard/products",
