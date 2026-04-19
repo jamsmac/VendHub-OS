@@ -111,10 +111,11 @@ jobs:
       - name: Build shared package
         run: pnpm --filter "@vendhub/shared" build
 
-      - name: Run API unit tests
-        run: pnpm --filter api test:unit --forceExit --passWithNoTests
+      - name: Run API unit tests with coverage
+        run: pnpm --filter api test:unit --forceExit --passWithNoTests --coverage
         env:
           CI: true
+          ALLOW_DEV_FALLBACK: "true"
 
       - name: Run web unit tests
         run: pnpm --filter web test -- --runInBand --forceExit
@@ -136,14 +137,13 @@ jobs:
         env:
           CI: true
 
-      - name: Upload coverage report
-        uses: codecov/codecov-action@v3
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
         if: always()
         with:
-          files: ./apps/api/coverage/lcov.info
-          fail_ci_if_error: false
-          flags: unittests
-          name: api-coverage
+          name: coverage-reports
+          path: apps/*/coverage/
+          retention-days: 7
 
   # ========================================
   # Build
