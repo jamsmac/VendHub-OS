@@ -413,6 +413,18 @@ All endpoints require JWT Bearer authentication except public endpoints.
     });
 
     logger.log(`📚 Swagger docs available at /docs`);
+
+    if (process.env.GENERATE_OPENAPI === "true") {
+      const { writeFileSync } = await import("fs");
+      const { join } = await import("path");
+      writeFileSync(
+        join(process.cwd(), "openapi.json"),
+        JSON.stringify(document, null, 2) + "\n",
+      );
+      logger.log("📄 openapi.json generated");
+      await app.close();
+      process.exit(0);
+    }
   }
 
   // Health endpoints are handled by the HealthModule at /api/v1/health/*
