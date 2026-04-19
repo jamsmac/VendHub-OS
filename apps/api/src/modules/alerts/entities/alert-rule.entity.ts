@@ -31,6 +31,7 @@ export enum AlertMetric {
   EXPIRY_WARNING = "expiry_warning",
   INVENTORY_MISMATCH = "inventory_mismatch",
   CONSUMABLE_LOW = "consumable_low",
+  PREDICTED_STOCKOUT = "predicted_stockout",
   CUSTOM = "custom",
 }
 

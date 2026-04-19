@@ -120,6 +120,7 @@ import { BatchMovementsModule } from "./modules/batch-movements/batch-movements.
 import { CalculatedStateModule } from "./modules/calculated-state/calculated-state.module";
 import { CustomFieldsModule } from "./modules/custom-fields/custom-fields.module";
 import { InvitesModule } from "./modules/invites/invites.module";
+import { PredictiveRefillModule } from "./modules/predictive-refill/predictive-refill.module";
 
 // Common Guards & Interceptors
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
@@ -741,6 +742,8 @@ const defaultedNumber = (value: number) =>
     // VHM24 System Integration
     Vhm24IntegrationModule,
     InvitesModule,
+    // Predictive Refill (Sprint E)
+    PredictiveRefillModule,
   ],
   providers: [
     // ============================================
