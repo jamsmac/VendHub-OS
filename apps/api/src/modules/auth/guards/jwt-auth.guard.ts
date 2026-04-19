@@ -30,7 +30,7 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
     super();
   }
 
-  canActivate(context: ExecutionContext) {
+  override canActivate(context: ExecutionContext) {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -51,7 +51,7 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- NestJS framework override signature
-  handleRequest(err: any, user: any, info: any) {
+  override handleRequest(err: any, user: any, info: any) {
     if (err || !user) {
       const authMessage =
         err?.message ||

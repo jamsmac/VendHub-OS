@@ -11,7 +11,9 @@ import { ThrottlerGuard } from "@nestjs/throttler";
  */
 @Injectable()
 export class UserThrottlerGuard extends ThrottlerGuard {
-  protected async getTracker(req: Record<string, unknown>): Promise<string> {
+  protected override async getTracker(
+    req: Record<string, unknown>,
+  ): Promise<string> {
     const user = req.user as { id?: string; sub?: string } | undefined;
     const userId = user?.id ?? user?.sub;
     if (userId) {
