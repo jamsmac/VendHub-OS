@@ -82,6 +82,36 @@ export class ConsumptionRateService {
     return this.rateRepo.save(newRate);
   }
 
+  async refreshForOrg(
+    organizationId: string,
+    periodDays = 14,
+  ): Promise<number> {
+    const pairs = await this.txRepo
+      .createQueryBuilder("t")
+      .innerJoin("t.items", "ti")
+      .select("DISTINCT t.machine_id", "machineId")
+      .addSelect("ti.product_id", "productId")
+      .where("t.organization_id = :org", { org: organizationId })
+      .andWhere("t.created_at >= :start", {
+        start: new Date(Date.now() - periodDays * 86400000),
+      })
+      .getRawMany<{ machineId: string; productId: string }>();
+
+    for (const { machineId, productId } of pairs) {
+      await this.calculateRate(
+        organizationId,
+        machineId,
+        productId,
+        periodDays,
+      );
+    }
+
+    this.logger.log(
+      `Refreshed ${pairs.length} consumption rates for org ${organizationId}`,
+    );
+    return pairs.length;
+  }
+
   async getRatesForMachine(
     organizationId: string,
     machineId: string,
