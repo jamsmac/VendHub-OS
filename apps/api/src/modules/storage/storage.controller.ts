@@ -358,6 +358,7 @@ export class StorageController {
   // ========================================================================
 
   @Get("records/:entityType/:entityId")
+  @Roles("owner", "admin", "manager", "operator")
   @ApiOperation({ summary: "Get file records linked to an entity" })
   @ApiParam({
     name: "entityType",

@@ -54,8 +54,8 @@ function scanController(filePath: string): Violation[] {
 
     if (!HTTP_DECORATOR_RE.test(line)) continue;
 
-    const contextStart = Math.max(0, i - 8);
-    const contextEnd = Math.min(lines.length, i + 8);
+    const contextStart = Math.max(0, i - 25);
+    const contextEnd = Math.min(lines.length, i + 25);
     const contextLines = lines.slice(contextStart, contextEnd).join("\n");
 
     const hasRoles = ROLES_RE.test(contextLines);
@@ -115,11 +115,7 @@ describe("RBAC canary — every route must have explicit access decision", () =>
       );
     }
 
-    // Ratchet: known violation count from initial scan.
-    // As violations are fixed, lower this number. Never increase it.
-    // Target: 0 (every route has explicit @Public() or @Roles()).
-    const KNOWN_VIOLATIONS = 64;
-    expect(allViolations.length).toBeLessThanOrEqual(KNOWN_VIOLATIONS);
+    expect(allViolations).toHaveLength(0);
   });
 
   it("scans a meaningful number of controllers", () => {

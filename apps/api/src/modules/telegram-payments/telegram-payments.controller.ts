@@ -28,6 +28,7 @@ import { Throttle } from "@nestjs/throttler";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
 import { Roles } from "../../common/decorators";
+import { Public } from "../../common/decorators/public.decorator";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { User } from "../users/entities/user.entity";
 import { TelegramPaymentsService } from "./telegram-payments.service";
@@ -144,6 +145,7 @@ export class TelegramPaymentsController {
   // ============================================================================
 
   @Post("webhook/pre-checkout")
+  @Public()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Pre-checkout query webhook",
@@ -160,6 +162,7 @@ export class TelegramPaymentsController {
   }
 
   @Post("webhook/successful-payment")
+  @Public()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Successful payment webhook",

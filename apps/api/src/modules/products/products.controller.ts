@@ -243,6 +243,15 @@ export class ProductsController {
   }
 
   @Get(":id/recipes/primary")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Get the primary recipe for a product" })
   @ApiParam({ name: "id", description: "Product ID", type: String })
   findPrimaryRecipe(

@@ -12,6 +12,8 @@ import {
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../../common/guards/roles.guard";
+import { Roles } from "../../common/decorators/roles.decorator";
 import { CustomFieldsService } from "./custom-fields.service";
 import {
   CreateCustomTabDto,
@@ -26,7 +28,7 @@ interface AuthenticatedRequest {
 
 @ApiTags("Custom Fields")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller("custom-fields")
 export class CustomFieldsController {
   constructor(private readonly service: CustomFieldsService) {}
@@ -36,20 +38,29 @@ export class CustomFieldsController {
   // ========================================================================
 
   @Get("tabs")
+  @Roles("owner", "admin", "manager")
   @ApiOperation({
     summary: "Get custom tabs (optionally filtered by entityType)",
   })
-  async getTabs(@Query("entityType") entityType: string, @Request() req: AuthenticatedRequest) {
+  async getTabs(
+    @Query("entityType") entityType: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.service.getTabs(req.user.organizationId, entityType);
   }
 
   @Post("tabs")
+  @Roles("owner", "admin")
   @ApiOperation({ summary: "Create a custom tab" })
-  async createTab(@Body() dto: CreateCustomTabDto, @Request() req: AuthenticatedRequest) {
+  async createTab(
+    @Body() dto: CreateCustomTabDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.service.createTab(req.user.organizationId, dto);
   }
 
   @Patch("tabs/:id")
+  @Roles("owner", "admin")
   @ApiOperation({ summary: "Update a custom tab" })
   async updateTab(
     @Param("id") id: string,
@@ -60,8 +71,12 @@ export class CustomFieldsController {
   }
 
   @Delete("tabs/:id")
+  @Roles("owner", "admin")
   @ApiOperation({ summary: "Delete a custom tab (soft)" })
-  async deleteTab(@Param("id") id: string, @Request() req: AuthenticatedRequest) {
+  async deleteTab(
+    @Param("id") id: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.service.deleteTab(id, req.user.organizationId);
   }
 
@@ -70,6 +85,7 @@ export class CustomFieldsController {
   // ========================================================================
 
   @Get("fields")
+  @Roles("owner", "admin", "manager")
   @ApiOperation({ summary: "Get custom fields for an entity type" })
   async getFields(
     @Query("entityType") entityType: string,
@@ -80,12 +96,17 @@ export class CustomFieldsController {
   }
 
   @Post("fields")
+  @Roles("owner", "admin")
   @ApiOperation({ summary: "Create a custom field" })
-  async createField(@Body() dto: CreateCustomFieldDto, @Request() req: AuthenticatedRequest) {
+  async createField(
+    @Body() dto: CreateCustomFieldDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.service.createField(req.user.organizationId, dto);
   }
 
   @Patch("fields/:id")
+  @Roles("owner", "admin")
   @ApiOperation({ summary: "Update a custom field" })
   async updateField(
     @Param("id") id: string,
@@ -96,8 +117,12 @@ export class CustomFieldsController {
   }
 
   @Delete("fields/:id")
+  @Roles("owner", "admin")
   @ApiOperation({ summary: "Delete a custom field (soft)" })
-  async deleteField(@Param("id") id: string, @Request() req: AuthenticatedRequest) {
+  async deleteField(
+    @Param("id") id: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.service.deleteField(id, req.user.organizationId);
   }
 }

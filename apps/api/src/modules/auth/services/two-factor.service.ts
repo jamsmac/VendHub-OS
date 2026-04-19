@@ -28,7 +28,6 @@ export class TwoFactorService {
     private readonly userRepository: Repository<User>,
     private readonly configService: ConfigService,
   ) {
-    // Configure TOTP
     authenticator.options = {
       window: this.TOTP_WINDOW,
     };

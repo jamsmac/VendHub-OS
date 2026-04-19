@@ -13,6 +13,8 @@ import {
   ApiQuery,
 } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../../common/guards/roles.guard";
+import { Roles } from "../../common/decorators/roles.decorator";
 import { CalculatedStateService } from "./calculated-state.service";
 
 interface AuthenticatedRequest {
@@ -21,12 +23,13 @@ interface AuthenticatedRequest {
 
 @ApiTags("Calculated State")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller("machines")
 export class CalculatedStateController {
   constructor(private readonly stateService: CalculatedStateService) {}
 
   @Get(":machineId/state")
+  @Roles("owner", "admin", "manager", "operator")
   @ApiOperation({
     summary:
       "Get calculated machine state (bunker levels, components, cleaning)",
@@ -42,6 +45,7 @@ export class CalculatedStateController {
   }
 
   @Get(":machineId/pnl")
+  @Roles("owner", "admin", "manager", "accountant")
   @ApiOperation({
     summary: "Get P&L (Profit & Loss) for a machine over a period",
   })

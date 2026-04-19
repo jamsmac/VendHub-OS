@@ -38,6 +38,7 @@ import { RegisterWithInviteDto } from "./dto/register-with-invite.dto";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { CurrentUser } from "./decorators/current-user.decorator";
 import { Public } from "../../common/decorators/public.decorator";
+import { Roles } from "../../common/decorators/roles.decorator";
 import { User } from "../users/entities/user.entity";
 
 @ApiTags("auth")
@@ -224,6 +225,15 @@ export class AuthController {
 
   @Post("logout")
   @UseGuards(JwtAuthGuard)
+  @Roles(
+    "owner",
+    "admin",
+    "manager",
+    "operator",
+    "warehouse",
+    "accountant",
+    "viewer",
+  )
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Logout and invalidate session" })
@@ -242,6 +252,15 @@ export class AuthController {
 
   @Get("me")
   @UseGuards(JwtAuthGuard)
+  @Roles(
+    "owner",
+    "admin",
+    "manager",
+    "operator",
+    "warehouse",
+    "accountant",
+    "viewer",
+  )
   @ApiBearerAuth()
   @SkipThrottle()
   @ApiOperation({ summary: "Get current user profile" })
@@ -253,6 +272,15 @@ export class AuthController {
 
   @Get("sessions")
   @UseGuards(JwtAuthGuard)
+  @Roles(
+    "owner",
+    "admin",
+    "manager",
+    "operator",
+    "warehouse",
+    "accountant",
+    "viewer",
+  )
   @ApiBearerAuth()
   @ApiOperation({ summary: "Get all active sessions" })
   @ApiResponse({ status: 200, description: "List of active sessions" })
@@ -375,6 +403,15 @@ export class AuthController {
 
   @Post("2fa/enable")
   @UseGuards(JwtAuthGuard)
+  @Roles(
+    "owner",
+    "admin",
+    "manager",
+    "operator",
+    "warehouse",
+    "accountant",
+    "viewer",
+  )
   @ApiBearerAuth()
   @ApiOperation({ summary: "Enable two-factor authentication" })
   @ApiResponse({ status: 200, description: "2FA secret and QR code" })
@@ -385,6 +422,15 @@ export class AuthController {
   @Post("2fa/verify")
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   @UseGuards(JwtAuthGuard)
+  @Roles(
+    "owner",
+    "admin",
+    "manager",
+    "operator",
+    "warehouse",
+    "accountant",
+    "viewer",
+  )
   @ApiBearerAuth()
   @ApiOperation({ summary: "Verify and activate 2FA" })
   @ApiResponse({ status: 200, description: "2FA enabled successfully" })
@@ -396,6 +442,15 @@ export class AuthController {
   @Post("2fa/disable")
   @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests per minute
   @UseGuards(JwtAuthGuard)
+  @Roles(
+    "owner",
+    "admin",
+    "manager",
+    "operator",
+    "warehouse",
+    "accountant",
+    "viewer",
+  )
   @ApiBearerAuth()
   @ApiOperation({ summary: "Disable two-factor authentication" })
   @ApiResponse({ status: 200, description: "2FA disabled successfully" })
@@ -406,6 +461,15 @@ export class AuthController {
 
   @Post("2fa/backup-codes")
   @UseGuards(JwtAuthGuard)
+  @Roles(
+    "owner",
+    "admin",
+    "manager",
+    "operator",
+    "warehouse",
+    "accountant",
+    "viewer",
+  )
   @ApiBearerAuth()
   @ApiOperation({ summary: "Generate new backup codes" })
   @ApiResponse({ status: 200, description: "New backup codes generated" })

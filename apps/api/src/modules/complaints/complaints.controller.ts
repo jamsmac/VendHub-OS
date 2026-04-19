@@ -223,6 +223,7 @@ export class ComplaintsController {
   }
 
   @Get()
+  @Roles("owner", "admin", "manager")
   @ApiOperation({ summary: "Query complaints with filters" })
   @ApiQuery({
     name: "status",

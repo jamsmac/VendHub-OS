@@ -55,6 +55,15 @@ export class LoyaltyPromoCodeController {
   // ============================================================================
 
   @Post("validate")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Validate a promo code",
@@ -82,6 +91,15 @@ Check if a promo code is valid for the current user without applying it.
   }
 
   @Post("apply")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Apply a promo code",

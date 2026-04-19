@@ -9,6 +9,8 @@ import {
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../../common/guards/roles.guard";
+import { Roles } from "../../common/decorators/roles.decorator";
 import { BatchMovementsService } from "./batch-movements.service";
 import { CreateBatchMovementDto } from "./dto/create-batch-movement.dto";
 
@@ -18,14 +20,18 @@ interface AuthenticatedRequest {
 
 @ApiTags("Batch Movements")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller("batch-movements")
 export class BatchMovementsController {
   constructor(private readonly batchMovementsService: BatchMovementsService) {}
 
   @Post()
+  @Roles("owner", "admin", "manager", "operator", "warehouse")
   @ApiOperation({ summary: "Record a batch movement" })
-  async create(@Body() dto: CreateBatchMovementDto, @Request() req: AuthenticatedRequest) {
+  async create(
+    @Body() dto: CreateBatchMovementDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.batchMovementsService.createMovement(
       dto,
       req.user.id,
@@ -34,6 +40,7 @@ export class BatchMovementsController {
   }
 
   @Get("batch/:batchId")
+  @Roles("owner", "admin", "manager", "operator", "warehouse")
   @ApiOperation({ summary: "Get movement history for a batch" })
   async getBatchHistory(
     @Param("batchId") batchId: string,
@@ -46,6 +53,7 @@ export class BatchMovementsController {
   }
 
   @Get("container/:containerId")
+  @Roles("owner", "admin", "manager", "operator", "warehouse")
   @ApiOperation({ summary: "Get movements for a container/bunker" })
   async getContainerMovements(
     @Param("containerId") containerId: string,

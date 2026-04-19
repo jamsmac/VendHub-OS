@@ -32,6 +32,15 @@ export class WebPushController {
   constructor(private readonly webPushService: WebPushService) {}
 
   @Get("public-key")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Get VAPID public key for browser subscription" })
   @ApiOkResponse({ description: "VAPID public key string or null" })
   getPublicKey() {
@@ -39,6 +48,15 @@ export class WebPushController {
   }
 
   @Post("subscribe")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Subscribe browser for push notifications" })
   async subscribe(
@@ -58,6 +76,15 @@ export class WebPushController {
   }
 
   @Post("unsubscribe")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Remove browser push subscription" })
   async unsubscribe(
@@ -90,6 +117,15 @@ export class WebPushController {
   }
 
   @Post("test")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Send test push notification to self" })
   async testPush(@CurrentUserId() userId: string) {

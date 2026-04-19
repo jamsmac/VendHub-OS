@@ -11,6 +11,8 @@ import {
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../../common/guards/roles.guard";
+import { Roles } from "../../common/decorators/roles.decorator";
 import { EntityEventsService } from "./entity-events.service";
 import { CreateEntityEventDto } from "./dto/create-entity-event.dto";
 import { QueryEntityEventsDto } from "./dto/query-entity-events.dto";
@@ -21,12 +23,13 @@ interface AuthenticatedRequest {
 
 @ApiTags("Entity Events")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller("entity-events")
 export class EntityEventsController {
   constructor(private readonly entityEventsService: EntityEventsService) {}
 
   @Post()
+  @Roles("owner", "admin", "manager")
   @ApiOperation({ summary: "Create a business event" })
   async create(
     @Body() dto: CreateEntityEventDto,
@@ -40,6 +43,7 @@ export class EntityEventsController {
   }
 
   @Get()
+  @Roles("owner", "admin", "manager")
   @ApiOperation({ summary: "Query events with filters" })
   async query(
     @Query() dto: QueryEntityEventsDto,
@@ -49,6 +53,7 @@ export class EntityEventsController {
   }
 
   @Get("entity/:entityId")
+  @Roles("owner", "admin", "manager")
   @ApiOperation({ summary: "Get timeline for a specific entity" })
   async getEntityTimeline(
     @Param("entityId") entityId: string,
@@ -65,6 +70,7 @@ export class EntityEventsController {
   }
 
   @Get("entity/:entityId/recent")
+  @Roles("owner", "admin", "manager")
   @ApiOperation({ summary: "Get last 10 events for mini-passport" })
   async getRecentEvents(
     @Param("entityId") entityId: string,

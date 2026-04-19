@@ -79,6 +79,7 @@ export class AnalyticsController {
   // ========================================================================
 
   @Get("dashboard")
+  @Roles("admin", "manager", "accountant")
   @ApiOperation({ summary: "Get user dashboard with widgets and latest stats" })
   @ApiResponse({ status: 200, description: "Dashboard data" })
   async getDashboard(
@@ -93,6 +94,7 @@ export class AnalyticsController {
   // ========================================================================
 
   @Post("widgets")
+  @Roles("admin", "manager", "accountant")
   @ApiOperation({ summary: "Create a dashboard widget" })
   @ApiResponse({ status: 201, description: "Created widget" })
   async createWidget(
@@ -104,6 +106,7 @@ export class AnalyticsController {
   }
 
   @Patch("widgets/:id")
+  @Roles("admin", "manager", "accountant")
   @ApiOperation({ summary: "Update a dashboard widget" })
   @ApiParam({ name: "id", description: "Widget UUID" })
   @ApiResponse({ status: 200, description: "Updated widget" })
@@ -116,6 +119,7 @@ export class AnalyticsController {
   }
 
   @Delete("widgets/:id")
+  @Roles("admin", "manager", "accountant")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Delete a dashboard widget" })
   @ApiParam({ name: "id", description: "Widget UUID" })
@@ -128,6 +132,7 @@ export class AnalyticsController {
   }
 
   @Put("widgets/reorder")
+  @Roles("admin", "manager", "accountant")
   @ApiOperation({ summary: "Reorder dashboard widgets" })
   @ApiResponse({ status: 200, description: "Widgets reordered" })
   async reorderWidgets(

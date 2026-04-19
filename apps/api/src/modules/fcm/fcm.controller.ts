@@ -41,6 +41,15 @@ export class FcmController {
   constructor(private readonly fcmService: FcmService) {}
 
   @Get("status")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Check FCM configuration status" })
   @ApiResponse({ status: 200, description: "FCM status" })
   getStatus() {
@@ -48,6 +57,15 @@ export class FcmController {
   }
 
   @Post("register")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Register FCM device token" })
   @ApiResponse({ status: 201, description: "Token registered" })
   register(@Body() dto: RegisterFcmTokenDto, @CurrentUser() user: User) {
@@ -55,6 +73,15 @@ export class FcmController {
   }
 
   @Delete("unregister/:token")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Unregister FCM device token" })
   @ApiParam({ name: "token", description: "FCM token to unregister" })
@@ -67,6 +94,15 @@ export class FcmController {
   }
 
   @Get("tokens")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @ApiOperation({ summary: "Get current user FCM tokens" })
   @ApiResponse({ status: 200, description: "List of registered tokens" })
   getTokens(@CurrentUser() user: User) {
@@ -74,6 +110,15 @@ export class FcmController {
   }
 
   @Post("subscribe-topic")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Subscribe current user to a topic" })
   @ApiResponse({ status: 200, description: "Subscribed to topic" })
@@ -90,6 +135,15 @@ export class FcmController {
   }
 
   @Post("unsubscribe-topic")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Unsubscribe current user from a topic" })
   @ApiResponse({ status: 200, description: "Unsubscribed from topic" })
