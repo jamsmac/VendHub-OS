@@ -42,9 +42,7 @@ describe("TelegramBotController (unit)", () => {
         { provide: TelegramBotService, useValue: mockTelegramBotService },
       ],
     })
-      .overrideGuard(
-        require("../auth/guards/jwt-auth.guard").JwtAuthGuard,
-      )
+      .overrideGuard(require("../auth/guards/jwt-auth.guard").JwtAuthGuard)
       .useValue({ canActivate: () => true })
       .overrideGuard(require("../../common/guards").RolesGuard)
       .useValue({ canActivate: () => true })
@@ -58,23 +56,7 @@ describe("TelegramBotController (unit)", () => {
   });
 
   // ==========================================================================
-  // handleWebhook
-  // ==========================================================================
-
-  describe("handleWebhook", () => {
-    it("should return ok: true for any update payload", async () => {
-      const result = await controller.handleWebhook({ update_id: 1 });
-      expect(result).toEqual({ ok: true });
-    });
-
-    it("should return ok: true for empty payload", async () => {
-      const result = await controller.handleWebhook({});
-      expect(result).toEqual({ ok: true });
-    });
-  });
-
-  // ==========================================================================
-  // healthCheck
+  // healthCheck (webhook moved to TelegramWebhookController in Sprint A)
   // ==========================================================================
 
   describe("healthCheck", () => {
@@ -213,7 +195,10 @@ describe("TelegramBotController (unit)", () => {
 
     it("should return user after update when language/status changed", async () => {
       const dto = { language: TelegramLanguage.UZ } as any;
-      const mockUser = { user: { id: "tu-1", language: TelegramLanguage.UZ }, stats: {} };
+      const mockUser = {
+        user: { id: "tu-1", language: TelegramLanguage.UZ },
+        stats: {},
+      };
       mockTelegramBotService.getTelegramUser.mockResolvedValue(mockUser);
 
       const result = await controller.updateTelegramUser("tu-1", dto);
@@ -243,7 +228,10 @@ describe("TelegramBotController (unit)", () => {
   describe("verifyTelegramUser", () => {
     it("should call verifyUser with telegramId and verificationCode", async () => {
       const dto = { telegramId: "123456", verificationCode: "999888" } as any;
-      const mockResult = { success: true, message: "User verified successfully" };
+      const mockResult = {
+        success: true,
+        message: "User verified successfully",
+      };
       mockTelegramBotService.verifyUser.mockResolvedValue(mockResult);
 
       const result = await controller.verifyTelegramUser(dto);
