@@ -330,7 +330,7 @@ export const navigation: NavItem[] = [
   {
     nameKey: "promotions",
     fallback: "Promotions",
-    href: "/dashboard/promotions",
+    href: "/dashboard/loyalty/promo-codes",
     icon: Tag,
     roles: MANAGEMENT,
     section: "marketing",
