@@ -31,7 +31,7 @@
     "db:seed:admin": "ts-node -r tsconfig-paths/register ./src/database/seeds/admin-seed.ts",
     "db:seed:activity": "ts-node --project tsconfig.json -r tsconfig-paths/register ./src/database/seeds/activity-data.seed.ts",
     "db:reset": "npm run schema:drop && npm run migration:run && npm run db:seed",
-    "openapi:generate": "nest build && GENERATE_OPENAPI=true ALLOW_DEV_FALLBACK=true DISABLE_BOT_POLLING=true node dist/main"
+    "openapi:generate": "nest build && GENERATE_OPENAPI=true ALLOW_DEV_FALLBACK=true DISABLE_BOT_POLLING=true JWT_SECRET=openapi-gen-dummy-secret-32chars!! node dist/main"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1003.0",

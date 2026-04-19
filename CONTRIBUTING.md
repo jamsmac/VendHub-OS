@@ -46,6 +46,20 @@ All conventions are documented in `CLAUDE.md`. Key rules:
 6. Soft delete only (`@DeleteDateColumn`)
 7. Multi-tenant filtering on all user-facing queries
 
+## API Changes
+
+When adding, removing, or modifying HTTP endpoints in `apps/api`:
+
+1. Make your changes to controllers/DTOs
+2. Regenerate the OpenAPI spec (requires Docker Postgres running):
+   ```bash
+   docker compose up -d postgres
+   pnpm --filter @vendhub/api openapi:generate
+   ```
+3. Commit `apps/api/openapi.json` alongside your code changes
+
+CI will fail on PRs if the spec drifts from the checked-in version.
+
 ## Commit Convention
 
 Uses [Conventional Commits](https://www.conventionalcommits.org/):

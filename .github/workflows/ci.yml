@@ -84,6 +84,74 @@ jobs:
         run: pnpm lint
 
   # ========================================
+  # OpenAPI Spec Drift Check
+  # ========================================
+  openapi-drift:
+    name: OpenAPI Drift Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'pull_request'
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: vendhub_openapi
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared package
+        run: pnpm --filter "@vendhub/shared" build
+
+      - name: Run migrations
+        run: pnpm --filter @vendhub/api migration:run
+        env:
+          DB_HOST: localhost
+          DB_PORT: "5432"
+          DB_USER: postgres
+          DB_PASSWORD: test
+          DB_NAME: vendhub_openapi
+
+      - name: Generate OpenAPI spec
+        run: pnpm --filter @vendhub/api openapi:generate
+        env:
+          DB_HOST: localhost
+          DB_PORT: "5432"
+          DB_USER: postgres
+          DB_PASSWORD: test
+          DB_NAME: vendhub_openapi
+
+      - name: Check for drift
+        run: |
+          if ! git diff --exit-code apps/api/openapi.json; then
+            echo ""
+            echo "OpenAPI spec is out of date."
+            echo "Run 'pnpm --filter @vendhub/api openapi:generate' locally and commit the updated openapi.json."
+            exit 1
+          fi
+          echo "OpenAPI spec matches checked-in version."
+
+  # ========================================
   # Unit Tests
   # ========================================
   test-unit:
