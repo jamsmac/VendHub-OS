@@ -33,6 +33,7 @@
     "changelog": "echo 'install commitlint deps first'"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.48.0",
     "@types/node": "^22.15.0",
     "concat-map": "^0.0.2",
