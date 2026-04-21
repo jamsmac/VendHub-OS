@@ -14,6 +14,7 @@ import {
   AlertMetric,
 } from "../../alerts/entities/alert-rule.entity";
 import { QuantitySyncService } from "./quantity-sync.service";
+import { ConsumptionRateService } from "./consumption-rate.service";
 
 @Injectable()
 export class RecommendationService {
@@ -29,6 +30,7 @@ export class RecommendationService {
     private readonly forecastService: ForecastService,
     private readonly alertsService: AlertsService,
     private readonly quantitySyncService: QuantitySyncService,
+    private readonly consumptionRateService: ConsumptionRateService,
   ) {}
 
   async generateForMachine(
@@ -75,7 +77,10 @@ export class RecommendationService {
   async list(
     organizationId: string,
     query: GetRecommendationsDto,
-  ): Promise<{ data: RefillRecommendation[]; total: number }> {
+  ): Promise<{
+    data: (RefillRecommendation & { recentRates: number[] })[];
+    total: number;
+  }> {
     const qb = this.recRepo
       .createQueryBuilder("r")
       .where("r.organization_id = :org", { org: organizationId })
@@ -94,7 +99,24 @@ export class RecommendationService {
     qb.take(query.limit ?? 50);
 
     const [data, total] = await qb.getManyAndCount();
-    return { data, total };
+
+    const pairs = data.map((r) => ({
+      machineId: r.machineId,
+      productId: r.productId,
+    }));
+    const ratesMap = await this.consumptionRateService.batchGetRecentDailyRates(
+      organizationId,
+      pairs,
+    );
+
+    const enriched = data.map((r) => ({
+      ...r,
+      recentRates: ratesMap.get(`${r.machineId}:${r.productId}`) ?? [
+        0, 0, 0, 0, 0, 0, 0,
+      ],
+    }));
+
+    return { data: enriched, total };
   }
 
   async markActed(

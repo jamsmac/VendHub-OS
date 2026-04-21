@@ -121,4 +121,60 @@ export class ConsumptionRateService {
       where: { organizationId, machineId, periodDays },
     });
   }
+
+  async batchGetRecentDailyRates(
+    organizationId: string,
+    pairs: { machineId: string; productId: string }[],
+    days = 7,
+  ): Promise<Map<string, number[]>> {
+    if (pairs.length === 0) return new Map();
+
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+
+    const rows = await this.txRepo
+      .createQueryBuilder("t")
+      .innerJoin("t.items", "ti")
+      .select("t.machine_id", "machineId")
+      .addSelect("ti.product_id", "productId")
+      .addSelect("DATE(t.created_at)", "day")
+      .addSelect("COALESCE(SUM(ti.quantity), 0)", "qty")
+      .where("t.organization_id = :orgId", { orgId: organizationId })
+      .andWhere("t.created_at >= :since", { since })
+      .andWhere("t.machine_id IN (:...machineIds)", {
+        machineIds: [...new Set(pairs.map((p) => p.machineId))],
+      })
+      .groupBy("t.machine_id")
+      .addGroupBy("ti.product_id")
+      .addGroupBy("DATE(t.created_at)")
+      .getRawMany<{
+        machineId: string;
+        productId: string;
+        day: string;
+        qty: string;
+      }>();
+
+    const result = new Map<string, number[]>();
+    const today = new Date();
+
+    for (const pair of pairs) {
+      const key = `${pair.machineId}:${pair.productId}`;
+      const rates: number[] = [];
+      for (let i = days - 1; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split("T")[0];
+        const found = rows.find(
+          (r) =>
+            r.machineId === pair.machineId &&
+            r.productId === pair.productId &&
+            r.day === dateStr,
+        );
+        rates.push(found ? Number(found.qty) : 0);
+      }
+      result.set(key, rates);
+    }
+
+    return result;
+  }
 }
