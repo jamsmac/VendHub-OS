@@ -12,6 +12,8 @@ import {
 } from "../../alerts/entities/alert-rule.entity";
 import { ForecastService, SlotForecast } from "./forecast.service";
 import { AlertsService } from "../../alerts/alerts.service";
+import { QuantitySyncService } from "./quantity-sync.service";
+import { ConsumptionRateService } from "./consumption-rate.service";
 
 // Helper: compute expected priorityScore from forecast inputs (mirrors service logic)
 function computePriorityScore(
@@ -102,6 +104,16 @@ describe("RecommendationService", () => {
         {
           provide: AlertsService,
           useValue: alertsService,
+        },
+        {
+          provide: QuantitySyncService,
+          useValue: { resetOnRefill: jest.fn().mockResolvedValue(undefined) },
+        },
+        {
+          provide: ConsumptionRateService,
+          useValue: {
+            batchGetRecentDailyRates: jest.fn().mockResolvedValue(new Map()),
+          },
         },
       ],
     }).compile();
