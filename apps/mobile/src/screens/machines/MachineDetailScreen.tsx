@@ -17,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import MapView, { Marker } from "react-native-maps";
 import { machinesApi } from "../../services/api";
 
 interface MachineDetail {
@@ -159,6 +160,48 @@ export function MachineDetailScreen() {
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Embedded map — single pin at machine location. Uses the platform
+          default provider (Apple Maps on iOS, Google on Android) so we don't
+          require a Google Maps API key. If coords are missing, the block is
+          skipped entirely. */}
+      {typeof machine.latitude === "number" &&
+        typeof machine.longitude === "number" && (
+          <View style={styles.mapContainer}>
+            <MapView
+              style={styles.map}
+              initialRegion={{
+                latitude: Number(machine.latitude),
+                longitude: Number(machine.longitude),
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+              }}
+              scrollEnabled={false}
+              zoomEnabled={false}
+              pitchEnabled={false}
+              rotateEnabled={false}
+            >
+              <Marker
+                coordinate={{
+                  latitude: Number(machine.latitude),
+                  longitude: Number(machine.longitude),
+                }}
+                title={machine.name}
+                description={machine.address}
+              />
+            </MapView>
+            <TouchableOpacity
+              style={styles.openInMapsBtn}
+              onPress={openMaps}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="navigate" size={16} color="#fff" />
+              <Text style={styles.openInMapsText}>
+                {t("machine.openInMaps", "Открыть в картах")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
       {/* Stats */}
       <View style={styles.statsGrid}>
@@ -396,4 +439,29 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   actionButtonText: { fontSize: 16, fontWeight: "600", color: "#fff" },
+  mapContainer: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 16,
+    overflow: "hidden",
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  map: {
+    width: "100%",
+    height: 180,
+  },
+  openInMapsBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    backgroundColor: "#43302b",
+    paddingVertical: 10,
+  },
+  openInMapsText: { color: "#fff", fontWeight: "600", fontSize: 14 },
 });

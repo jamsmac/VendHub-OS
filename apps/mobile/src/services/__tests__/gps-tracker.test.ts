@@ -27,7 +27,14 @@ import {
   isTracking,
   getBufferSize,
   getActiveRouteId,
+  setGeofences,
+  clearGeofences,
+  getGeofences,
+  subscribeToGeofenceEvents,
+  evaluateGeofences,
+  haversineMeters,
   __resetForTesting,
+  type GeofenceEvent,
 } from "../gps-tracker";
 
 type LocationCallback = (loc: {
@@ -204,6 +211,208 @@ describe("gps-tracker", () => {
     it("is safe to call when not tracking", async () => {
       await expect(stopTracking()).resolves.toBeUndefined();
       expect(routesApi.addPointsBatch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("geofencing", () => {
+    // Tashkent city center — Chorsu area.
+    const TASHKENT_LAT = 41.3264;
+    const TASHKENT_LON = 69.2285;
+
+    it("haversineMeters returns ~0 for identical points", () => {
+      expect(haversineMeters(41.3, 69.2, 41.3, 69.2)).toBeLessThan(0.01);
+    });
+
+    it("haversineMeters returns expected distance for known points", () => {
+      // 0.001° latitude ≈ 111 meters
+      const d = haversineMeters(41.3, 69.2, 41.301, 69.2);
+      expect(d).toBeGreaterThan(100);
+      expect(d).toBeLessThan(125);
+    });
+
+    it("setGeofences registers fences; clearGeofences empties them", () => {
+      setGeofences([
+        {
+          id: "f1",
+          latitude: TASHKENT_LAT,
+          longitude: TASHKENT_LON,
+          radiusMeters: 50,
+          label: "Machine 1",
+        },
+      ]);
+      expect(getGeofences()).toHaveLength(1);
+      expect(getGeofences()[0]?.id).toBe("f1");
+
+      clearGeofences();
+      expect(getGeofences()).toHaveLength(0);
+    });
+
+    it("emits `entered` when location moves into radius", () => {
+      const events: GeofenceEvent[] = [];
+      subscribeToGeofenceEvents((e) => events.push(e));
+
+      setGeofences([
+        {
+          id: "f1",
+          latitude: TASHKENT_LAT,
+          longitude: TASHKENT_LON,
+          radiusMeters: 50,
+          label: "Machine 1",
+        },
+      ]);
+
+      // Start far away (>1km) — seeds as outside, no event.
+      evaluateGeofences(TASHKENT_LAT + 0.02, TASHKENT_LON, "t0");
+      expect(events).toHaveLength(0);
+
+      // Move inside (same lat/lon as fence center → 0m).
+      evaluateGeofences(TASHKENT_LAT, TASHKENT_LON, "t1");
+      expect(events).toHaveLength(1);
+      expect(events[0]?.action).toBe("entered");
+      expect(events[0]?.fenceId).toBe("f1");
+      expect(events[0]?.label).toBe("Machine 1");
+    });
+
+    it("emits `exited` when location moves out of radius", () => {
+      const events: GeofenceEvent[] = [];
+      subscribeToGeofenceEvents((e) => events.push(e));
+
+      setGeofences([
+        {
+          id: "f1",
+          latitude: TASHKENT_LAT,
+          longitude: TASHKENT_LON,
+          radiusMeters: 50,
+          label: "Machine 1",
+        },
+      ]);
+
+      // Seed inside.
+      evaluateGeofences(TASHKENT_LAT, TASHKENT_LON, "t0");
+      expect(events).toHaveLength(1);
+      expect(events[0]?.action).toBe("entered");
+
+      // Move far away — ~2.2km.
+      evaluateGeofences(TASHKENT_LAT + 0.02, TASHKENT_LON, "t1");
+      expect(events).toHaveLength(2);
+      expect(events[1]?.action).toBe("exited");
+    });
+
+    it("does not emit duplicate events while remaining inside the fence", () => {
+      const events: GeofenceEvent[] = [];
+      subscribeToGeofenceEvents((e) => events.push(e));
+
+      setGeofences([
+        {
+          id: "f1",
+          latitude: TASHKENT_LAT,
+          longitude: TASHKENT_LON,
+          radiusMeters: 50,
+          label: "Machine 1",
+        },
+      ]);
+
+      // Start outside, then step inside and stay there.
+      evaluateGeofences(TASHKENT_LAT + 0.02, TASHKENT_LON, "t0");
+      evaluateGeofences(TASHKENT_LAT, TASHKENT_LON, "t1");
+      evaluateGeofences(TASHKENT_LAT + 0.0001, TASHKENT_LON, "t2"); // ~11m offset, still inside
+      evaluateGeofences(TASHKENT_LAT, TASHKENT_LON, "t3");
+
+      expect(events).toHaveLength(1);
+      expect(events[0]?.action).toBe("entered");
+    });
+
+    it("handles multiple fences independently", () => {
+      const events: GeofenceEvent[] = [];
+      subscribeToGeofenceEvents((e) => events.push(e));
+
+      setGeofences([
+        {
+          id: "fA",
+          latitude: 41.3,
+          longitude: 69.2,
+          radiusMeters: 50,
+          label: "Stop A",
+        },
+        {
+          id: "fB",
+          latitude: 41.4,
+          longitude: 69.3,
+          radiusMeters: 50,
+          label: "Stop B",
+        },
+      ]);
+
+      // Seed both as outside.
+      evaluateGeofences(41.5, 69.5, "t0");
+      expect(events).toHaveLength(0);
+
+      // Enter A only.
+      evaluateGeofences(41.3, 69.2, "t1");
+      expect(events).toHaveLength(1);
+      expect(events[0]?.fenceId).toBe("fA");
+      expect(events[0]?.action).toBe("entered");
+
+      // Enter B (still inside A).
+      evaluateGeofences(41.4, 69.3, "t2");
+      // A fires "exited" (we moved ~13km away), B fires "entered"
+      const byFence = events.reduce<Record<string, GeofenceEvent[]>>(
+        (acc, e) => {
+          (acc[e.fenceId] ||= []).push(e);
+          return acc;
+        },
+        {},
+      );
+      expect(byFence.fA?.map((e) => e.action)).toEqual(["entered", "exited"]);
+      expect(byFence.fB?.map((e) => e.action)).toEqual(["entered"]);
+    });
+
+    it("subscribeToGeofenceEvents returns an unsubscribe fn", () => {
+      const events: GeofenceEvent[] = [];
+      const unsubscribe = subscribeToGeofenceEvents((e) => events.push(e));
+
+      setGeofences([
+        {
+          id: "f1",
+          latitude: TASHKENT_LAT,
+          longitude: TASHKENT_LON,
+          radiusMeters: 50,
+          label: "M",
+        },
+      ]);
+
+      evaluateGeofences(TASHKENT_LAT, TASHKENT_LON, "t0");
+      expect(events).toHaveLength(1);
+
+      unsubscribe();
+      // Move out then back in — listener should not receive these.
+      evaluateGeofences(TASHKENT_LAT + 0.02, TASHKENT_LON, "t1");
+      evaluateGeofences(TASHKENT_LAT, TASHKENT_LON, "t2");
+      expect(events).toHaveLength(1);
+    });
+
+    it("setGeofences resets inside state so enter fires again after re-registration", () => {
+      const events: GeofenceEvent[] = [];
+      subscribeToGeofenceEvents((e) => events.push(e));
+
+      const fence = {
+        id: "f1",
+        latitude: TASHKENT_LAT,
+        longitude: TASHKENT_LON,
+        radiusMeters: 50,
+        label: "M",
+      };
+      setGeofences([fence]);
+
+      evaluateGeofences(TASHKENT_LAT + 0.02, TASHKENT_LON, "t0");
+      evaluateGeofences(TASHKENT_LAT, TASHKENT_LON, "t1");
+      expect(events.filter((e) => e.action === "entered")).toHaveLength(1);
+
+      // Re-register → inside state wiped → first evaluation at the fence
+      // counts as a fresh "entered" (seeded inside).
+      setGeofences([fence]);
+      evaluateGeofences(TASHKENT_LAT, TASHKENT_LON, "t2");
+      expect(events.filter((e) => e.action === "entered")).toHaveLength(2);
     });
   });
 

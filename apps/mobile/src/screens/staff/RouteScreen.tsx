@@ -16,7 +16,9 @@ import {
   Modal,
   TextInput,
   ActivityIndicator,
+  Vibration,
 } from "react-native";
+import * as Notifications from "expo-notifications";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -30,6 +32,9 @@ import {
   isTracking,
   getBufferSize,
   getActiveRouteId,
+  setGeofences,
+  clearGeofences,
+  subscribeToGeofenceEvents,
 } from "../../services/gps-tracker";
 
 const COLORS = {
@@ -79,6 +84,7 @@ export function RouteScreen() {
   const [endModalVisible, setEndModalVisible] = useState(false);
   const [endOdometer, setEndOdometer] = useState("");
   const [bufferSize, setBufferSize] = useState(0);
+  const [arrivedMachine, setArrivedMachine] = useState<string | null>(null);
 
   // Poll the GPS buffer size while tracking so the UI updates
   useEffect(() => {
@@ -167,6 +173,77 @@ export function RouteScreen() {
     },
   });
 
+  // Active-route flag controls geofence registration. Declared early so it
+  // can be used by the effect below (hoisted const from JSX block further down
+  // is not possible — we re-compute here).
+  const activeRouteActive =
+    (activeRoute?.status === "active" || isTracking()) &&
+    Boolean(activeRoute?.id);
+
+  // Register stops as geofences while a route is active. Subscribe to
+  // enter/exit events → local notification + vibration + on-screen banner.
+  // Clear on unmount or when the route ends.
+  useEffect(() => {
+    if (!activeRouteActive || !route || route.length === 0) {
+      clearGeofences();
+      return;
+    }
+
+    const fences = route
+      .filter(
+        (stop) =>
+          typeof stop.machine.latitude === "number" &&
+          typeof stop.machine.longitude === "number",
+      )
+      .map((stop) => ({
+        id: stop.id,
+        latitude: stop.machine.latitude as number,
+        longitude: stop.machine.longitude as number,
+        radiusMeters: 50,
+        label: stop.machine.name,
+      }));
+
+    setGeofences(fences);
+
+    const unsubscribe = subscribeToGeofenceEvents((event) => {
+      if (event.action !== "entered") return;
+
+      // On-screen banner state — cleared after 6s.
+      setArrivedMachine(event.label);
+      setTimeout(() => {
+        setArrivedMachine((current) =>
+          current === event.label ? null : current,
+        );
+      }, 6000);
+
+      // Haptic-ish feedback — expo-haptics is not in deps, so fall back to
+      // React Native's cross-platform Vibration API.
+      try {
+        Vibration.vibrate(400);
+      } catch {
+        // no-op
+      }
+
+      // Local notification banner. Schedule with null trigger = immediate.
+      // Wrapped so a missing permission doesn't break the tracker listener.
+      void Notifications.scheduleNotificationAsync({
+        content: {
+          title: t("route.arrivedTitle", "Вы прибыли"),
+          body: t("route.arrivedBody", { name: event.label }),
+          sound: true,
+        },
+        trigger: null,
+      }).catch(() => {
+        // Permission may not be granted on first launch — degrade silently.
+      });
+    });
+
+    return () => {
+      unsubscribe();
+      clearGeofences();
+    };
+  }, [activeRouteActive, route, t]);
+
   const startMutation = useMutation({
     mutationFn: async (routeId: string) => {
       await routesApi.start(routeId);
@@ -240,9 +317,7 @@ export function RouteScreen() {
     endMutation.mutate({ routeId, odometer: parsed });
   };
 
-  const isActive =
-    (activeRoute?.status === "active" || isTracking()) &&
-    Boolean(activeRoute?.id);
+  const isActive = activeRouteActive;
 
   const completedCount = route?.filter((s) => s.isCompleted).length || 0;
   const totalCount = route?.length || 0;
@@ -289,6 +364,19 @@ export function RouteScreen() {
         />
       }
     >
+      {/* Arrival banner — shown for 6s when a geofence fires `entered` */}
+      {arrivedMachine && (
+        <View style={styles.arrivedBanner}>
+          <Ionicons name="location" size={18} color="#fff" />
+          <Text style={styles.arrivedText}>
+            {t("route.arrivedBanner", { name: arrivedMachine })}
+          </Text>
+          <TouchableOpacity onPress={() => setArrivedMachine(null)}>
+            <Ionicons name="close" size={18} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Route Summary */}
       <View style={styles.summaryCard}>
         <Text style={styles.summaryTitle}>{t("route.title")}</Text>
@@ -709,4 +797,16 @@ const styles = StyleSheet.create({
   modalBtnCancelText: { color: COLORS.text, fontWeight: "600" },
   modalBtnConfirm: { backgroundColor: COLORS.primary },
   modalBtnConfirmText: { color: "#fff", fontWeight: "600" },
+  arrivedBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: COLORS.green,
+    marginHorizontal: 16,
+    marginTop: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  arrivedText: { flex: 1, color: "#fff", fontWeight: "600", fontSize: 14 },
 });
