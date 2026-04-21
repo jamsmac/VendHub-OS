@@ -361,7 +361,7 @@ export class RoutesController {
     @CurrentUser() user: User,
   ) {
     await this.verifyRouteAccess(id, user);
-    return this.routesService.addPoint(id, dto);
+    return this.routesService.addPoint(id, user.organizationId, dto);
   }
 
   @Post(":id/points/batch")
@@ -374,7 +374,11 @@ export class RoutesController {
     @CurrentUser() user: User,
   ) {
     await this.verifyRouteAccess(id, user);
-    return this.routesService.addPointsBatch(id, dto.points);
+    return this.routesService.addPointsBatch(
+      id,
+      user.organizationId,
+      dto.points,
+    );
   }
 
   @Get(":id/track")

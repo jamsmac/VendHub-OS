@@ -35,9 +35,12 @@ export class ForecastService {
     organizationId: string,
     machineId: string,
   ): Promise<SlotForecast[]> {
-    const slots = await this.slotRepo.find({
-      where: { machineId },
-    });
+    const slots = await this.slotRepo
+      .createQueryBuilder("slot")
+      .innerJoin("slot.machine", "machine")
+      .where("slot.machine_id = :machineId", { machineId })
+      .andWhere("machine.organization_id = :organizationId", { organizationId })
+      .getMany();
 
     const rates = await this.consumptionRateService.getRatesForMachine(
       organizationId,

@@ -4,7 +4,6 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   Inject,
   forwardRef,
 } from "@nestjs/common";
@@ -482,6 +481,7 @@ export class RoutesService {
 
   async addPoint(
     routeId: string,
+    organizationId: string,
     input: {
       latitude: number;
       longitude: number;
@@ -492,11 +492,12 @@ export class RoutesService {
       recordedAt?: string;
     },
   ) {
-    return this.routeTrackingService.addPoint(routeId, input);
+    return this.routeTrackingService.addPoint(routeId, organizationId, input);
   }
 
   async addPointsBatch(
     routeId: string,
+    organizationId: string,
     points: Array<{
       latitude: number;
       longitude: number;
@@ -507,7 +508,11 @@ export class RoutesService {
       recordedAt?: string;
     }>,
   ) {
-    return this.routeTrackingService.addPointsBatch(routeId, points);
+    return this.routeTrackingService.addPointsBatch(
+      routeId,
+      organizationId,
+      points,
+    );
   }
 
   async updateLiveLocationStatus(
@@ -628,16 +633,15 @@ export class RoutesService {
     organizationId: string,
     notes?: string,
   ): Promise<RouteAnomaly> {
-    const anomaly = await this.anomalyRepository.findOne({
-      where: { id: anomalyId },
-    });
-    if (!anomaly) throw new NotFoundException("Anomaly not found");
+    const anomaly = await this.anomalyRepository
+      .createQueryBuilder("anomaly")
+      .innerJoin("anomaly.route", "route")
+      .where("anomaly.id = :anomalyId", { anomalyId })
+      .andWhere("route.organization_id = :organizationId", { organizationId })
+      .getOne();
 
-    const route = await this.routeRepository.findOne({
-      where: { id: anomaly.routeId },
-    });
-    if (route && route.organizationId !== organizationId) {
-      throw new ForbiddenException("Access denied to this anomaly");
+    if (!anomaly) {
+      throw new NotFoundException("Anomaly not found");
     }
 
     anomaly.resolved = true;

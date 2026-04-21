@@ -14,6 +14,7 @@ function makeQbMock() {
     update: jest.fn().mockReturnThis(),
     set: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
     execute: executeMock,
   };
   return { qb, executeMock };
@@ -73,11 +74,16 @@ describe("QuantitySyncService", () => {
         update: jest.fn().mockReturnThis(),
         set: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
         execute: executeMock,
       };
       slotRepo.createQueryBuilder.mockReturnValue(qb);
 
-      const tx = { id: "tx-1", machineId: "machine-1" } as Transaction;
+      const tx = {
+        id: "tx-1",
+        machineId: "machine-1",
+        organizationId: "org-1",
+      } as Transaction;
       await service.handleTransactionCreated(tx);
 
       expect(itemRepo.find).toHaveBeenCalledWith({
@@ -114,11 +120,16 @@ describe("QuantitySyncService", () => {
         update: jest.fn().mockReturnThis(),
         set: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
         execute: executeMock,
       };
       slotRepo.createQueryBuilder.mockReturnValue(qb);
 
-      const tx = { id: "tx-2", machineId: "machine-2" } as Transaction;
+      const tx = {
+        id: "tx-2",
+        machineId: "machine-2",
+        organizationId: "org-2",
+      } as Transaction;
       await service.handleTransactionCreated(tx);
 
       expect(executeMock).toHaveBeenCalledTimes(2);
@@ -140,6 +151,18 @@ describe("QuantitySyncService", () => {
       expect(slotRepo.createQueryBuilder).not.toHaveBeenCalled();
     });
 
+    it("should not execute any query when organizationId is missing", async () => {
+      const tx = {
+        id: "tx-no-org",
+        machineId: "machine-x",
+        organizationId: undefined,
+      } as unknown as Transaction;
+      await service.handleTransactionCreated(tx);
+
+      expect(itemRepo.find).not.toHaveBeenCalled();
+      expect(slotRepo.createQueryBuilder).not.toHaveBeenCalled();
+    });
+
     it("should not execute any query when items array is empty", async () => {
       itemRepo.find.mockResolvedValue([]);
 
@@ -148,11 +171,16 @@ describe("QuantitySyncService", () => {
         update: jest.fn().mockReturnThis(),
         set: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
         execute: executeMock,
       };
       slotRepo.createQueryBuilder.mockReturnValue(qb);
 
-      const tx = { id: "tx-5", machineId: "machine-5" } as Transaction;
+      const tx = {
+        id: "tx-5",
+        machineId: "machine-5",
+        organizationId: "org-5",
+      } as Transaction;
       await service.handleTransactionCreated(tx);
 
       expect(executeMock).not.toHaveBeenCalled();
@@ -170,6 +198,7 @@ describe("QuantitySyncService", () => {
         update: jest.fn().mockReturnThis(),
         set: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
         execute: executeMock,
       };
       slotRepo.createQueryBuilder.mockReturnValue(qb);

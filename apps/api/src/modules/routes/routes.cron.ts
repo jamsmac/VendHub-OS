@@ -10,6 +10,7 @@ import {
 import { RoutesService } from "./routes.service";
 import { ROUTE_SETTINGS } from "./constants/route-settings";
 import { AnomalyType, AnomalySeverity } from "./entities/route-anomaly.entity";
+import { Organization } from "../organizations/entities/organization.entity";
 
 @Injectable()
 export class RoutesCronService {
@@ -25,6 +26,9 @@ export class RoutesCronService {
     @InjectRepository(RouteTaskLink)
     private readonly taskLinkRepository: Repository<RouteTaskLink>,
 
+    @InjectRepository(Organization)
+    private readonly organizationRepository: Repository<Organization>,
+
     private readonly routesService: RoutesService,
   ) {}
 
@@ -39,12 +43,21 @@ export class RoutesCronService {
       Date.now() - ROUTE_SETTINGS.AUTO_CLOSE_AFTER_HOURS * 60 * 60 * 1000,
     );
 
-    const staleRoutes = await this.routeRepository.find({
-      where: {
-        status: RouteStatus.ACTIVE,
-        lastLocationUpdate: LessThan(threshold),
-      },
+    const organizations = await this.organizationRepository.find({
+      select: ["id"],
     });
+
+    const staleRoutes: Route[] = [];
+    for (const org of organizations) {
+      const orgStaleRoutes = await this.routeRepository.find({
+        where: {
+          organizationId: org.id,
+          status: RouteStatus.ACTIVE,
+          lastLocationUpdate: LessThan(threshold),
+        },
+      });
+      staleRoutes.push(...orgStaleRoutes);
+    }
 
     for (const route of staleRoutes) {
       this.logger.warn(
@@ -173,16 +186,23 @@ export class RoutesCronService {
   async checkRoutesWithoutGps(): Promise<void> {
     const threshold = new Date(Date.now() - 15 * 60 * 1000); // 15 minutes ago
 
-    const routesWithoutGps = await this.routeRepository.find({
-      where: {
-        status: RouteStatus.ACTIVE,
-        lastLocationUpdate: IsNull(),
-        startedAt: LessThan(threshold),
-      },
+    const organizations = await this.organizationRepository.find({
+      select: ["id"],
     });
 
-    for (const route of routesWithoutGps) {
-      this.logger.warn(`Route ${route.id} has no GPS data after 15 minutes`);
+    for (const org of organizations) {
+      const routesWithoutGps = await this.routeRepository.find({
+        where: {
+          organizationId: org.id,
+          status: RouteStatus.ACTIVE,
+          lastLocationUpdate: IsNull(),
+          startedAt: LessThan(threshold),
+        },
+      });
+
+      for (const route of routesWithoutGps) {
+        this.logger.warn(`Route ${route.id} has no GPS data after 15 minutes`);
+      }
     }
   }
 }

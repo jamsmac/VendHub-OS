@@ -16,6 +16,7 @@ import { RouteTaskLink } from "./entities/route-task-link.entity";
 import { Vehicle } from "../vehicles/entities/vehicle.entity";
 import { RefillRecommendation } from "../predictive-refill/entities/refill-recommendation.entity";
 import { Machine } from "../machines/entities/machine.entity";
+import { Organization } from "../organizations/entities/organization.entity";
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { Machine } from "../machines/entities/machine.entity";
       Vehicle,
       RefillRecommendation,
       Machine,
+      Organization,
     ]),
   ],
   controllers: [RoutesController],

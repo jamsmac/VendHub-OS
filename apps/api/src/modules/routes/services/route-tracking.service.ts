@@ -45,6 +45,7 @@ export class RouteTrackingService {
 
   async addPoint(
     routeId: string,
+    organizationId: string,
     input: {
       latitude: number;
       longitude: number;
@@ -56,7 +57,7 @@ export class RouteTrackingService {
     },
   ): Promise<{ id: string; isFiltered: boolean; filterReason: string | null }> {
     const route = await this.routeRepository.findOne({
-      where: { id: routeId },
+      where: { id: routeId, organizationId },
     });
     if (!route) throw new NotFoundException(`Route ${routeId} not found`);
     if (route.status !== RouteStatus.ACTIVE) {
@@ -200,6 +201,7 @@ export class RouteTrackingService {
 
   async addPointsBatch(
     routeId: string,
+    organizationId: string,
     points: Array<{
       latitude: number;
       longitude: number;
@@ -212,7 +214,7 @@ export class RouteTrackingService {
   ) {
     const results = [];
     for (const point of points) {
-      const result = await this.addPoint(routeId, point);
+      const result = await this.addPoint(routeId, organizationId, point);
       results.push(result);
     }
     return results;
