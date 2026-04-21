@@ -67,3 +67,21 @@ If >5 minutes, consider batching by org or adding concurrency limits.
 curl -X POST https://vendhubapi-production.up.railway.app/api/v1/predictive-refill/trigger-refresh \
   -H "Authorization: Bearer <admin-token>"
 ```
+
+## Stock quantity not updating after sales
+
+1. Check if `transaction.created` event is being emitted: `grep "transaction.created" apps/api/src/modules/transactions/transaction-create.service.ts`
+2. Check if `QuantitySyncService` is registered in `predictive-refill.module.ts` providers
+3. Check `TransactionItem` has `productId` matching a `MachineSlot.productId`
+4. Verify EventEmitterModule is imported in `app.module.ts`
+
+## Auto-route returning empty
+
+1. Check if REFILL_NOW recommendations exist: `SELECT COUNT(*) FROM refill_recommendations WHERE organization_id = '<org>' AND recommended_action = 'refill_now'`
+2. Check machines have coordinates: `SELECT id, name, latitude, longitude FROM machines WHERE organization_id = '<org>' AND latitude IS NOT NULL`
+3. If no machines have GPS, route generation fails — add coordinates via machines admin
+
+## Sparklines showing all zeros
+
+1. Check if transactions exist in the last 7 days: `SELECT COUNT(*) FROM transactions WHERE organization_id = '<org>' AND transaction_date > NOW() - INTERVAL '7 days'`
+2. Check if transaction_items have correct `product_id` matching recommendations
