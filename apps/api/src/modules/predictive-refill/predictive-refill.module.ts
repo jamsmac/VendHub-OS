@@ -12,6 +12,7 @@ import { Organization } from "../organizations/entities/organization.entity";
 import { Product } from "../products/entities/product.entity";
 import { AlertRule } from "../alerts/entities/alert-rule.entity";
 import { AlertsModule } from "../alerts/alerts.module";
+import { StockMovementsModule } from "../stock-movements/stock-movements.module";
 import { ConsumptionRateService } from "./services/consumption-rate.service";
 import { ForecastService } from "./services/forecast.service";
 import { RecommendationService } from "./services/recommendation.service";
@@ -35,6 +36,7 @@ import { DailyForecastProcessor } from "./jobs/daily-forecast.processor";
     ]),
     BullModule.registerQueue({ name: "predictive-refill" }),
     AlertsModule,
+    StockMovementsModule,
   ],
   controllers: [PredictiveRefillController],
   providers: [
