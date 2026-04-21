@@ -123,6 +123,8 @@ import { InvitesModule } from "./modules/invites/invites.module";
 import { PredictiveRefillModule } from "./modules/predictive-refill/predictive-refill.module";
 import { StockMovementsModule } from "./modules/stock-movements/stock-movements.module";
 import { PurchasesModule } from "./modules/purchases/purchases.module";
+import { InventoryReconciliationModule } from "./modules/inventory-reconciliation/inventory-reconciliation.module";
+import { SlotHistoryModule } from "./modules/slot-history/slot-history.module";
 
 // Common Guards & Interceptors
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
@@ -754,6 +756,10 @@ const defaultedNumber = (value: number) =>
 
     // Purchases + price history extension (Sprint G2)
     PurchasesModule,
+
+    // Inventory Reconciliation + Slot History (Sprint G4)
+    InventoryReconciliationModule,
+    SlotHistoryModule,
   ],
   providers: [
     // ============================================
