@@ -14,6 +14,7 @@ import { ForecastService } from "./services/forecast.service";
 import { RecommendationService } from "./services/recommendation.service";
 import { PredictiveRefillCronService } from "./services/predictive-refill-cron.service";
 import { PredictiveRefillController } from "./controllers/predictive-refill.controller";
+import { DailyForecastProcessor } from "./jobs/daily-forecast.processor";
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { PredictiveRefillController } from "./controllers/predictive-refill.cont
     ForecastService,
     RecommendationService,
     PredictiveRefillCronService,
+    DailyForecastProcessor,
   ],
   exports: [ConsumptionRateService, ForecastService, RecommendationService],
 })

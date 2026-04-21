@@ -6,7 +6,14 @@ import {
   Query,
   ParseUUIDPipe,
 } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from "@nestjs/swagger";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
 import { Roles } from "../../../common/decorators/roles.decorator";
 import { CurrentUser } from "../../../common/decorators/current-user.decorator";
 import { ForecastService } from "../services/forecast.service";
@@ -20,6 +27,7 @@ export class PredictiveRefillController {
   constructor(
     private readonly forecastService: ForecastService,
     private readonly recommendationService: RecommendationService,
+    @InjectQueue("predictive-refill") private readonly queue: Queue,
   ) {}
 
   @Get("forecast/:machineId")
@@ -50,5 +58,23 @@ export class PredictiveRefillController {
     @CurrentUser("organizationId") orgId: string,
   ) {
     return this.recommendationService.markActed(orgId, id);
+  }
+
+  @Post("trigger-refresh")
+  @Roles("owner", "admin")
+  @ApiOperation({
+    summary: "Manually trigger predictive refill recalculation for all orgs",
+  })
+  @ApiResponse({ status: 201, description: "Refresh job enqueued" })
+  async triggerRefresh(): Promise<{ message: string; jobId: string }> {
+    const job = await this.queue.add(
+      "recalc-all",
+      {},
+      {
+        removeOnComplete: 10,
+        removeOnFail: 5,
+      },
+    );
+    return { message: "Refresh enqueued", jobId: String(job.id) };
   }
 }
