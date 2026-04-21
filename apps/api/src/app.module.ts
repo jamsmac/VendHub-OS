@@ -122,6 +122,7 @@ import { CustomFieldsModule } from "./modules/custom-fields/custom-fields.module
 import { InvitesModule } from "./modules/invites/invites.module";
 import { PredictiveRefillModule } from "./modules/predictive-refill/predictive-refill.module";
 import { StockMovementsModule } from "./modules/stock-movements/stock-movements.module";
+import { PurchasesModule } from "./modules/purchases/purchases.module";
 
 // Common Guards & Interceptors
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
@@ -750,6 +751,9 @@ const defaultedNumber = (value: number) =>
 
     // Event-sourced Stock Movements + Inventory Balances (Sprint G1)
     StockMovementsModule,
+
+    // Purchases + price history extension (Sprint G2)
+    PurchasesModule,
   ],
   providers: [
     // ============================================

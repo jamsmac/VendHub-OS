@@ -522,6 +522,11 @@ export class IngredientBatch extends BaseEntity {
 // PRODUCT PRICE HISTORY ENTITY
 // ============================================================================
 
+export enum PriceType {
+  COST = "cost",
+  SELLING = "selling",
+}
+
 @Entity("product_price_history")
 @Index(["productId"])
 @Index(["effectiveFrom"])
@@ -529,11 +534,24 @@ export class ProductPriceHistory extends BaseEntity {
   @Column()
   productId: string;
 
+  @Column({ type: "uuid", nullable: true })
+  organizationId: string | null;
+
   @Column({ type: "decimal", precision: 15, scale: 2 })
   purchasePrice: number;
 
   @Column({ type: "decimal", precision: 15, scale: 2 })
   sellingPrice: number;
+
+  // Old/new price convenience fields for explicit price-change records
+  @Column({ type: "decimal", precision: 15, scale: 2, nullable: true })
+  oldPrice: number | null;
+
+  @Column({ type: "decimal", precision: 15, scale: 2, nullable: true })
+  newPrice: number | null;
+
+  @Column({ type: "enum", enum: PriceType, default: PriceType.COST })
+  priceType: PriceType;
 
   @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   effectiveFrom: Date;
@@ -544,8 +562,20 @@ export class ProductPriceHistory extends BaseEntity {
   @Column({ type: "text", nullable: true })
   changeReason: string;
 
+  @Column({ type: "text", nullable: true })
+  reason: string | null;
+
   @Column({ nullable: true })
   changedByUserId: string;
+
+  @Column({ type: "uuid", nullable: true })
+  supplierId: string | null;
+
+  @Column({ type: "varchar", length: 255, nullable: true })
+  supplierNameSnapshot: string | null;
+
+  @Column({ type: "uuid", nullable: true })
+  purchaseId: string | null;
 
   @ManyToOne("Product", { onDelete: "CASCADE" })
   @JoinColumn({ name: "product_id" })
