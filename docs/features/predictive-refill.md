@@ -35,3 +35,38 @@ Forecasts when vending machine slots will run out of stock and prioritizes refil
 - **MachineSlot.currentQuantity freshness** depends on telemetry pipeline. Stale telemetry = stale forecasts.
 - **Route efficiency** is constant (1.0) in current version. Future: compute from distance-to-route.
 - **No seasonal/holiday adjustment** — EWMA smoothing only. ML models deferred to Sprint F+.
+
+## Priority Formula (Phase 3)
+
+Priority scoring uses real per-machine margins:
+
+```
+sellingPrice = MachineSlot.price ?? Product.sellingPrice
+costPrice = MachineSlot.costPrice ?? Product.purchasePrice
+margin = sellingPrice - costPrice
+dailyProfit = margin × dailyRate
+urgency = min(10, 1 / daysOfSupply)
+priorityScore = urgency × log10(1 + dailyProfit)
+```
+
+Higher margin slots get higher priority when running low. Each machine can override product prices via slot-level `price` and `costPrice` fields.
+
+## Alerts
+
+- Metric: `PREDICTED_STOCKOUT`
+- Fires for: `REFILL_NOW` recommendations only (daysOfSupply < 2)
+- Channels: in-app + Telegram (configurable per org via alert rule)
+- Suppression: 24h cooldown per machine (via AlertRule.cooldownMinutes)
+- Severity: CRITICAL
+
+Alert rule is auto-seeded per organization. Operators can disable via Dashboard > Alerts > Rules.
+
+## Manual Refresh
+
+```
+POST /api/v1/predictive-refill/trigger-refresh
+Authorization: Bearer <token>
+Roles: owner, admin
+```
+
+Enqueues a full recalculation job. Response: `{ message, jobId }`.

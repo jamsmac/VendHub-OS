@@ -47,3 +47,23 @@ First cron run may be slow if many (machine × product) pairs. Monitor duration 
 `"Nightly recalc complete: N orgs, M rates, K recs, X failures, Ys"`
 
 If >5 minutes, consider batching by org or adding concurrency limits.
+
+## Alert not firing
+
+1. Check if PREDICTED_STOCKOUT rule exists for the org: `SELECT * FROM alert_rules WHERE organization_id = '<org>' AND metric = 'predicted_stockout'`
+2. Check if rule is active (`is_active = true`)
+3. Check cooldown: `SELECT * FROM alert_history WHERE rule_id = '<rule>' AND machine_id = '<machine>' ORDER BY triggered_at DESC LIMIT 1` — if triggered within 1440 minutes, suppressed
+4. Check if any REFILL_NOW recommendations exist: `SELECT * FROM refill_recommendations WHERE organization_id = '<org>' AND recommended_action = 'refill_now'`
+
+## Wrong priority ordering
+
+- Verify slot prices are set: `SELECT slot_number, price, cost_price FROM machine_slots WHERE machine_id = '<machine>'`
+- If both are NULL, system falls back to Product.sellingPrice/purchasePrice
+- If Product prices are also 0, dailyProfit = 0 and priorityScore = 0
+
+## Manual refresh
+
+```bash
+curl -X POST https://vendhubapi-production.up.railway.app/api/v1/predictive-refill/trigger-refresh \
+  -H "Authorization: Bearer <admin-token>"
+```
