@@ -1,9 +1,10 @@
 /**
  * Route Screen
- * Optimized route for daily machine visits
+ * Optimized route for daily machine visits + route lifecycle (start/end) with
+ * background GPS tracking.
  */
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,13 +12,25 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  Alert,
+  Modal,
+  TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { tasksApi, machinesApi } from "../../services/api";
+import { tasksApi, machinesApi, routesApi } from "../../services/api";
+import {
+  requestPermissions,
+  startTracking,
+  stopTracking,
+  isTracking,
+  getBufferSize,
+  getActiveRouteId,
+} from "../../services/gps-tracker";
 
 const COLORS = {
   primary: "#4F46E5",
@@ -52,12 +65,41 @@ interface RouteStop {
   isCompleted: boolean;
 }
 
+interface ActiveRoute {
+  id: string;
+  status: string;
+}
+
 export function RouteScreen() {
   const { t } = useTranslation();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-  useQueryClient();
+  const queryClient = useQueryClient();
   const [expandedStop, setExpandedStop] = useState<string | null>(null);
+  const [endModalVisible, setEndModalVisible] = useState(false);
+  const [endOdometer, setEndOdometer] = useState("");
+  const [bufferSize, setBufferSize] = useState(0);
+
+  // Poll the GPS buffer size while tracking so the UI updates
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setBufferSize(getBufferSize());
+    }, 2000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const { data: activeRoute, refetch: refetchActiveRoute } =
+    useQuery<ActiveRoute | null>({
+      queryKey: ["route", "active"],
+      queryFn: async () => {
+        try {
+          const res = await routesApi.getActive();
+          return (res.data ?? null) as ActiveRoute | null;
+        } catch {
+          return null;
+        }
+      },
+    });
 
   const {
     data: route,
@@ -125,6 +167,83 @@ export function RouteScreen() {
     },
   });
 
+  const startMutation = useMutation({
+    mutationFn: async (routeId: string) => {
+      await routesApi.start(routeId);
+      await startTracking(routeId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["route", "active"] });
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof Error ? err.message : t("route.startError");
+      Alert.alert(t("route.startError"), message);
+    },
+  });
+
+  const endMutation = useMutation({
+    mutationFn: async ({
+      routeId,
+      odometer,
+    }: {
+      routeId: string;
+      odometer: number;
+    }) => {
+      await stopTracking();
+      await routesApi.end(routeId, odometer);
+    },
+    onSuccess: () => {
+      setEndModalVisible(false);
+      setEndOdometer("");
+      queryClient.invalidateQueries({ queryKey: ["route", "active"] });
+    },
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : t("route.endError");
+      Alert.alert(t("route.endError"), message);
+    },
+  });
+
+  const handleStart = async () => {
+    // Prefer backend-supplied active route id; fall back to first stop's machine
+    // id is NOT a route id, so we require an activeRoute-compatible id from
+    // context. In practice, managers assign the route in the web dashboard
+    // (status = PLANNED) and getActive returns it.
+    if (!activeRoute?.id) {
+      Alert.alert(t("route.noActiveRoute"), t("route.assignRoutePrompt"));
+      return;
+    }
+
+    const granted = await requestPermissions();
+    if (!granted) {
+      Alert.alert(
+        t("route.permissionDeniedTitle"),
+        t("route.permissionDeniedBody"),
+      );
+      return;
+    }
+
+    startMutation.mutate(activeRoute.id);
+  };
+
+  const handleConfirmEnd = () => {
+    const parsed = Number(endOdometer);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      Alert.alert(t("route.endError"), t("route.invalidOdometer"));
+      return;
+    }
+    const routeId = activeRoute?.id ?? getActiveRouteId();
+    if (!routeId) {
+      Alert.alert(t("route.endError"), t("route.noActiveRoute"));
+      return;
+    }
+    endMutation.mutate({ routeId, odometer: parsed });
+  };
+
+  const isActive =
+    (activeRoute?.status === "active" || isTracking()) &&
+    Boolean(activeRoute?.id);
+
   const completedCount = route?.filter((s) => s.isCompleted).length || 0;
   const totalCount = route?.length || 0;
   const totalTime = route?.reduce((sum, s) => sum + s.estimatedTime, 0) || 0;
@@ -161,7 +280,13 @@ export function RouteScreen() {
     <ScrollView
       style={styles.container}
       refreshControl={
-        <RefreshControl refreshing={isLoading} onRefresh={refetch} />
+        <RefreshControl
+          refreshing={isLoading}
+          onRefresh={() => {
+            void refetch();
+            void refetchActiveRoute();
+          }}
+        />
       }
     >
       {/* Route Summary */}
@@ -202,6 +327,46 @@ export function RouteScreen() {
               },
             ]}
           />
+        </View>
+
+        {/* Start / End / Status */}
+        <View style={styles.actionRow}>
+          {!isActive && (
+            <TouchableOpacity
+              style={[styles.actionBtn, styles.btnStart]}
+              onPress={handleStart}
+              disabled={startMutation.isPending}
+              activeOpacity={0.8}
+            >
+              {startMutation.isPending ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <>
+                  <Ionicons name="play" size={18} color="#fff" />
+                  <Text style={styles.actionBtnText}>{t("route.start")}</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
+          {isActive && (
+            <>
+              <View style={styles.statusPill}>
+                <View style={styles.statusDot} />
+                <Text style={styles.statusText}>{t("route.inProgress")}</Text>
+              </View>
+              <Text style={styles.pointsText}>
+                {t("route.pointsRecorded", { count: bufferSize })}
+              </Text>
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.btnEnd]}
+                onPress={() => setEndModalVisible(true)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="stop" size={18} color="#fff" />
+                <Text style={styles.actionBtnText}>{t("route.end")}</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </View>
 
@@ -304,6 +469,55 @@ export function RouteScreen() {
       )}
 
       <View style={{ height: 24 }} />
+
+      {/* End Route Modal */}
+      <Modal
+        visible={endModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setEndModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>{t("route.end")}</Text>
+            <Text style={styles.modalPrompt}>
+              {t("route.endOdometerPrompt")}
+            </Text>
+            <TextInput
+              style={styles.modalInput}
+              keyboardType="numeric"
+              value={endOdometer}
+              onChangeText={setEndOdometer}
+              placeholder={t("route.endOdometerPlaceholder")}
+              placeholderTextColor={COLORS.muted}
+            />
+            <View style={styles.modalBtnRow}>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.modalBtnCancel]}
+                onPress={() => setEndModalVisible(false)}
+                disabled={endMutation.isPending}
+              >
+                <Text style={styles.modalBtnCancelText}>
+                  {t("route.cancel")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.modalBtnConfirm]}
+                onPress={handleConfirmEnd}
+                disabled={endMutation.isPending}
+              >
+                {endMutation.isPending ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.modalBtnConfirmText}>
+                    {t("route.confirm")}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -351,6 +565,43 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.green,
     borderRadius: 3,
   },
+  actionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 12,
+    flexWrap: "wrap",
+  },
+  actionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    minHeight: 40,
+  },
+  btnStart: { backgroundColor: COLORS.green, flex: 1 },
+  btnEnd: { backgroundColor: COLORS.red },
+  actionBtnText: { color: "#fff", fontWeight: "600", fontSize: 14 },
+  statusPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: "#ECFDF5",
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.green,
+  },
+  statusText: { color: COLORS.green, fontSize: 13, fontWeight: "600" },
+  pointsText: { color: COLORS.muted, fontSize: 12, flex: 1 },
   stopCard: {
     flexDirection: "row",
     backgroundColor: COLORS.card,
@@ -411,4 +662,51 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   emptySubtext: { fontSize: 14, color: COLORS.muted, marginTop: 4 },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  modalCard: {
+    backgroundColor: COLORS.card,
+    borderRadius: 16,
+    padding: 20,
+    width: "100%",
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: COLORS.text,
+    marginBottom: 8,
+  },
+  modalPrompt: { fontSize: 14, color: COLORS.muted, marginBottom: 12 },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 16,
+    color: COLORS.text,
+  },
+  modalBtnRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 16,
+    justifyContent: "flex-end",
+  },
+  modalBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    minWidth: 100,
+    alignItems: "center",
+  },
+  modalBtnCancel: { backgroundColor: "#F3F4F6" },
+  modalBtnCancelText: { color: COLORS.text, fontWeight: "600" },
+  modalBtnConfirm: { backgroundColor: COLORS.primary },
+  modalBtnConfirmText: { color: "#fff", fontWeight: "600" },
 });

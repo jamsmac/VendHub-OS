@@ -213,6 +213,26 @@ export const reportsApi = {
   getMyStats: () => api.get("/reports/my-stats"),
 };
 
+export interface GpsPoint {
+  latitude: number;
+  longitude: number;
+  timestamp: string;
+  speed?: number;
+  heading?: number;
+  accuracy?: number;
+}
+
+export const routesApi = {
+  getActive: () => api.get("/routes/active"),
+  start: (routeId: string) => api.post(`/routes/${routeId}/start`),
+  end: (routeId: string, endOdometer: number) =>
+    api.post(`/routes/${routeId}/end`, { endOdometer }),
+  addPoint: (routeId: string, point: GpsPoint) =>
+    api.post(`/routes/${routeId}/points`, point),
+  addPointsBatch: (routeId: string, points: GpsPoint[]) =>
+    api.post(`/routes/${routeId}/points/batch`, { points }),
+};
+
 // ============================================
 // Client-facing API methods
 // ============================================
