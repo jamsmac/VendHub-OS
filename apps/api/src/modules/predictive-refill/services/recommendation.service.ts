@@ -99,12 +99,13 @@ export class RecommendationService {
     organizationId: string,
     forecast: SlotForecast,
   ): Promise<RefillRecommendation> {
+    const margin = forecast.sellingPrice - forecast.costPrice;
+    const dailyProfit = margin * forecast.dailyRate;
     const urgency = Math.min(
       10,
       forecast.daysOfSupply > 0 ? 1 / forecast.daysOfSupply : 10,
     );
-    const revenueImpact = Math.log10(1 + forecast.dailyRate * 20000); // assume avg price 20000 UZS
-    const priorityScore = urgency * revenueImpact;
+    const priorityScore = urgency * Math.log10(1 + Math.max(0, dailyProfit));
 
     const action =
       forecast.daysOfSupply < 2
@@ -121,14 +122,22 @@ export class RecommendationService {
       },
     });
 
+    const data = {
+      currentStock: forecast.currentStock,
+      capacity: forecast.capacity,
+      dailyRate: forecast.dailyRate,
+      daysOfSupply: forecast.daysOfSupply,
+      priorityScore: Math.round(priorityScore * 10000) / 10000,
+      recommendedAction: action,
+      sellingPrice: forecast.sellingPrice,
+      costPrice: forecast.costPrice,
+      margin: Math.round(margin * 100) / 100,
+      dailyProfit: Math.round(dailyProfit * 100) / 100,
+      generatedAt: new Date(),
+    };
+
     if (existing) {
-      existing.currentStock = forecast.currentStock;
-      existing.capacity = forecast.capacity;
-      existing.dailyRate = forecast.dailyRate;
-      existing.daysOfSupply = forecast.daysOfSupply;
-      existing.priorityScore = Math.round(priorityScore * 10000) / 10000;
-      existing.recommendedAction = action;
-      existing.generatedAt = new Date();
+      Object.assign(existing, data);
       return this.recRepo.save(existing);
     }
 
@@ -137,13 +146,7 @@ export class RecommendationService {
         organizationId,
         machineId: forecast.machineId,
         productId: forecast.productId,
-        currentStock: forecast.currentStock,
-        capacity: forecast.capacity,
-        dailyRate: forecast.dailyRate,
-        daysOfSupply: forecast.daysOfSupply,
-        priorityScore: Math.round(priorityScore * 10000) / 10000,
-        recommendedAction: action,
-        generatedAt: new Date(),
+        ...data,
       }),
     );
   }

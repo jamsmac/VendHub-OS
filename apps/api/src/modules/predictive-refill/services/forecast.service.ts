@@ -1,7 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, In } from "typeorm";
 import { MachineSlot } from "../../machines/entities/machine.entity";
+import { Product } from "../../products/entities/product.entity";
 import { ConsumptionRateService } from "./consumption-rate.service";
 
 export interface SlotForecast {
@@ -13,6 +14,8 @@ export interface SlotForecast {
   capacity: number;
   dailyRate: number;
   daysOfSupply: number;
+  sellingPrice: number;
+  costPrice: number;
 }
 
 @Injectable()
@@ -23,6 +26,8 @@ export class ForecastService {
   constructor(
     @InjectRepository(MachineSlot)
     private readonly slotRepo: Repository<MachineSlot>,
+    @InjectRepository(Product)
+    private readonly productRepo: Repository<Product>,
     private readonly consumptionRateService: ConsumptionRateService,
   ) {}
 
@@ -44,24 +49,44 @@ export class ForecastService {
       rateMap.set(r.productId, Number(r.ratePerDay));
     }
 
-    return slots
-      .filter((s) => s.productId)
-      .map((slot) => {
-        const dailyRate = rateMap.get(slot.productId) ?? 0;
-        const daysOfSupply =
-          dailyRate > 0
-            ? Math.min(this.MAX_DAYS, slot.currentQuantity / dailyRate)
-            : this.MAX_DAYS;
+    const slotsWithProduct = slots.filter((s) => s.productId);
+    const productIds = slotsWithProduct.map((s) => s.productId);
 
-        return {
-          machineId,
-          productId: slot.productId,
-          slotNumber: slot.slotNumber,
-          currentStock: slot.currentQuantity,
-          capacity: slot.capacity,
-          dailyRate: Math.round(dailyRate * 10000) / 10000,
-          daysOfSupply: Math.round(daysOfSupply * 100) / 100,
-        };
-      });
+    const products =
+      productIds.length > 0
+        ? await this.productRepo.find({
+            where: { id: In(productIds) },
+            select: ["id", "sellingPrice", "purchasePrice"],
+          })
+        : [];
+
+    const productMap = new Map<string, Product>();
+    for (const p of products) {
+      productMap.set(p.id, p);
+    }
+
+    return slotsWithProduct.map((slot) => {
+      const dailyRate = rateMap.get(slot.productId) ?? 0;
+      const daysOfSupply =
+        dailyRate > 0
+          ? Math.min(this.MAX_DAYS, slot.currentQuantity / dailyRate)
+          : this.MAX_DAYS;
+
+      const product = productMap.get(slot.productId);
+      const sellingPrice = Number(slot.price ?? product?.sellingPrice ?? 0);
+      const costPrice = Number(slot.costPrice ?? product?.purchasePrice ?? 0);
+
+      return {
+        machineId,
+        productId: slot.productId,
+        slotNumber: slot.slotNumber,
+        currentStock: slot.currentQuantity,
+        capacity: slot.capacity,
+        dailyRate: Math.round(dailyRate * 10000) / 10000,
+        daysOfSupply: Math.round(daysOfSupply * 100) / 100,
+        sellingPrice,
+        costPrice,
+      };
+    });
   }
 }

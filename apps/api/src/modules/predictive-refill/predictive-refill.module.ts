@@ -6,6 +6,7 @@ import { RefillRecommendation } from "./entities/refill-recommendation.entity";
 import { Transaction } from "../transactions/entities/transaction.entity";
 import { MachineSlot, Machine } from "../machines/entities/machine.entity";
 import { Organization } from "../organizations/entities/organization.entity";
+import { Product } from "../products/entities/product.entity";
 import { ConsumptionRateService } from "./services/consumption-rate.service";
 import { ForecastService } from "./services/forecast.service";
 import { RecommendationService } from "./services/recommendation.service";
@@ -21,6 +22,7 @@ import { PredictiveRefillController } from "./controllers/predictive-refill.cont
       MachineSlot,
       Machine,
       Organization,
+      Product,
     ]),
     BullModule.registerQueue({ name: "predictive-refill" }),
   ],
