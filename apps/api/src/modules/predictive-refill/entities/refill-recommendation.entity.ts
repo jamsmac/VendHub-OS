@@ -49,6 +49,18 @@ export class RefillRecommendation extends BaseEntity {
   @Column({ type: "decimal", precision: 10, scale: 4, default: 0 })
   priorityScore: number;
 
+  @Column({ type: "decimal", precision: 12, scale: 2, default: 0 })
+  sellingPrice: number;
+
+  @Column({ type: "decimal", precision: 12, scale: 2, default: 0 })
+  costPrice: number;
+
+  @Column({ type: "decimal", precision: 12, scale: 2, default: 0 })
+  margin: number;
+
+  @Column({ type: "decimal", precision: 12, scale: 2, default: 0 })
+  dailyProfit: number;
+
   @Column({
     type: "enum",
     enum: RefillAction,
