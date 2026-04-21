@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { LineChart, Line, ResponsiveContainer } from "recharts";
 import { api, routesApi } from "@/lib/api";
 import { toast } from "sonner";
 import { useAuthStore } from "@/lib/store/auth";
@@ -38,6 +39,7 @@ interface RefillRecommendation {
   costPrice: number;
   margin: number;
   dailyProfit: number;
+  recentRates?: number[];
 }
 
 interface RecommendationsResponse {
@@ -148,6 +150,21 @@ export default function PredictiveRefillPage() {
     },
     onError: () => {
       toast.error("Ошибка при создании маршрута");
+    },
+  });
+
+  // Auto-route mutation
+  const autoRouteMutation = useMutation({
+    mutationFn: async () => {
+      const { data } = await api.post("/routes/auto-generate", {});
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success("Маршрут сгенерирован");
+      router.push(`/dashboard/routes/${data.id}`);
+    },
+    onError: () => {
+      toast.error("Ошибка при генерации маршрута");
     },
   });
 
@@ -282,6 +299,18 @@ export default function PredictiveRefillPage() {
         </TabsList>
       </Tabs>
 
+      {/* Toolbar */}
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => autoRouteMutation.mutate()}
+          disabled={autoRouteMutation.isPending}
+        >
+          {autoRouteMutation.isPending ? "Генерация..." : "Авто-маршрут"}
+        </Button>
+      </div>
+
       {selectedIds.size > 0 && (
         <div className="flex items-center justify-between rounded-lg border bg-muted/50 p-3">
           <span className="text-sm text-muted-foreground">
@@ -312,6 +341,7 @@ export default function PredictiveRefillPage() {
                   <TableHead>Остаток</TableHead>
                   <TableHead>Дней запаса</TableHead>
                   <TableHead>Балл</TableHead>
+                  <TableHead className="w-20">Тренд</TableHead>
                   <TableHead className="text-right">Действие</TableHead>
                 </TableRow>
               </TableHeader>
@@ -335,6 +365,9 @@ export default function PredictiveRefillPage() {
                     </TableCell>
                     <TableCell>
                       <Skeleton className="h-5 w-12" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-6 w-[60px]" />
                     </TableCell>
                     <TableCell>
                       <Skeleton className="h-8 w-24 ml-auto" />
@@ -382,6 +415,7 @@ export default function PredictiveRefillPage() {
                   <TableHead>Остаток</TableHead>
                   <TableHead>Дней запаса</TableHead>
                   <TableHead>Балл</TableHead>
+                  <TableHead className="w-20">Тренд</TableHead>
                   <TableHead className="text-right">Действие</TableHead>
                 </TableRow>
               </TableHeader>
@@ -457,6 +491,35 @@ export default function PredictiveRefillPage() {
                       </TableCell>
                       <TableCell className="font-mono text-sm">
                         {rec.priorityScore.toFixed(0)}
+                      </TableCell>
+                      <TableCell>
+                        {rec.recentRates && rec.recentRates.length > 0 ? (
+                          <ResponsiveContainer width={60} height={24}>
+                            <LineChart
+                              data={rec.recentRates.map((v, i) => ({
+                                d: i,
+                                v,
+                              }))}
+                            >
+                              <Line
+                                type="monotone"
+                                dataKey="v"
+                                stroke={
+                                  rec.recentRates[rec.recentRates.length - 1] >
+                                  rec.recentRates[0] * 1.2
+                                    ? "#ef4444"
+                                    : "#22c55e"
+                                }
+                                strokeWidth={1.5}
+                                dot={false}
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">
+                            —
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
