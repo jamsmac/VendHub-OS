@@ -1,3 +1,12 @@
+# Design assets (HTML mocks, PDFs, PNGs — view locally, don't deploy)
+design/uploads/
+design/screenshots/
+design/**/*.html
+design/**/*.jsx
+design/**/*.css
+!design/handoff/
+!design/shared/tokens.css
+
 # iCloud sync duplicates (macOS creates "file 2.ext" on conflicts)
 *\ 2.ts
 *\ 2.tsx
