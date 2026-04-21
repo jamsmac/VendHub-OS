@@ -5,16 +5,17 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import {
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
+  ReferenceLine,
   ResponsiveContainer,
-  Cell,
+  Legend,
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -39,6 +40,65 @@ interface SlotForecast {
   daysOfSupply: number;
   recommendedAction: string;
   machineName?: string;
+}
+
+// --- Chart helpers ---
+
+interface ChartDataPoint {
+  date: string;
+  stock: number | null;
+  projection: number | null;
+}
+
+function buildChartData(
+  currentStock: number,
+  dailyRate: number,
+  capacity: number,
+): ChartDataPoint[] {
+  const data: ChartDataPoint[] = [];
+  const today = new Date();
+
+  for (let i = 14; i >= 1; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    const estimatedStock = Math.min(
+      capacity,
+      Math.max(0, currentStock + dailyRate * i),
+    );
+    data.push({
+      date: date.toLocaleDateString("ru-RU", {
+        day: "2-digit",
+        month: "2-digit",
+      }),
+      stock: Math.round(estimatedStock),
+      projection: null,
+    });
+  }
+
+  data.push({
+    date: today.toLocaleDateString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+    }),
+    stock: currentStock,
+    projection: currentStock,
+  });
+
+  for (let i = 1; i <= 7; i++) {
+    const date = new Date(today);
+    date.setDate(date.getDate() + i);
+    const projected = Math.max(0, currentStock - dailyRate * i);
+    data.push({
+      date: date.toLocaleDateString("ru-RU", {
+        day: "2-digit",
+        month: "2-digit",
+      }),
+      stock: null,
+      projection: Math.round(projected),
+    });
+  }
+
+  return data;
 }
 
 // --- Component ---
@@ -71,27 +131,6 @@ export default function MachineRefillDetailPage({
 
   const machineName = slots[0]?.machineName ?? "Автомат";
 
-  // Chart data
-  const chartData = slots.map((slot) => {
-    const fillPct =
-      slot.capacity > 0
-        ? Math.round((slot.currentStock / slot.capacity) * 100)
-        : 0;
-    return {
-      name: slot.slotLabel || slot.productName,
-      stock: slot.currentStock,
-      capacity: slot.capacity,
-      fillPct,
-    };
-  });
-
-  // Bar color based on fill %
-  const getBarColor = (fillPct: number) => {
-    if (fillPct < 20) return "#dc2626"; // red-600
-    if (fillPct < 50) return "#d97706"; // amber-600
-    return "#16a34a"; // green-600
-  };
-
   return (
     <div className="space-y-6">
       {/* Back + Header */}
@@ -113,61 +152,70 @@ export default function MachineRefillDetailPage({
       </div>
 
       {/* Stock Level Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Уровни запаса по слотам</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <Skeleton className="h-[300px] w-full" />
-          ) : chartData.length === 0 ? (
-            <p className="text-muted-foreground text-center py-12">
-              Нет данных для отображения
-            </p>
-          ) : (
+      {slots.length > 0 && (
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <h3 className="mb-4 text-lg font-medium">
+              Прогноз запасов (первый слот)
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={chartData}
-                margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+              <LineChart
+                data={buildChartData(
+                  slots[0].currentStock,
+                  slots[0].dailyRate,
+                  slots[0].capacity,
+                )}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
               >
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis
-                  dataKey="name"
-                  tick={{ fontSize: 12 }}
-                  className="fill-muted-foreground"
-                />
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" fontSize={12} />
                 <YAxis
-                  tick={{ fontSize: 12 }}
-                  className="fill-muted-foreground"
+                  label={{ value: "шт", angle: -90, position: "insideLeft" }}
                 />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                  labelStyle={{ color: "hsl(var(--foreground))" }}
-                  formatter={(value: number, name: string) => {
-                    if (name === "stock") return [value, "Остаток"];
-                    if (name === "capacity") return [value, "Ёмкость"];
-                    return [value, name];
-                  }}
+                <Tooltip />
+                <Legend />
+                <ReferenceLine
+                  y={0}
+                  stroke="red"
+                  strokeDasharray="5 5"
+                  label="Дефицит"
                 />
-                <Bar
-                  dataKey="capacity"
-                  fill="hsl(var(--muted))"
-                  radius={[4, 4, 0, 0]}
+                <ReferenceLine
+                  x={new Date().toLocaleDateString("ru-RU", {
+                    day: "2-digit",
+                    month: "2-digit",
+                  })}
+                  stroke="gray"
+                  strokeDasharray="3 3"
+                  label="Сегодня"
                 />
-                <Bar dataKey="stock" radius={[4, 4, 0, 0]}>
-                  {chartData.map((entry, index) => (
-                    <Cell key={index} fill={getBarColor(entry.fillPct)} />
-                  ))}
-                </Bar>
-              </BarChart>
+                <Line
+                  type="monotone"
+                  dataKey="stock"
+                  stroke="#2563eb"
+                  strokeWidth={2}
+                  name="Факт"
+                  connectNulls={false}
+                  dot={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="projection"
+                  stroke="#f97316"
+                  strokeWidth={2}
+                  strokeDasharray="8 4"
+                  name="Прогноз"
+                  connectNulls={false}
+                  dot={false}
+                />
+              </LineChart>
             </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
+            <p className="mt-2 text-sm italic text-muted-foreground">
+              Прогноз, не гарантия
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Slots Detail Table */}
       {isLoading ? (
