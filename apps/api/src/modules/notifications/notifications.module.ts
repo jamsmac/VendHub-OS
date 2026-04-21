@@ -26,6 +26,7 @@ import { User } from "../users/entities/user.entity";
 import { EmailModule } from "../email/email.module";
 import { SmsModule } from "../sms/sms.module";
 import { WebPushModule } from "../web-push/web-push.module";
+import { WebSocketModule } from "../websocket/websocket.module";
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { WebPushModule } from "../web-push/web-push.module";
     EmailModule,
     SmsModule,
     WebPushModule,
+    WebSocketModule,
   ],
   controllers: [NotificationsController],
   providers: [

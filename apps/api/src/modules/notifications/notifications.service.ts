@@ -40,6 +40,8 @@ import {
 } from "./dto/notification-template.dto";
 import { PushNotificationService } from "./services/push-notification.service";
 import { NotificationDeliveryService } from "./services/notification-delivery.service";
+import { WebSocketService } from "../websocket/websocket.service";
+import { NotificationGateway } from "../websocket/gateways/notification.gateway";
 
 // ============================================================================
 // DTOs
@@ -134,6 +136,8 @@ export class NotificationsService {
     private userRepo: Repository<User>,
     private readonly pushNotificationService: PushNotificationService,
     private readonly deliveryService: NotificationDeliveryService,
+    private readonly wsService: WebSocketService,
+    private readonly notificationGateway: NotificationGateway,
   ) {}
 
   // ============================================================================
@@ -169,6 +173,28 @@ export class NotificationsService {
     // Queue for sending if not scheduled
     if (!dto.scheduledFor) {
       await this.deliveryService.queueNotification(saved);
+    }
+
+    // Emit real-time WebSocket event to connected clients (mobile/web).
+    // Non-blocking — WebSocket failure must not break notification creation.
+    if (!dto.scheduledFor) {
+      try {
+        this.notificationGateway.emitNewNotification({
+          id: saved.id,
+          organizationId: saved.organizationId,
+          ...(saved.userId !== undefined &&
+            saved.userId !== null && { userId: saved.userId }),
+          title: saved.content?.title ?? dto.title,
+          body: saved.content?.body ?? dto.body,
+          type: saved.type,
+          priority: saved.priority,
+          ...(saved.metadata !== undefined && { data: saved.metadata }),
+          createdAt: saved.createdAt,
+        });
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        this.logger.warn(`Failed to emit notifications:new via WS: ${msg}`);
+      }
     }
 
     return saved;

@@ -33,6 +33,9 @@ import { FcmToken, DeviceType } from "./entities/fcm-token.entity";
 import { User } from "../users/entities/user.entity";
 import { PushNotificationService } from "./services/push-notification.service";
 import { NotificationDeliveryService } from "./services/notification-delivery.service";
+import { DeviceToken } from "./entities/device-token.entity";
+import { WebSocketService } from "../websocket/websocket.service";
+import { NotificationGateway } from "../websocket/gateways/notification.gateway";
 
 type MockRepository<T extends ObjectLiteral> = Partial<
   Record<keyof Repository<T>, jest.Mock>
@@ -136,6 +139,24 @@ describe("NotificationsService", () => {
             deliver: jest.fn(),
             processQueue: jest.fn(),
             queueNotification: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(DeviceToken),
+          useValue: createMockRepository<DeviceToken>(),
+        },
+        {
+          provide: WebSocketService,
+          useValue: {
+            emitToOrganization: jest.fn(),
+            emitToUser: jest.fn(),
+            emitToRoom: jest.fn(),
+          },
+        },
+        {
+          provide: NotificationGateway,
+          useValue: {
+            emitNewNotification: jest.fn(),
           },
         },
       ],

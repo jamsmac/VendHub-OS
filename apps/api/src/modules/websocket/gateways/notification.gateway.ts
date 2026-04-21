@@ -57,6 +57,51 @@ export class NotificationGateway
     this.logger.log("Notification Gateway initialized");
   }
 
+  /**
+   * Emit a real-time notification to the appropriate rooms.
+   * - If userId is provided, emits to that user's personal room (`user:{userId}`)
+   * - Always emits to the organization's notifications broadcast room
+   *   (`org:{organizationId}:notifications`) so other devices/sessions stay in sync.
+   */
+  emitNewNotification(payload: {
+    id: string;
+    organizationId: string;
+    userId?: string;
+    title: string;
+    body: string;
+    type: string;
+    priority?: string;
+    data?: Record<string, unknown>;
+    createdAt: Date | string;
+  }): void {
+    if (!this.server) {
+      this.logger.warn("Notification Gateway server not initialized");
+      return;
+    }
+
+    const event = "notifications:new";
+    const serialized = {
+      id: payload.id,
+      title: payload.title,
+      body: payload.body,
+      type: payload.type,
+      ...(payload.priority !== undefined && { priority: payload.priority }),
+      ...(payload.data !== undefined && { data: payload.data }),
+      ...(payload.userId !== undefined && { userId: payload.userId }),
+      createdAt:
+        payload.createdAt instanceof Date
+          ? payload.createdAt.toISOString()
+          : payload.createdAt,
+    };
+
+    if (payload.userId) {
+      this.server.to(`user:${payload.userId}`).emit(event, serialized);
+    }
+    this.server
+      .to(`org:${payload.organizationId}:notifications`)
+      .emit(event, serialized);
+  }
+
   protected onAuthenticated(
     client: Socket,
     payload: AuthenticatedPayload,

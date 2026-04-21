@@ -8,6 +8,10 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuthStore } from "../store/authStore";
 import { useAppModeStore } from "../store/appModeStore";
 import { registerForPushNotifications } from "../services/push-notifications";
+import {
+  connect as connectSocket,
+  disconnect as disconnectSocket,
+} from "../services/socket";
 import { AuthNavigator } from "./AuthNavigator";
 import { MainNavigator } from "./MainNavigator";
 import { ClientNavigator } from "./ClientNavigator";
@@ -33,7 +37,12 @@ export function RootNavigator() {
   useEffect(() => {
     if (isAuthenticated) {
       void registerForPushNotifications();
+      void connectSocket();
+      return () => {
+        disconnectSocket();
+      };
     }
+    return undefined;
   }, [isAuthenticated]);
 
   if (authLoading || modeLoading) {

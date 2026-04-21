@@ -30,6 +30,7 @@ import { PointsHistoryScreen } from "../screens/client/PointsHistoryScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
 import { NotificationsScreen } from "../screens/NotificationsScreen";
 import { SettingsScreen } from "../screens/SettingsScreen";
+import { useRealtimeNotifications } from "../hooks/useRealtimeNotifications";
 
 export type ClientTabParamList = {
   HomeTab: undefined;
@@ -118,6 +119,7 @@ function ClientTabs() {
 
 export function ClientNavigator() {
   const { t } = useTranslation();
+  useRealtimeNotifications();
 
   return (
     <Stack.Navigator>

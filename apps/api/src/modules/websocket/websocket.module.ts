@@ -31,6 +31,6 @@ import { Order } from "../orders/entities/order.entity";
     NotificationGateway,
     WebSocketService,
   ],
-  exports: [WebSocketService],
+  exports: [WebSocketService, NotificationGateway],
 })
 export class WebSocketModule {}
