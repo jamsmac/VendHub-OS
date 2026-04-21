@@ -260,6 +260,8 @@ export const productsApi = {
     api.get(`/machines/${machineId}/products`),
   getById: (id: string) => api.get(`/products/${id}`),
   getRecipes: (productId: string) => api.get(`/products/${productId}/recipes`),
+  getByBarcode: (barcode: string) =>
+    api.get(`/products/by-barcode/${encodeURIComponent(barcode)}`),
 };
 
 export const loyaltyApi = {

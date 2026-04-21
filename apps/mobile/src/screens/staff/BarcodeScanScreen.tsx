@@ -18,7 +18,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useTranslation } from "react-i18next";
-import { api } from "../../services/api";
+import { api, productsApi } from "../../services/api";
 import { MainStackParamList } from "../../navigation/MainNavigator";
 
 const COLORS = {
@@ -59,7 +59,7 @@ export function BarcodeScanScreen() {
     setIsLoading(true);
 
     try {
-      // Try to find machine by scanned code
+      // 1. Try to find machine by scanned code first
       let machineId: string | null = null;
 
       // Check if it's a VendHub URL (e.g., vendhub.uz/m/ABC123)
@@ -73,40 +73,44 @@ export function BarcodeScanScreen() {
         try {
           const res = await api.get("/machines", { params: { code: data } });
           const machines = res.data?.data || res.data;
-          if (machines?.length > 0) {
-            machineId = machines[0].id;
+          if (Array.isArray(machines) && machines.length > 0) {
+            machineId = (machines[0] as { id: string }).id;
           }
         } catch {
-          // Not found by code, try as direct ID
-          machineId = data;
+          // Not a machine code
         }
       }
 
       if (machineId) {
-        // Verify machine exists
+        // Verify machine exists and navigate
         try {
           await api.get(`/machines/${machineId}`);
           navigation.navigate("MachineDetail", { machineId });
+          return;
         } catch {
-          Alert.alert(
-            t("barcodeScan.notFound"),
-            t("barcodeScan.notFoundCode", { code: data }),
-            [
-              {
-                text: t("barcodeScan.scanAgain"),
-                onPress: () => setScanned(false),
-              },
-            ],
-          );
+          // Machine not found by that ID — fall through to product lookup
         }
-      } else {
-        Alert.alert(t("barcodeScan.notFound"), t("barcodeScan.notRecognized"), [
-          {
-            text: t("barcodeScan.scanAgain"),
-            onPress: () => setScanned(false),
-          },
-        ]);
       }
+
+      // 2. Try product lookup by barcode or SKU
+      try {
+        const res = await productsApi.getByBarcode(data);
+        const product = res.data as { id: string };
+        navigation.navigate("ProductDetail", { productId: product.id });
+        return;
+      } catch {
+        // Not a product either
+      }
+
+      // 3. Nothing matched
+      Alert.alert(
+        t("barcode.notFound", "Товар не найден"),
+        t(
+          "barcode.notFoundDesc",
+          "По этому штрихкоду товар не найден. Проверьте штрихкод или добавьте товар вручную.",
+        ),
+        [{ text: t("common.ok", "OK"), onPress: () => setScanned(false) }],
+      );
     } catch (_error) {
       Alert.alert(t("common.error"), t("barcodeScan.processFailed"), [
         { text: t("common.retry"), onPress: () => setScanned(false) },

@@ -61,10 +61,7 @@ export class ProductsService {
     return this.core.findById(id, organizationId);
   }
 
-  findByBarcode(
-    barcode: string,
-    organizationId: string,
-  ): Promise<Product | null> {
+  findByBarcode(barcode: string, organizationId: string): Promise<Product> {
     return this.core.findByBarcode(barcode, organizationId);
   }
 

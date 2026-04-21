@@ -26,6 +26,7 @@ import { SettingsScreen } from "../screens/SettingsScreen";
 import { RouteScreen } from "../screens/staff/RouteScreen";
 import { MaintenanceScreen } from "../screens/staff/MaintenanceScreen";
 import { BarcodeScanScreen } from "../screens/staff/BarcodeScanScreen";
+import { ProductDetailScreen } from "../screens/products/ProductDetailScreen";
 
 export type MainTabParamList = {
   HomeTab: undefined;
@@ -39,6 +40,7 @@ export type MainStackParamList = {
   TaskDetail: { taskId: string };
   TaskPhoto: { taskId: string; type: "before" | "after" };
   MachineDetail: { machineId: string };
+  ProductDetail: { productId: string };
   Inventory: { machineId?: string };
   Transfer: { type: "warehouse" | "operator" | "machine" };
   Notifications: undefined;
@@ -167,6 +169,11 @@ export function MainNavigator() {
         name="BarcodeScan"
         component={BarcodeScanScreen}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ProductDetail"
+        component={ProductDetailScreen}
+        options={{ title: t("nav.productDetail", "Товар") }}
       />
     </Stack.Navigator>
   );

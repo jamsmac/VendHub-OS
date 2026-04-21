@@ -18,6 +18,7 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiQuery,
+  ApiResponse,
 } from "@nestjs/swagger";
 import { ProductsService } from "./products.service";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
@@ -126,6 +127,27 @@ export class ProductsController {
       user.organizationId,
       days ? Number(days) : 7,
     );
+  }
+
+  @Get("by-barcode/:barcode")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+    UserRole.WAREHOUSE,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
+  @ApiOperation({ summary: "Look up product by barcode/SKU" })
+  @ApiParam({ name: "barcode", type: String })
+  @ApiResponse({ status: 200, description: "Product found" })
+  @ApiResponse({ status: 404, description: "No product matches this barcode" })
+  findByBarcodeOrSku(
+    @Param("barcode") barcode: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    return this.productsService.findByBarcode(barcode, user.organizationId);
   }
 
   @Get("barcode/:barcode")

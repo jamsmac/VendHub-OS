@@ -136,10 +136,20 @@ export class ProductsCoreService {
   async findByBarcode(
     barcode: string,
     organizationId: string,
-  ): Promise<Product | null> {
-    return this.productRepository.findOne({
-      where: { barcode, organizationId },
+  ): Promise<Product> {
+    // Try barcode column first, then fall back to SKU
+    const product = await this.productRepository.findOne({
+      where: [
+        { barcode, organizationId },
+        { sku: barcode, organizationId },
+      ],
     });
+    if (!product) {
+      throw new NotFoundException(
+        `No product found with barcode or SKU: ${barcode}`,
+      );
+    }
+    return product;
   }
 
   async update(

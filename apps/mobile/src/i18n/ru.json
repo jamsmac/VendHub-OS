@@ -111,6 +111,7 @@
     "settings": "Настройки",
     "route": "Маршрут",
     "maintenance": "Обслуживание",
+    "productDetail": "Товар",
     "registration": "Регистрация",
     "forgotPassword": "Восстановление пароля",
     "menu": "Меню",
@@ -378,6 +379,26 @@
     "searching": "Поиск автомата...",
     "instruction": "Наведите камеру на QR-код автомата",
     "flash": "Вспышка"
+  },
+  "barcode": {
+    "title": "Сканер",
+    "scanning": "Наводите на штрихкод...",
+    "notFound": "Товар не найден",
+    "notFoundDesc": "По этому штрихкоду товар не найден. Проверьте штрихкод или добавьте товар вручную.",
+    "permissionDenied": "Нет доступа к камере. Включите в настройках устройства."
+  },
+  "product": {
+    "barcode": "Штрихкод",
+    "pricing": "Цены",
+    "sellingPrice": "Цена продажи",
+    "costPrice": "Себестоимость",
+    "details": "Детали",
+    "category": "Категория",
+    "unit": "Единица",
+    "status": "Статус",
+    "active": "Активен",
+    "inactive": "Неактивен",
+    "description": "Описание"
   },
   "maintenance": {
     "checklist": {
