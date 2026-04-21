@@ -46,6 +46,7 @@ import {
   RegisterFcmDto,
   UnregisterFcmDto,
 } from "./dto/notification-channels.dto";
+import { RegisterDeviceDto } from "./dto/register-device.dto";
 import { Roles } from "../../common/decorators/roles.decorator";
 import {
   CurrentUserId,
@@ -565,6 +566,35 @@ export class NotificationsController {
   async processQueue() {
     await this.notificationsService.processQueue();
     return { success: true };
+  }
+
+  // ============================================================================
+  // Device Token Registration (Expo Push Notifications)
+  // ============================================================================
+
+  @Post("register-device")
+  @Roles(
+    "owner",
+    "admin",
+    "manager",
+    "operator",
+    "warehouse",
+    "accountant",
+    "viewer",
+  )
+  @ApiOperation({ summary: "Register device for push notifications" })
+  @ApiResponse({ status: 201, description: "Device registered" })
+  @HttpCode(HttpStatus.CREATED)
+  async registerDevice(
+    @Body() dto: RegisterDeviceDto,
+    @CurrentUser("organizationId") organizationId: string,
+    @CurrentUser("id") userId: string,
+  ) {
+    return this.notificationsService.registerDevice(
+      organizationId,
+      userId,
+      dto,
+    );
   }
 
   // ============================================================================

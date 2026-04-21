@@ -7,6 +7,7 @@ import React, { useEffect } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuthStore } from "../store/authStore";
 import { useAppModeStore } from "../store/appModeStore";
+import { registerForPushNotifications } from "../services/push-notifications";
 import { AuthNavigator } from "./AuthNavigator";
 import { MainNavigator } from "./MainNavigator";
 import { ClientNavigator } from "./ClientNavigator";
@@ -28,6 +29,12 @@ export function RootNavigator() {
   useEffect(() => {
     loadMode();
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      void registerForPushNotifications();
+    }
+  }, [isAuthenticated]);
 
   if (authLoading || modeLoading) {
     return <SplashScreen />;

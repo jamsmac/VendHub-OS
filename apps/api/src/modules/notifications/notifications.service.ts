@@ -30,6 +30,8 @@ import {
 } from "./entities/notification.entity";
 import { PushSubscription } from "./entities/push-subscription.entity";
 import { FcmToken, DeviceType } from "./entities/fcm-token.entity";
+import { DeviceToken } from "./entities/device-token.entity";
+import { RegisterDeviceDto } from "./dto/register-device.dto";
 import { User } from "../users/entities/user.entity";
 import { UpdateNotificationSettingsDto } from "./dto/update-notification-settings.dto";
 import {
@@ -126,6 +128,8 @@ export class NotificationsService {
     private logRepo: Repository<NotificationLog>,
     @InjectRepository(NotificationCampaign)
     private campaignRepo: Repository<NotificationCampaign>,
+    @InjectRepository(DeviceToken)
+    private readonly deviceTokenRepo: Repository<DeviceToken>,
     @InjectRepository(User)
     private userRepo: Repository<User>,
     private readonly pushNotificationService: PushNotificationService,
@@ -954,6 +958,43 @@ export class NotificationsService {
       return data.managerId as string;
     }
     return undefined;
+  }
+
+  // ============================================================================
+  // DEVICE TOKEN REGISTRATION (Expo Push Notifications)
+  // ============================================================================
+
+  async registerDevice(
+    organizationId: string,
+    userId: string,
+    dto: RegisterDeviceDto,
+  ): Promise<DeviceToken> {
+    const existing = await this.deviceTokenRepo.findOne({
+      where: { token: dto.token },
+    });
+    if (existing) {
+      existing.organizationId = organizationId;
+      existing.userId = userId;
+      existing.deviceType = dto.deviceType;
+      if (dto.platformVersion !== undefined)
+        existing.platformVersion = dto.platformVersion;
+      if (dto.appVersion !== undefined) existing.appVersion = dto.appVersion;
+      existing.lastUsedAt = new Date();
+      return this.deviceTokenRepo.save(existing);
+    }
+    return this.deviceTokenRepo.save(
+      this.deviceTokenRepo.create({
+        organizationId,
+        userId,
+        token: dto.token,
+        deviceType: dto.deviceType,
+        ...(dto.platformVersion !== undefined && {
+          platformVersion: dto.platformVersion,
+        }),
+        ...(dto.appVersion !== undefined && { appVersion: dto.appVersion }),
+        lastUsedAt: new Date(),
+      }),
+    );
   }
 
   // ============================================================================

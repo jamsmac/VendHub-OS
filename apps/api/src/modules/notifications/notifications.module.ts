@@ -21,6 +21,7 @@ import {
 } from "./entities/notification.entity";
 import { PushSubscription } from "./entities/push-subscription.entity";
 import { FcmToken } from "./entities/fcm-token.entity";
+import { DeviceToken } from "./entities/device-token.entity";
 import { User } from "../users/entities/user.entity";
 import { EmailModule } from "../email/email.module";
 import { SmsModule } from "../sms/sms.module";
@@ -38,6 +39,7 @@ import { WebPushModule } from "../web-push/web-push.module";
       NotificationCampaign,
       PushSubscription,
       FcmToken,
+      DeviceToken,
       User,
     ]),
     ConfigModule,
