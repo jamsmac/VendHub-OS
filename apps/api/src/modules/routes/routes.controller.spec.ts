@@ -8,6 +8,7 @@ import { RoutesController } from "./routes.controller";
 import { RoutesService } from "./routes.service";
 import { RouteOptimizationService } from "./route-optimization.service";
 import { RouteAnalyticsService } from "./services/route-analytics.service";
+import { RouteOptimizerService } from "./services/route-optimizer.service";
 
 describe("RoutesController", () => {
   let app: any;
@@ -60,6 +61,14 @@ describe("RoutesController", () => {
       [
         { provide: RouteOptimizationService, useValue: mockOptService },
         { provide: RouteAnalyticsService, useValue: mockAnalyticsService },
+        {
+          provide: RouteOptimizerService,
+          useValue: {
+            generateOptimalRoute: jest
+              .fn()
+              .mockResolvedValue({ id: "route-1" }),
+          },
+        },
       ],
     ));
   });
