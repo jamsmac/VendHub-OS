@@ -46,6 +46,21 @@ export class Location extends BaseEntity {
   @Column({ length: 100, unique: true })
   code: string; // "LOC-TAS-001"
 
+  // Public tenant view (Sprint G5) — slug used in /location/:slug public URL
+  @Column({ type: "varchar", length: 100, nullable: true })
+  slug: string | null;
+
+  @Column({ type: "boolean", default: false })
+  publicEnabled: boolean;
+
+  // Multi-location hierarchy (Sprint G5) — for nested sites/floors
+  @Column({ type: "uuid", nullable: true })
+  parentLocationId: string | null;
+
+  @ManyToOne(() => Location, { onDelete: "SET NULL", nullable: true })
+  @JoinColumn({ name: "parent_location_id" })
+  parent: Location | null;
+
   @Column({ type: "text", nullable: true })
   description: string;
 

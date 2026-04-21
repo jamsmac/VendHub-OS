@@ -5,6 +5,7 @@ import { ProductsCoreService } from "./products-core.service";
 import { ProductsRecipeService } from "./products-recipe.service";
 import { ProductsBatchService } from "./products-batch.service";
 import { RecipeConsumptionService } from "./services/recipe-consumption.service";
+import { SupplierAnalyticsService } from "./services/supplier-analytics.service";
 import { ProductsController, SuppliersController } from "./products.controller";
 import { ContainersModule } from "../containers/containers.module";
 import {
@@ -16,6 +17,7 @@ import {
   ProductPriceHistory,
   Supplier,
 } from "./entities/product.entity";
+import { Purchase } from "../purchases/entities/purchase.entity";
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import {
       IngredientBatch,
       ProductPriceHistory,
       Supplier,
+      // Sprint G5: supplier analytics reads from purchases.
+      Purchase,
     ]),
     ContainersModule,
   ],
@@ -37,7 +41,12 @@ import {
     ProductsRecipeService,
     ProductsBatchService,
     RecipeConsumptionService,
+    SupplierAnalyticsService,
   ],
-  exports: [ProductsService, RecipeConsumptionService],
+  exports: [
+    ProductsService,
+    RecipeConsumptionService,
+    SupplierAnalyticsService,
+  ],
 })
 export class ProductsModule {}

@@ -72,6 +72,11 @@ export class Organization extends BaseEntity {
   @Column({ length: 100 })
   slug: string;
 
+  // Public tenant view (Sprint G5). When true, organization + its public locations
+  // are visible via /api/v1/public/tenant/:slug without authentication.
+  @Column({ type: "boolean", default: false })
+  publicEnabled: boolean;
+
   @Column({ type: "text", nullable: true })
   logo: string;
 

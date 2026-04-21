@@ -21,6 +21,7 @@ import {
   ApiResponse,
 } from "@nestjs/swagger";
 import { ProductsService } from "./products.service";
+import { SupplierAnalyticsService } from "./services/supplier-analytics.service";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
 import {
@@ -593,7 +594,10 @@ export class ProductsController {
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class SuppliersController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(
+    private readonly productsService: ProductsService,
+    private readonly supplierAnalytics: SupplierAnalyticsService,
+  ) {}
 
   @Get()
   @Roles(
@@ -651,6 +655,26 @@ export class SuppliersController {
     @CurrentUser() user: ICurrentUser,
   ) {
     return this.productsService.findSupplierById(id, user.organizationId);
+  }
+
+  @Get(":id/analytics")
+  @Roles(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.ACCOUNTANT,
+    UserRole.VIEWER,
+  )
+  @ApiOperation({
+    summary:
+      "Supplier purchase analytics (total spent, item count, last purchase)",
+  })
+  @ApiParam({ name: "id", type: String })
+  getAnalytics(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    return this.supplierAnalytics.getAnalytics(user.organizationId, id);
   }
 
   @Patch(":id")

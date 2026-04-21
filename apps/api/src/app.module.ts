@@ -125,6 +125,9 @@ import { StockMovementsModule } from "./modules/stock-movements/stock-movements.
 import { PurchasesModule } from "./modules/purchases/purchases.module";
 import { InventoryReconciliationModule } from "./modules/inventory-reconciliation/inventory-reconciliation.module";
 import { SlotHistoryModule } from "./modules/slot-history/slot-history.module";
+import { CategoriesModule } from "./modules/categories/categories.module";
+import { PublicTenantModule } from "./modules/public-tenant/public-tenant.module";
+import { InventoryDashboardModule } from "./modules/inventory-dashboard/inventory-dashboard.module";
 
 // Common Guards & Interceptors
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
@@ -760,6 +763,14 @@ const defaultedNumber = (value: number) =>
     // Inventory Reconciliation + Slot History (Sprint G4)
     InventoryReconciliationModule,
     SlotHistoryModule,
+
+    // Sprint G5 — OLMA final sprint
+    // Product categories (first-class entity)
+    CategoriesModule,
+    // Public tenant view (/public/tenant/:slug, /public/location/:slug)
+    PublicTenantModule,
+    // Inventory dashboard aggregate endpoint
+    InventoryDashboardModule,
   ],
   providers: [
     // ============================================

@@ -161,6 +161,13 @@ export class Machine extends BaseEntity {
   @Column({ type: "timestamp", nullable: true })
   lastSyncAt: Date;
 
+  // Grid dimensions for UI rendering (Sprint G5) — for slot grid layouts
+  @Column({ type: "int", nullable: true })
+  gridRows: number | null;
+
+  @Column({ type: "int", nullable: true })
+  gridCols: number | null;
+
   // Capacity & slots
   @Column({ type: "int", default: 0 })
   maxProductSlots: number;

@@ -125,6 +125,16 @@ export class Product extends BaseEntity {
   @Column({ type: "decimal", precision: 10, scale: 3, nullable: true })
   volume: number; // ml
 
+  // Sprint G5 — forecast hints + first-class category FK
+  @Column({ type: "decimal", precision: 6, scale: 2, nullable: true })
+  expectedSalesPerDay: number | null;
+
+  @Column({ type: "int", default: 8 })
+  defaultSlotCapacity: number;
+
+  @Column({ type: "uuid", nullable: true })
+  categoryId: string | null;
+
   // Inventory levels
   @Column({ type: "decimal", precision: 10, scale: 3, default: 0 })
   minStockLevel: number;
@@ -586,6 +596,21 @@ export class ProductPriceHistory extends BaseEntity {
 // SUPPLIER
 // ============================================================================
 
+/**
+ * Supplier default payment method (Sprint G5).
+ * Separate enum from purchases' PaymentMethod so suppliers can evolve independently.
+ */
+export enum SupplierPaymentMethod {
+  CASH = "cash",
+  CARD_HUMO = "card_humo",
+  CARD_UZCARD = "card_uzcard",
+  CARD_VISA = "card_visa",
+  TRANSFER = "transfer",
+  PAYME = "payme",
+  CLICK = "click",
+  OTHER = "other",
+}
+
 @Entity("suppliers")
 @Index(["organizationId"])
 @Index(["code"], { unique: true, where: '"deleted_at" IS NULL' })
@@ -599,6 +624,18 @@ export class Supplier extends BaseEntity {
 
   @Column({ length: 200 })
   name: string;
+
+  // Sprint G5 — legal name (for contracts) + default payment method
+  @Column({ type: "varchar", length: 255, nullable: true })
+  legalName: string | null;
+
+  @Column({
+    type: "enum",
+    enum: SupplierPaymentMethod,
+    enumName: "supplier_payment_method_enum",
+    nullable: true,
+  })
+  defaultPayment: SupplierPaymentMethod | null;
 
   @Column({ length: 200, nullable: true })
   contactPerson: string;
