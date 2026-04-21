@@ -24,6 +24,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { tasksApi } from "../../services/api";
+import { enqueue, isNetworkError } from "../../services/offline-queue";
 import { MainStackParamList } from "../../navigation/MainNavigator";
 
 const LOCALE_MAP: Record<string, string> = {
@@ -58,12 +59,39 @@ export function TaskDetailScreen() {
   });
 
   const completeMutation = useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mutationFn: (data: any) => tasksApi.complete(taskId, data),
-    onSuccess: () => {
+    mutationFn: async (data: Record<string, unknown>) => {
+      try {
+        return await tasksApi.complete(taskId, data);
+      } catch (err: unknown) {
+        // Network drop mid-request — persist to offline queue and report as queued
+        if (isNetworkError(err)) {
+          await enqueue({
+            method: "POST",
+            url: `/tasks/${taskId}/complete`,
+            body: data,
+          });
+          return { queued: true as const };
+        }
+        throw err;
+      }
+    },
+    onSuccess: (result: unknown) => {
       queryClient.invalidateQueries({ queryKey: ["task", taskId] });
       queryClient.invalidateQueries({ queryKey: ["my-tasks"] });
-      Alert.alert(t("common.success"), t("tasks.detail.taskCompleted"));
+      const queued =
+        typeof result === "object" &&
+        result !== null &&
+        "queued" in result &&
+        (result as { queued?: unknown }).queued === true;
+      Alert.alert(
+        t("common.success"),
+        queued
+          ? t("tasks.detail.taskQueuedOffline", {
+              defaultValue:
+                "Нет сети — завершение задачи поставлено в очередь и отправится автоматически.",
+            })
+          : t("tasks.detail.taskCompleted"),
+      );
       navigation.goBack();
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

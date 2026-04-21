@@ -12,6 +12,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { ErrorBoundary } from "./src/components/ErrorBoundary";
 import { OfflineBanner } from "./src/components/OfflineBanner";
+import { QueueBadge } from "./src/components/QueueBadge";
 import { queryClient, persistOptions } from "./src/lib/offline";
 
 export default function App() {
@@ -25,6 +26,7 @@ export default function App() {
           <NavigationContainer>
             <StatusBar style="auto" />
             <OfflineBanner />
+            <QueueBadge />
             <RootNavigator />
           </NavigationContainer>
         </PersistQueryClientProvider>

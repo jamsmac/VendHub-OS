@@ -23,6 +23,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { machinesApi, inventoryApi } from "../../services/api";
+import { enqueue, isNetworkError } from "../../services/offline-queue";
 
 interface Machine {
   id: string;
@@ -93,8 +94,8 @@ export function TransferScreen() {
 
   // Transfer mutation
   const transferMutation = useMutation({
-    mutationFn: () =>
-      inventoryApi.transfer({
+    mutationFn: async () => {
+      const payload = {
         fromMachineId: fromMachineId!,
         toMachineId: toMachineId!,
         items: transferItems.map((item) => ({
@@ -102,9 +103,37 @@ export function TransferScreen() {
           quantity: item.quantity,
         })),
         note: note.trim() || undefined,
-      }),
+      };
+      try {
+        return await inventoryApi.transfer(payload);
+      } catch (err: unknown) {
+        // Queue transfer if network dropped — avoids losing operator work
+        if (isNetworkError(err)) {
+          await enqueue({
+            method: "POST",
+            url: "/inventory/transfer",
+            body: payload,
+          });
+          return { data: { queued: true, transferNumber: "QUEUED" } };
+        }
+        throw err;
+      }
+    },
     onSuccess: (res) => {
-      const number = res.data?.transferNumber || res.data?.id || "OK";
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data = (res as any).data;
+      if (data?.queued) {
+        Alert.alert(
+          t("common.success"),
+          t("transfer.queuedOffline", {
+            defaultValue:
+              "Нет сети — трансфер поставлен в очередь и отправится автоматически.",
+          }),
+        );
+        setTransferNumber("QUEUED");
+        return;
+      }
+      const number = data?.transferNumber || data?.id || "OK";
       setTransferNumber(String(number));
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
