@@ -28,6 +28,7 @@
     "schema:drop": "npm run typeorm -- schema:drop -d ./src/database/typeorm.config.ts",
     "schema:log": "npm run typeorm -- schema:log -d ./src/database/typeorm.config.ts",
     "db:seed": "ts-node -r tsconfig-paths/register ./src/database/seeds/run-seed.ts",
+    "db:seed:olma": "ts-node -r tsconfig-paths/register ./src/database/seeds/run-olma-seed.ts",
     "db:seed:admin": "ts-node -r tsconfig-paths/register ./src/database/seeds/admin-seed.ts",
     "db:seed:activity": "ts-node --project tsconfig.json -r tsconfig-paths/register ./src/database/seeds/activity-data.seed.ts",
     "db:reset": "npm run schema:drop && npm run migration:run && npm run db:seed",

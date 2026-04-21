@@ -1067,3 +1067,45 @@ npx jest --passWithNoTests          # Tests pass
 | Docker Compose | `docker-compose.yml`                          |
 | Turbo Config   | `turbo.json`                                  |
 | CI Pipeline    | `.github/workflows/ci.yml`                    |
+
+### OLMA Integration Patterns (G1–G5)
+
+Documented here for reference: these patterns are live in production modules as of Sprint G5. Follow them exactly when adding new stock/purchase/import features.
+
+#### G1 — Stock Movements (Event-Sourced Inventory)
+
+- **Source of truth**: `stock_movements` table — event log, never mutated after insert.
+- **MovementType enum** (9 types): `PURCHASE_IN`, `SALE_OUT`, `REFILL_IN`, `TRANSFER_IN`, `TRANSFER_OUT`, `ADJUSTMENT_PLUS`, `ADJUSTMENT_MINUS`, `WRITE_OFF`, `RETURN_IN`.
+- **Materialized view**: `inventory_balances` table — columns `(org_id, location_id, product_id, qty)` — kept current by a Postgres trigger that fires `AFTER INSERT ON stock_movements`.
+- **Dual-write**: `QuantitySyncService` listens to `transaction.created` event → decrements `machine_slots.current_quantity` by sold qty (GREATEST guard) AND inserts a `SALE_OUT` stock_movement. Both writes happen in the same DB transaction.
+- **Rule**: never modify `stock_movements` rows after insert. Corrections are always a new `ADJUSTMENT_*` movement.
+
+#### G2 — Purchases
+
+- **Lifecycle**: `Purchase.status` DRAFT → RECEIVED → CANCELLED (no other transitions).
+- **On RECEIVED**: service inserts one `PURCHASE_IN` StockMovement per line item, updates `inventory_balances` (via trigger), and checks whether `purchasePrice` differs from `Product.purchasePrice` — if so, inserts a `ProductPriceHistory` row and updates the product's `purchasePrice`.
+- **Tenant isolation**: every purchase query must filter by `organizationId`. Supplier lookup is also org-scoped.
+
+#### G3 — HICON Import (Payment Report Parser)
+
+- **3-level deduplication**:
+  - L1: row hash (SHA-256 of raw CSV line) — skips exact duplicate rows.
+  - L2: transaction hash (SHA-256 of terminal + date + amount) — collapses duplicate transactions from re-exported files.
+  - L3: delta — only rows where amount differs from last known value are processed.
+- **Fuzzy product matcher**: Jaccard similarity on tokenised product name strings. Seeded with `KNOWN_BRANDS` array (42 brand tokens) so common OCR/transliteration errors resolve correctly.
+- **Parse sessions**: DB-backed (`hicon_parse_sessions` table), TTL 30 minutes. Hourly cron (`@Cron("0 * * * *")`) deletes expired sessions. Never keep parse state in memory only.
+
+#### G4 — Inventory Reconciliation
+
+- **Type**: physical stock count, qty-based (operator enters actual qty per slot).
+- **Nedostacha (shortage)** UZS = `(expected_qty - actual_qty) × product.purchasePrice`. Computed at cost, not selling price.
+- **On save**: service auto-creates `ADJUSTMENT_PLUS` movements for slots where actual > expected, and `ADJUSTMENT_MINUS` for slots where actual < expected. Both are written atomically in a single transaction.
+- **Reconciliation does NOT reset** `inventory_balances` directly — all balance updates flow through the movement trigger.
+
+#### G5 — Public Tenant Endpoint
+
+- **Route**: `GET /api/v1/public/tenant/:orgSlug` — unauthenticated, no JWT required.
+- **Rate limiting**: `@Throttle({ default: { limit: 20, ttl: 60000 } })` on the controller method.
+- **404-enumeration defense**: the endpoint returns HTTP 404 for both "slug not found" AND "slug found but `publicEnabled = false`". This prevents enumeration of private org slugs via timing or response-body differences.
+- **Categories dual-source**: the `Category` entity (`categories` table, Sprint G5) is the new first-class source for product categorisation. The legacy `products.category` enum column is kept for backward compatibility during migration. Products reference both: `products.category` (legacy enum, value `'other'` as default) and `products.category_id` (FK to `categories`). New code should use `categoryId`; legacy reports may still read the enum column.
+- **Seed script**: `apps/api/src/database/seeds/olma-example.seed.ts` — config-driven, reusable for any location. Run with `npm run db:seed:olma <org-uuid>`.
