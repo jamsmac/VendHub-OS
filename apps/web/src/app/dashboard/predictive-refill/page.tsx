@@ -16,8 +16,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { api } from "@/lib/api";
+import { api, routesApi } from "@/lib/api";
 import { toast } from "sonner";
+import { useAuthStore } from "@/lib/store/auth";
 import { RefillPriorityBadge } from "./components/RefillPriorityBadge";
 
 // --- Types ---
@@ -33,6 +34,10 @@ interface RefillRecommendation {
   daysOfSupply: number;
   priorityScore: number;
   recommendedAction: string;
+  sellingPrice: number;
+  costPrice: number;
+  margin: number;
+  dailyProfit: number;
 }
 
 interface RecommendationsResponse {
@@ -48,6 +53,8 @@ export default function PredictiveRefillPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const { user } = useAuthStore();
 
   // Fetch recommendations with optional action filter
   const actionParam = activeTab === "all" ? undefined : activeTab;
@@ -115,6 +122,69 @@ export default function PredictiveRefillPage() {
     },
   });
 
+  // Add to Route mutation
+  const addToRouteMutation = useMutation({
+    mutationFn: async (machineIds: string[]) => {
+      const today = new Date().toISOString().slice(0, 10);
+      const res = await routesApi.create({
+        name: `Дозаправка ${today}`,
+        plannedDate: new Date().toISOString(),
+        ...(user?.id ? { operatorId: user.id } : {}),
+        type: "refill",
+      });
+      const routeId = res.data.id;
+      for (let i = 0; i < machineIds.length; i++) {
+        await routesApi.addStop(routeId, {
+          machineId: machineIds[i],
+          sequenceNumber: i + 1,
+        });
+      }
+      return res.data;
+    },
+    onSuccess: (data) => {
+      toast.success("Маршрут создан");
+      setSelectedIds(new Set());
+      router.push(`/dashboard/routes/${data.id}`);
+    },
+    onError: () => {
+      toast.error("Ошибка при создании маршрута");
+    },
+  });
+
+  const toggleSelection = (_id: string, machineId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(machineId)) {
+        next.delete(machineId);
+      } else {
+        next.add(machineId);
+      }
+      return next;
+    });
+  };
+
+  const toggleAllVisible = () => {
+    const visibleMachineIds = recommendations.map((r) => r.machineId);
+    const allSelected = visibleMachineIds.every((id) => selectedIds.has(id));
+    if (allSelected) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        visibleMachineIds.forEach((id) => next.delete(id));
+        return next;
+      });
+    } else {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        visibleMachineIds.forEach((id) => next.add(id));
+        return next;
+      });
+    }
+  };
+
+  const handleAddToRoute = () => {
+    addToRouteMutation.mutate(Array.from(selectedIds));
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -179,6 +249,19 @@ export default function PredictiveRefillPage() {
                     {machinesAffected}
                   </p>
                 )}
+                <p className="text-xs text-muted-foreground">
+                  {allRecommendations.length > 0
+                    ? new Intl.NumberFormat("ru-RU").format(
+                        allRecommendations
+                          .filter((r) => r.recommendedAction === "refill_now")
+                          .reduce(
+                            (sum, r) => sum + Number(r.dailyProfit || 0),
+                            0,
+                          ),
+                      )
+                    : "0"}{" "}
+                  UZS/день под угрозой
+                </p>
               </div>
               <Activity className="h-8 w-8 text-blue-600" />
             </div>
@@ -198,6 +281,23 @@ export default function PredictiveRefillPage() {
           <TabsTrigger value="monitor">Норма</TabsTrigger>
         </TabsList>
       </Tabs>
+
+      {selectedIds.size > 0 && (
+        <div className="flex items-center justify-between rounded-lg border bg-muted/50 p-3">
+          <span className="text-sm text-muted-foreground">
+            {selectedIds.size} выбрано
+          </span>
+          <Button
+            size="sm"
+            onClick={handleAddToRoute}
+            disabled={addToRouteMutation.isPending}
+          >
+            {addToRouteMutation.isPending
+              ? "Создание..."
+              : "Добавить в маршрут"}
+          </Button>
+        </div>
+      )}
 
       {/* Recommendations Table */}
       {isLoading ? (
@@ -263,6 +363,19 @@ export default function PredictiveRefillPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <input
+                      type="checkbox"
+                      checked={
+                        recommendations.length > 0 &&
+                        recommendations.every((r) =>
+                          selectedIds.has(r.machineId),
+                        )
+                      }
+                      onChange={toggleAllVisible}
+                      className="rounded border-gray-300"
+                    />
+                  </TableHead>
                   <TableHead>Приоритет</TableHead>
                   <TableHead>Автомат</TableHead>
                   <TableHead>Продукт</TableHead>
@@ -288,6 +401,17 @@ export default function PredictiveRefillPage() {
                         )
                       }
                     >
+                      <TableCell>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(rec.machineId)}
+                          onChange={() =>
+                            toggleSelection(rec.id, rec.machineId)
+                          }
+                          onClick={(e) => e.stopPropagation()}
+                          className="rounded border-gray-300"
+                        />
+                      </TableCell>
                       <TableCell>
                         <RefillPriorityBadge action={rec.recommendedAction} />
                       </TableCell>
