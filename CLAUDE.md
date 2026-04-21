@@ -802,6 +802,114 @@ Eliminated standalone `apps/bot/` (mixed staff+customer logic, HTTP proxy to API
 - `apps/api/src/modules/telegram-bot/telegram-customer-bot.service.ts` — Customer bot orchestrator
 - `apps/api/src/modules/telegram-bot/services/` — All sub-services (17 files)
 
+### Sprint E — Predictive Refill (2026-04-20)
+
+First product feature. Three-phase build: schema + EWMA engine + user-visible half.
+
+**Backend pipeline:**
+
+1. **ConsumptionRateService** — EWMA (α=0.2), 14-day default window, per (org, machine, product, period) aggregate row. Stores rates in `consumption_rates` table with unique constraint. `batchGetRecentDailyRates()` added in Sprint F for sparklines — single query returning 7-day arrays per (machine, product).
+2. **ForecastService** — given machine, joins `MachineSlot` with `Product` for pricing fallback. Returns `SlotForecast[]` with `sellingPrice`/`costPrice` resolved via slot override → product base.
+3. **RecommendationService.generateForOrganization()** — iterates machines, calls forecastMachine, upserts `RefillRecommendation`. **Margin-based priority formula** (fixed the hardcoded 20,000 UZS):
+   ```
+   margin = sellingPrice - costPrice
+   dailyProfit = margin × dailyRate
+   urgency = min(10, 1/daysOfSupply)
+   priorityScore = urgency × log10(1 + max(0, dailyProfit))
+   ```
+4. **Alert wiring** — after generating recs, filters REFILL_NOW and calls `AlertsService.triggerAlert()` via pre-seeded `PREDICTED_STOCKOUT` rule per org. Rule cooldown (1440 min) handles suppression — no custom `lastAlertedAt` column.
+5. **Nightly cron** — `PredictiveRefillCronService` via `@Cron("0 2 * * *", { timeZone: "Asia/Tashkent" })`. Iterates all active orgs with try/catch so one failure doesn't block.
+6. **Manual trigger** — `POST /predictive-refill/trigger-refresh` enqueues `recalc-all` on BullMQ `predictive-refill` queue, handled by `DailyForecastProcessor`.
+
+**Frontend pipeline:**
+
+- `/dashboard/predictive-refill` — KPI cards (REFILL_NOW count, REFILL_SOON count, affected machines + profit-at-risk in UZS), tab filter, recommendations table with bulk-select
+- "Добавить в маршрут" button — creates draft Route with selected machines as stops, navigates to route editor
+- `/dashboard/predictive-refill/[machineId]` — LineChart (historical solid blue + projection dashed orange + stockout red line + "Прогноз, не гарантия" microcopy)
+- `RefillPriorityBadge` component (`Срочно`/`Скоро`/`Норма`)
+
+**Entities added:**
+
+- `ConsumptionRate` — `consumption_rates` table, unique (org, machine, product, period)
+- `RefillRecommendation` — `refill_recommendations` table. Sprint E Phase 3 added pricing columns: `selling_price`, `cost_price`, `margin`, `daily_profit` (all decimal(12,2))
+
+**Migrations:**
+
+- `1776000000000-AddPredictiveRefill.ts` — schema + AlertMetric.PREDICTED_STOCKOUT enum extension
+- `1776100000000-PredictiveRefillPhase3.ts` — pricing columns + seeds `PREDICTED_STOCKOUT` AlertRule per org
+
+### Sprint F — Quantity Sync + Route Optimization + Sparklines (2026-04-21)
+
+Closes the loop on predictive refill: keeps quantities fresh, auto-generates routes, shows trends.
+
+**Transaction-based quantity sync** (`QuantitySyncService`):
+
+- `@OnEvent("transaction.created")` — decrements `MachineSlot.currentQuantity` by `GREATEST(current_quantity - N, 0)`. Validates `organizationId` via subquery JOIN to Machine (tenant isolation).
+- `resetOnRefill(machineId, productId)` — called from `RecommendationService.markActed()` → sets `currentQuantity = capacity`.
+- Listens to the existing `transaction.created` event from `TransactionCreateService` (emitted at line 122). Queries `TransactionItem` rows separately since items relation may not be eager-loaded on the event payload.
+
+**Route auto-optimization** (`RouteOptimizerService`):
+
+- `POST /routes/auto-generate` — owner/admin/manager only
+- Algorithm: fetches REFILL_NOW recs → dedupes by machineId (keep highest priority) → filters machines without lat/lng → nearest-neighbor greedy → **2-opt pass** (up to 100 iterations, 0.001m tolerance)
+- 2-opt preserves first stop (highest priority anchor). Treats tour as open (no return-to-start edge).
+- Uses `GpsProcessingService.haversineDistance(lat1, lon1, lat2, lon2)` (meters).
+- Creates DRAFT Route with RouteStops in visit order. Returns route for operator review.
+
+**Sparklines:**
+
+- `recommendations.data[].recentRates: number[]` — always 7 elements, oldest first, zero-filled for missing days
+- Single batched query in `ConsumptionRateService.batchGetRecentDailyRates()` — avoids N+1
+- Frontend: tiny 60×24px Recharts LineChart in "Тренд" column. Red stroke if `rates[6] > rates[0] × 1.2`, else green.
+
+### exactOptionalPropertyTypes Enabled Globally (2026-04-21)
+
+Issue #17 closed. `tsconfig.json` now has `"exactOptionalPropertyTypes": true`. 284 errors fixed across 110 files. Future agents: when constructing objects with optional TS-typed props, use conditional spread:
+
+```typescript
+// WRONG (produces TS2379 under exactOptionalPropertyTypes):
+const opts = { name: dto.name, description: dto.description }; // description is string | undefined
+
+// RIGHT:
+const opts = {
+  name: dto.name,
+  ...(dto.description !== undefined && { description: dto.description }),
+};
+```
+
+For TypeORM `.find()`/`.findOne()` where optional filters are common, build `FindOptionsWhere<Entity>` incrementally:
+
+```typescript
+const where: FindOptionsWhere<Entity> = { organizationId };
+if (dto.status) where.status = dto.status;
+const result = await this.repo.find({ where });
+```
+
+### Tenant Isolation — Re-Audit (2026-04-21)
+
+After Sprint E+F, 5 issues found and fixed (1 HIGH, 2 MED, 2 LOW):
+
+- **ForecastService.forecastMachine** (HIGH) — MachineSlot has NO `organizationId` column; must JOIN through Machine: `innerJoin("slot.machine", "machine").andWhere("machine.organization_id = :orgId")`.
+- **RouteTrackingService.addPoint** (MED) — added `organizationId` param, propagated through RoutesService and controller.
+- **RoutesCronService** (MED) — `handleStaleRoutes` and `checkRoutesWithoutGps` now iterate per-org instead of querying all routes.
+- **routes.service.ts resolveAnomaly** (LOW) — refactored post-fetch check to DB-level JOIN filter.
+- **QuantitySyncService event handler** (LOW) — added `organizationId` validation + subquery filter on UPDATE.
+
+**Rule of thumb:** Every service method that accepts an entity ID (`machineId`, `routeId`, `anomalyId`) MUST also accept `organizationId` and filter in WHERE clause. Never rely on post-fetch checks — they leak information via "not found" vs "forbidden" distinction and are easy to bypass in async paths.
+
+### Design System Handoff (2026-04-21)
+
+Design tokens from Claude Design session committed to `design/`:
+
+- `design/handoff/design-tokens.ts` — TypeScript constants (brand Hub Sand #D3A066, coffee scale, semantic HSL, Montserrat + IBM Plex Mono, fontSize scale 11→64px, radius, shadow, duration, easing)
+- `design/shared/tokens.css` — CSS custom properties (dark/light themes, surfaces, status colors, density variants)
+- `design/ScreenSpecs.md` — all admin/mobile/site screens
+- `design/handoff/HANDOFF.md` — integration guide
+
+Tokens integrated into `apps/web/tailwind.config.js` (inlined as JS constants since tailwind.config is `.js`) and appended to `apps/web/src/app/globals.css` (new `@layer base` block with vars that don't conflict with shadcn's `--primary`/`--background` set).
+
+HTML mocks at `design/admin/*.html`, `design/mobile/*.html`, `design/Site.html` are gitignored (local viewing only, not deployed).
+
 ## Skills (AI Agent Tools)
 
 21 specialized skills in `.claude/commands/` directory for domain-specific code generation:
