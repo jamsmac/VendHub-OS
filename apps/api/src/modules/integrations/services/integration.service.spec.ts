@@ -102,8 +102,6 @@ describe("IntegrationService", () => {
     sandboxMode: true,
     successCount: 0,
     errorCount: 0,
-    lastTestedAt: undefined,
-    lastUsedAt: undefined,
   };
 
   const mockTemplate: Partial<IntegrationTemplate> = {

@@ -45,8 +45,6 @@ describe("PaymentReportImportService", () => {
     newRows: 3,
     importedRows: 0,
     importErrors: 0,
-    importedAt: undefined,
-    importedBy: undefined,
     mimeType:
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   };
@@ -96,7 +94,6 @@ describe("PaymentReportImportService", () => {
       orderNumber: "ORD-003",
       paymentTime: new Date("2026-01-15T12:15:00Z"),
       amount: 15000,
-      paymentMethod: undefined,
       machineCode: "UNKNOWN-99",
       isDuplicate: false,
       isImported: false,

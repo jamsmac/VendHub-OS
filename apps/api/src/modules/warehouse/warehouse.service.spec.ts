@@ -551,13 +551,11 @@ describe("WarehouseService", () => {
       );
 
       expect(result).toEqual(movementWithoutOptions);
-      expect(stockMovementRepository.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          referenceNumber: undefined,
-          cost: undefined,
-          notes: undefined,
-        }),
-      );
+      const callArg = stockMovementRepository.create.mock
+        .calls[0]?.[0] as Record<string, unknown>;
+      expect(callArg).not.toHaveProperty("referenceNumber");
+      expect(callArg).not.toHaveProperty("cost");
+      expect(callArg).not.toHaveProperty("notes");
     });
   });
 

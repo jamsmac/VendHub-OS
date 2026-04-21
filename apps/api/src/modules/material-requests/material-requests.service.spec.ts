@@ -88,7 +88,6 @@ describe("MaterialRequestsService", () => {
     unitPrice: 5000,
     totalPrice: 500000,
     deliveredQuantity: 0,
-    notes: undefined,
     createdAt: new Date(),
   };
 
