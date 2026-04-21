@@ -23,6 +23,7 @@ import {
 } from "@nestjs/swagger";
 import { RoutesService } from "./routes.service";
 import { RouteOptimizationService } from "./route-optimization.service";
+import { RouteOptimizerService } from "./services/route-optimizer.service";
 import { RouteAnalyticsService } from "./services/route-analytics.service";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards";
@@ -35,6 +36,7 @@ import {
   UpdateRouteStopDto,
   ReorderStopsDto,
 } from "./dto/create-route-stop.dto";
+import { AutoGenerateRouteDto } from "./dto/auto-generate-route.dto";
 import {
   StartRouteDto,
   EndRouteDto,
@@ -59,6 +61,7 @@ export class RoutesController {
   constructor(
     private readonly routesService: RoutesService,
     private readonly routeOptimizationService: RouteOptimizationService,
+    private readonly routeOptimizerService: RouteOptimizerService,
     private readonly routeAnalyticsService: RouteAnalyticsService,
   ) {}
 
@@ -236,6 +239,27 @@ export class RoutesController {
       ...(page !== undefined && { page: parseInt(page, 10) }),
       ...(limit !== undefined && { limit: parseInt(limit, 10) }),
     });
+  }
+
+  @Post("auto-generate")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER)
+  @ApiOperation({
+    summary: "Auto-generate optimal refill route from recommendations",
+  })
+  @ApiResponse({
+    status: 201,
+    description: "DRAFT route created with optimized stops",
+  })
+  async autoGenerate(
+    @Body() dto: AutoGenerateRouteDto,
+    @CurrentUser() user: User,
+  ) {
+    const organizationId = resolveOrganizationId(user, undefined);
+    return this.routeOptimizerService.generateOptimalRoute(
+      organizationId,
+      dto.operatorId ?? user.id,
+      dto.includeRefillSoon ?? false,
+    );
   }
 
   @Get(":id")
