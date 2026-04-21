@@ -13,6 +13,7 @@ import {
   AlertRule,
   AlertMetric,
 } from "../../alerts/entities/alert-rule.entity";
+import { QuantitySyncService } from "./quantity-sync.service";
 
 @Injectable()
 export class RecommendationService {
@@ -27,6 +28,7 @@ export class RecommendationService {
     private readonly alertRuleRepo: Repository<AlertRule>,
     private readonly forecastService: ForecastService,
     private readonly alertsService: AlertsService,
+    private readonly quantitySyncService: QuantitySyncService,
   ) {}
 
   async generateForMachine(
@@ -106,7 +108,9 @@ export class RecommendationService {
       throw new NotFoundException("Recommendation not found");
     }
     rec.actedUponAt = new Date();
-    return this.recRepo.save(rec);
+    const saved = await this.recRepo.save(rec);
+    await this.quantitySyncService.resetOnRefill(rec.machineId, rec.productId);
+    return saved;
   }
 
   private async fireStockoutAlerts(
