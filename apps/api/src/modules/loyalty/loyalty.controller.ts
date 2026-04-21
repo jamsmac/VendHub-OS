@@ -168,7 +168,7 @@ export class LoyaltyController {
       amount: dto.points,
       referenceId: dto.orderId,
       referenceType: "order",
-      description: dto.description,
+      ...(dto.description !== undefined && { description: dto.description }),
     });
   }
 

@@ -113,10 +113,14 @@ export class VendHubReportGeneratorService {
         language: dto.language || "ru",
         organizationId,
         filters: {
-          machineIds: dto.machineIds,
-          productIds: dto.productIds,
-          locationIds: dto.locationIds,
-          includeTestOrders: dto.includeTestOrders,
+          ...(dto.machineIds !== undefined && { machineIds: dto.machineIds }),
+          ...(dto.productIds !== undefined && { productIds: dto.productIds }),
+          ...(dto.locationIds !== undefined && {
+            locationIds: dto.locationIds,
+          }),
+          ...(dto.includeTestOrders !== undefined && {
+            includeTestOrders: dto.includeTestOrders,
+          }),
         },
       },
     };
@@ -348,33 +352,29 @@ export class VendHubReportGeneratorService {
   // ============================================================================
 
   private mapTransaction(t: Transaction): TransactionData {
-    return {
+    const meta = t.metadata as Record<string, unknown>;
+    const rawIngredients = meta?.ingredients;
+    const result: TransactionData = {
       id: t.id,
       createdAt: t.createdAt,
       amount: Number(t.amount) || 0,
       paymentType: this.mapPaymentType(t.paymentMethod || t.type),
       paymentStatus: t.status === "completed" ? "Оплачено" : "Другое",
-      brewStatus:
-        ((t.metadata as Record<string, unknown>)?.brewStatus as string) ||
-        "Доставлен",
+      brewStatus: (meta?.brewStatus as string) || "Доставлен",
       machineId: t.machineId,
       machineCode: (t.machine as { serialNumber?: string })?.serialNumber || "",
       machineAddress:
         (t.machine as { location?: { address?: string } })?.location?.address ||
         "",
-      productId:
-        ((t.metadata as Record<string, unknown>)?.productId as string) || "",
-      productName:
-        ((t.metadata as Record<string, unknown>)?.productName as string) || "",
-      productCategory:
-        ((t.metadata as Record<string, unknown>)?.productCategory as string) ||
-        "",
-      ingredients: (t.metadata as Record<string, unknown>)?.ingredients as
-        | string[]
-        | undefined,
-      costOfGoods:
-        ((t.metadata as Record<string, unknown>)?.costOfGoods as number) || 0,
-    } as TransactionData;
+      productId: (meta?.productId as string) || "",
+      productName: (meta?.productName as string) || "",
+      productCategory: (meta?.productCategory as string) || "",
+      costOfGoods: (meta?.costOfGoods as number) || 0,
+    };
+    if (rawIngredients !== undefined) {
+      result.ingredients = rawIngredients as Record<string, number>;
+    }
+    return result;
   }
 
   private mapPaymentType(type: string): string {

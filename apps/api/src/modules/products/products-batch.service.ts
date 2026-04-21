@@ -42,24 +42,36 @@ export class ProductsBatchService {
       quantity: dto.quantity,
       remainingQuantity: dto.quantity,
       unitOfMeasure: dto.unitOfMeasure,
-      purchasePrice: dto.purchasePrice,
-      totalCost:
-        dto.totalCost ??
-        ((dto.purchasePrice
-          ? dto.purchasePrice * dto.quantity
-          : undefined) as number),
-      supplierId: dto.supplierId,
-      supplierBatchNumber: dto.supplierBatchNumber,
-      invoiceNumber: dto.invoiceNumber,
-      manufactureDate: dto.manufactureDate,
-      expiryDate: dto.expiryDate,
-      storageLocation: dto.storageLocation,
-      notes: dto.notes,
+      ...(dto.purchasePrice !== undefined && {
+        purchasePrice: dto.purchasePrice,
+      }),
+      ...(dto.totalCost !== undefined
+        ? { totalCost: dto.totalCost }
+        : dto.purchasePrice !== undefined
+          ? { totalCost: dto.purchasePrice * dto.quantity }
+          : {}),
+      ...(dto.supplierId !== undefined && { supplierId: dto.supplierId }),
+      ...(dto.supplierBatchNumber !== undefined && {
+        supplierBatchNumber: dto.supplierBatchNumber,
+      }),
+      ...(dto.invoiceNumber !== undefined && {
+        invoiceNumber: dto.invoiceNumber,
+      }),
+      ...(dto.manufactureDate !== undefined && {
+        manufactureDate: dto.manufactureDate,
+      }),
+      ...(dto.expiryDate !== undefined && { expiryDate: dto.expiryDate }),
+      ...(dto.storageLocation !== undefined && {
+        storageLocation: dto.storageLocation,
+      }),
+      ...(dto.notes !== undefined && { notes: dto.notes }),
       status: IngredientBatchStatus.IN_STOCK,
       createdById: userId,
-    });
+    } as Parameters<typeof this.ingredientBatchRepository.create>[0]);
 
-    return this.ingredientBatchRepository.save(batch);
+    return this.ingredientBatchRepository.save(
+      batch,
+    ) as unknown as Promise<IngredientBatch>;
   }
 
   async depleteFromBatch(

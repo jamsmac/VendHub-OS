@@ -172,10 +172,11 @@ export class ComplaintsRefundService {
     const action = this.actionRepo.create({
       complaintId,
       organizationId: "",
-      performedById: performedById || undefined,
+      ...(performedById !== undefined &&
+        performedById !== null && { performedById }),
       performedByName: "",
       actionType:
-        actionTypeMap[actionType] || ComplaintActionType.STATUS_CHANGED,
+        actionTypeMap[actionType] ?? ComplaintActionType.STATUS_CHANGED,
       description,
     });
 

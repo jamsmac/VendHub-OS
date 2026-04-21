@@ -60,10 +60,18 @@ export class ReportsSchedulerService {
       name: dto.name,
       schedule: {
         frequency: dto.frequency,
-        dayOfWeek: dto.scheduleConfig.dayOfWeek,
-        dayOfMonth: dto.scheduleConfig.dayOfMonth,
-        time: dto.scheduleConfig.time,
-        timezone: dto.scheduleConfig.timezone,
+        ...(dto.scheduleConfig.dayOfWeek !== undefined && {
+          dayOfWeek: dto.scheduleConfig.dayOfWeek,
+        }),
+        ...(dto.scheduleConfig.dayOfMonth !== undefined && {
+          dayOfMonth: dto.scheduleConfig.dayOfMonth,
+        }),
+        ...(dto.scheduleConfig.time !== undefined && {
+          time: dto.scheduleConfig.time,
+        }),
+        ...(dto.scheduleConfig.timezone !== undefined && {
+          timezone: dto.scheduleConfig.timezone,
+        }),
         deliveryChannels: [dto.deliveryMethod] as (
           | "email"
           | "telegram"
@@ -73,7 +81,9 @@ export class ReportsSchedulerService {
           dto.deliveryConfig.emails?.map((email) => ({ email })) || [],
         format: dto.format,
       },
-      filters: dto.parameters as Record<string, unknown>,
+      ...(dto.parameters !== undefined && {
+        filters: dto.parameters as Record<string, unknown>,
+      }),
       format: dto.format,
       recipients: dto.deliveryConfig.emails?.map((email) => ({ email })) || [],
       isActive: true,
@@ -81,9 +91,9 @@ export class ReportsSchedulerService {
       failCount: 0,
       nextRunAt,
       createdById: createdById,
-    });
+    } as Parameters<typeof this.scheduledRepo.create>[0]);
 
-    return this.scheduledRepo.save(scheduled);
+    return this.scheduledRepo.save(scheduled) as unknown as ScheduledReport;
   }
 
   async getScheduledReports(
@@ -113,10 +123,18 @@ export class ReportsSchedulerService {
       scheduled.nextRunAt = this.calculateNextRun(
         scheduled.schedule.frequency,
         {
-          time: scheduled.schedule.time,
-          dayOfWeek: scheduled.schedule.dayOfWeek,
-          dayOfMonth: scheduled.schedule.dayOfMonth,
-          timezone: scheduled.schedule.timezone,
+          ...(scheduled.schedule.time !== undefined && {
+            time: scheduled.schedule.time,
+          }),
+          ...(scheduled.schedule.dayOfWeek !== undefined && {
+            dayOfWeek: scheduled.schedule.dayOfWeek,
+          }),
+          ...(scheduled.schedule.dayOfMonth !== undefined && {
+            dayOfMonth: scheduled.schedule.dayOfMonth,
+          }),
+          ...(scheduled.schedule.timezone !== undefined && {
+            timezone: scheduled.schedule.timezone,
+          }),
         },
       );
     }
@@ -186,10 +204,18 @@ export class ReportsSchedulerService {
         scheduled.nextRunAt = this.calculateNextRun(
           scheduled.schedule.frequency,
           {
-            time: scheduled.schedule.time,
-            dayOfWeek: scheduled.schedule.dayOfWeek,
-            dayOfMonth: scheduled.schedule.dayOfMonth,
-            timezone: scheduled.schedule.timezone,
+            ...(scheduled.schedule.time !== undefined && {
+              time: scheduled.schedule.time,
+            }),
+            ...(scheduled.schedule.dayOfWeek !== undefined && {
+              dayOfWeek: scheduled.schedule.dayOfWeek,
+            }),
+            ...(scheduled.schedule.dayOfMonth !== undefined && {
+              dayOfMonth: scheduled.schedule.dayOfMonth,
+            }),
+            ...(scheduled.schedule.timezone !== undefined && {
+              timezone: scheduled.schedule.timezone,
+            }),
           },
         );
         scheduled.lastError = "";

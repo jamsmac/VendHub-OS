@@ -53,7 +53,7 @@ export class ReportsDashboardService {
     const dashboard = this.dashboardRepo.create({
       organizationId: dto.organizationId,
       name: dto.name,
-      description: dto.description,
+      ...(dto.description !== undefined && { description: dto.description }),
       gridColumns: dto.columns || 12,
       isPublic: dto.isPublic || false,
       isDefault: false,
@@ -61,16 +61,17 @@ export class ReportsDashboardService {
       createdById: createdById,
     });
 
-    const saved = await this.dashboardRepo.save(dashboard);
+    const saved = (await this.dashboardRepo.save(dashboard)) as Dashboard;
 
     if (dto.widgets?.length) {
       for (let i = 0; i < dto.widgets.length; i++) {
         const w = dto.widgets[i]!;
+        const chartType = w.chartType as string | undefined;
         await this.createWidget(
           {
             organizationId: dto.organizationId,
             title: w.title || `Widget ${i + 1}`,
-            chartType: w.chartType as string | undefined,
+            ...(chartType !== undefined && { chartType }),
             position: w.position ?? i,
             width: w.width ?? 4,
             height: w.height ?? 2,
@@ -185,8 +186,10 @@ export class ReportsDashboardService {
     widgetIds: string[],
   ): Promise<void> {
     for (let i = 0; i < widgetIds.length; i++) {
+      const widgetId = widgetIds[i];
+      if (!widgetId) continue;
       await this.widgetRepo.update(
-        { id: widgetIds[i], organizationId },
+        { id: widgetId, organizationId },
         { position: i },
       );
     }

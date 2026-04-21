@@ -48,10 +48,12 @@ export class StockTakeService {
       unitOfMeasure: dto.unitOfMeasure ?? "pcs",
       type: dto.type,
       status: StockMovementStatus.PENDING,
-      referenceNumber: dto.referenceNumber,
+      ...(dto.referenceNumber !== undefined && {
+        referenceNumber: dto.referenceNumber,
+      }),
       requestedByUserId: userId,
-      cost: dto.cost,
-      notes: dto.notes,
+      ...(dto.cost !== undefined && { cost: dto.cost }),
+      ...(dto.notes !== undefined && { notes: dto.notes }),
       metadata: dto.metadata ?? {},
       createdById: userId,
     });
@@ -199,9 +201,9 @@ export class StockTakeService {
       quantity: dto.quantity,
       remainingQuantity: dto.quantity, // Initially, remaining equals total
       unitOfMeasure: dto.unitOfMeasure ?? "pcs",
-      costPerUnit: dto.costPerUnit,
+      ...(dto.costPerUnit !== undefined && { costPerUnit: dto.costPerUnit }),
       expiryDate: dto.expiryDate ? new Date(dto.expiryDate) : null,
-      notes: dto.notes,
+      ...(dto.notes !== undefined && { notes: dto.notes }),
       metadata: dto.metadata ?? {},
       createdById: userId,
     });

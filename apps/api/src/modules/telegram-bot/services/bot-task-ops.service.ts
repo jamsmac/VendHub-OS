@@ -328,7 +328,11 @@ export class BotTaskOpsService {
     await this.taskRepository.update(taskId, {
       status: TaskStatus.COMPLETED,
       completedAt: new Date(),
-      actualCashAmount: actualCashAmount ?? task.actualCashAmount,
+      ...(actualCashAmount !== undefined
+        ? { actualCashAmount }
+        : task.actualCashAmount !== undefined && task.actualCashAmount !== null
+          ? { actualCashAmount: task.actualCashAmount }
+          : {}),
     });
 
     this.clearSession(ctx.from!.id);

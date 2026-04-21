@@ -247,7 +247,7 @@ export class MultiKassaService {
       shiftNumber: response.shift_number,
       status: response.status,
       openedAt: response.opened_at,
-      closedAt: response.closed_at,
+      ...(response.closed_at !== undefined && { closedAt: response.closed_at }),
       cashierName: response.cashier_name,
       totalSales: response.total_sales,
       totalRefunds: response.total_refunds,

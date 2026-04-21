@@ -3,18 +3,14 @@
  * Validates and transforms pagination parameters
  */
 
-import {
-  PipeTransform,
-  Injectable,
-  ArgumentMetadata,
-} from '@nestjs/common';
+import { PipeTransform, Injectable, ArgumentMetadata } from "@nestjs/common";
 
 export interface PaginationParams {
   page: number;
   limit: number;
   offset: number;
   sortBy?: string;
-  sortOrder: 'ASC' | 'DESC';
+  sortOrder: "ASC" | "DESC";
 }
 
 export interface PaginationQuery {
@@ -27,21 +23,27 @@ export interface PaginationQuery {
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
-const ALLOWED_SORT_ORDERS = ['ASC', 'DESC', 'asc', 'desc'];
+const ALLOWED_SORT_ORDERS = ["ASC", "DESC", "asc", "desc"];
 
 @Injectable()
-export class ParsePaginationPipe implements PipeTransform<PaginationQuery, PaginationParams> {
+export class ParsePaginationPipe implements PipeTransform<
+  PaginationQuery,
+  PaginationParams
+> {
   constructor(
     private readonly options?: {
       maxLimit?: number;
       defaultLimit?: number;
       allowedSortFields?: string[];
       defaultSortBy?: string;
-      defaultSortOrder?: 'ASC' | 'DESC';
+      defaultSortOrder?: "ASC" | "DESC";
     },
   ) {}
 
-  transform(value: PaginationQuery, _metadata: ArgumentMetadata): PaginationParams {
+  transform(
+    value: PaginationQuery,
+    _metadata: ArgumentMetadata,
+  ): PaginationParams {
     const maxLimit = this.options?.maxLimit || MAX_LIMIT;
     const defaultLimit = this.options?.defaultLimit || DEFAULT_LIMIT;
 
@@ -70,9 +72,9 @@ export class ParsePaginationPipe implements PipeTransform<PaginationQuery, Pagin
     const offset = (page - 1) * limit;
 
     // Parse sort order
-    let sortOrder: 'ASC' | 'DESC' = this.options?.defaultSortOrder || 'DESC';
+    let sortOrder: "ASC" | "DESC" = this.options?.defaultSortOrder || "DESC";
     if (value.sortOrder && ALLOWED_SORT_ORDERS.includes(value.sortOrder)) {
-      sortOrder = value.sortOrder.toUpperCase() as 'ASC' | 'DESC';
+      sortOrder = value.sortOrder.toUpperCase() as "ASC" | "DESC";
     }
 
     // Parse sort field
@@ -95,7 +97,7 @@ export class ParsePaginationPipe implements PipeTransform<PaginationQuery, Pagin
       page,
       limit,
       offset,
-      sortBy,
+      ...(sortBy !== undefined && { sortBy }),
       sortOrder,
     };
   }
@@ -105,10 +107,17 @@ export class ParsePaginationPipe implements PipeTransform<PaginationQuery, Pagin
  * Simple pagination with just page and limit
  */
 @Injectable()
-export class SimplePaginationPipe implements PipeTransform<{ page?: string; limit?: string }, { page: number; limit: number; offset: number }> {
-  transform(value: { page?: string; limit?: string }): { page: number; limit: number; offset: number } {
-    let page = parseInt(value.page || '1', 10);
-    let limit = parseInt(value.limit || '20', 10);
+export class SimplePaginationPipe implements PipeTransform<
+  { page?: string; limit?: string },
+  { page: number; limit: number; offset: number }
+> {
+  transform(value: { page?: string; limit?: string }): {
+    page: number;
+    limit: number;
+    offset: number;
+  } {
+    let page = parseInt(value.page || "1", 10);
+    let limit = parseInt(value.limit || "20", 10);
 
     if (isNaN(page) || page < 1) page = 1;
     if (isNaN(limit) || limit < 1) limit = 20;
@@ -126,7 +135,10 @@ export class SimplePaginationPipe implements PipeTransform<{ page?: string; limi
  * Parse limit only (for lists without pagination)
  */
 @Injectable()
-export class ParseLimitPipe implements PipeTransform<string | undefined, number> {
+export class ParseLimitPipe implements PipeTransform<
+  string | undefined,
+  number
+> {
   constructor(
     private readonly defaultLimit: number = DEFAULT_LIMIT,
     private readonly maxLimit: number = MAX_LIMIT,

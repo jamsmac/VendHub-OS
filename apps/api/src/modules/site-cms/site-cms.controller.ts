@@ -44,8 +44,8 @@ export class SiteCmsController {
     @CurrentUser("organizationId") orgId: string,
   ) {
     return this.service.findByCollection(orgId, collection, {
-      isActive: query.isActive,
-      search: query.search,
+      ...(query.isActive !== undefined && { isActive: query.isActive }),
+      ...(query.search !== undefined && { search: query.search }),
     });
   }
 
@@ -58,7 +58,7 @@ export class SiteCmsController {
     @CurrentUser("organizationId") orgId: string,
   ) {
     const count = await this.service.countByCollection(orgId, collection, {
-      isActive: query.isActive,
+      ...(query.isActive !== undefined && { isActive: query.isActive }),
     });
     return { count };
   }

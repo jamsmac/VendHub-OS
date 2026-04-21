@@ -142,11 +142,11 @@ export class MachinesController {
 
     return this.machinesService.findAll(organizationId, {
       status: query.status as MachineStatus,
-      type: query.type,
-      locationId: query.locationId,
-      search: query.search,
-      page: query.page,
-      limit: query.limit,
+      ...(query.type !== undefined && { type: query.type }),
+      ...(query.locationId !== undefined && { locationId: query.locationId }),
+      ...(query.search !== undefined && { search: query.search }),
+      ...(query.page !== undefined && { page: query.page }),
+      ...(query.limit !== undefined && { limit: query.limit }),
     });
   }
 
@@ -727,7 +727,12 @@ export class MachinesController {
     UserRole.VIEWER,
   )
   @ApiOperation({ summary: "Get SIM usage history for a machine" })
-  @ApiParam({ name: "id", description: "Machine UUID", type: "string", format: "uuid" })
+  @ApiParam({
+    name: "id",
+    description: "Machine UUID",
+    type: "string",
+    format: "uuid",
+  })
   @ApiResponse({ status: 200, description: "SIM usage log list" })
   async getSimUsage(
     @Param("id", ParseUUIDPipe) id: string,
@@ -740,7 +745,12 @@ export class MachinesController {
   @Post(":id/sim-usage")
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: "Record SIM usage for a period" })
-  @ApiParam({ name: "id", description: "Machine UUID", type: "string", format: "uuid" })
+  @ApiParam({
+    name: "id",
+    description: "Machine UUID",
+    type: "string",
+    format: "uuid",
+  })
   @ApiResponse({ status: 201, description: "SIM usage logged" })
   async addSimUsage(
     @Param("id", ParseUUIDPipe) id: string,
@@ -964,12 +974,7 @@ export class MachinesController {
   // ============================================================================
 
   @Get(":id/expenses")
-  @Roles(
-    UserRole.OWNER,
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.ACCOUNTANT,
-  )
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.ACCOUNTANT)
   @ApiOperation({ summary: "Get all expenses for a machine" })
   @ApiParam({ name: "id", description: "Machine UUID" })
   @ApiResponse({ status: 200, description: "List of expenses" })
@@ -1027,12 +1032,7 @@ export class MachinesController {
   }
 
   @Get(":id/tco")
-  @Roles(
-    UserRole.OWNER,
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.ACCOUNTANT,
-  )
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.ACCOUNTANT)
   @ApiOperation({ summary: "Get total cost of ownership for a machine" })
   @ApiParam({ name: "id", description: "Machine UUID" })
   @ApiResponse({ status: 200, description: "TCO breakdown" })

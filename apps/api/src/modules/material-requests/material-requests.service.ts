@@ -122,8 +122,8 @@ export class MaterialRequestsService {
       requesterId: userId,
       status: MaterialRequestStatus.DRAFT,
       priority: dto.priority || RequestPriority.NORMAL,
-      supplierId: dto.supplierId,
-      notes: dto.notes,
+      ...(dto.supplierId !== undefined && { supplierId: dto.supplierId }),
+      ...(dto.notes !== undefined && { notes: dto.notes }),
       totalAmount,
       items: items.map((item) => this.itemRepo.create(item)),
     });
@@ -780,7 +780,7 @@ export class MaterialRequestsService {
       userId,
       fromStatus,
       toStatus,
-      comment,
+      ...(comment !== undefined && { comment }),
     });
     await this.historyRepo.save(history);
   }
@@ -794,33 +794,55 @@ export class MaterialRequestsService {
   }
 
   private mapToDto(request: MaterialRequest): MaterialRequestDto {
+    const requesterName = request.requester
+      ? `${request.requester.firstName} ${request.requester.lastName}`
+      : undefined;
+    const approverName = request.approver
+      ? `${request.approver.firstName} ${request.approver.lastName}`
+      : undefined;
     return {
       id: request.id,
       organizationId: request.organizationId,
       requestNumber: request.requestNumber,
       requesterId: request.requesterId,
-      requesterName: request.requester
-        ? `${request.requester.firstName} ${request.requester.lastName}`
-        : undefined,
+      ...(requesterName !== undefined && { requesterName }),
       status: request.status,
       priority: request.priority,
-      supplierId: request.supplierId,
-      notes: request.notes,
+      ...(request.supplierId !== undefined && {
+        supplierId: request.supplierId,
+      }),
+      ...(request.notes !== undefined && { notes: request.notes }),
       totalAmount: Number(request.totalAmount),
       paidAmount: Number(request.paidAmount),
-      approvedBy: request.approvedBy,
-      approverName: request.approver
-        ? `${request.approver.firstName} ${request.approver.lastName}`
-        : undefined,
-      approvedAt: request.approvedAt,
-      rejectionReason: request.rejectionReason,
-      rejectedBy: request.rejectedBy,
-      cancellationReason: request.cancellationReason,
-      submittedAt: request.submittedAt,
-      sentAt: request.sentAt,
-      deliveredAt: request.deliveredAt,
-      completedAt: request.completedAt,
-      cancelledAt: request.cancelledAt,
+      ...(request.approvedBy !== undefined && {
+        approvedBy: request.approvedBy,
+      }),
+      ...(approverName !== undefined && { approverName }),
+      ...(request.approvedAt !== undefined && {
+        approvedAt: request.approvedAt,
+      }),
+      ...(request.rejectionReason !== undefined && {
+        rejectionReason: request.rejectionReason,
+      }),
+      ...(request.rejectedBy !== undefined && {
+        rejectedBy: request.rejectedBy,
+      }),
+      ...(request.cancellationReason !== undefined && {
+        cancellationReason: request.cancellationReason,
+      }),
+      ...(request.submittedAt !== undefined && {
+        submittedAt: request.submittedAt,
+      }),
+      ...(request.sentAt !== undefined && { sentAt: request.sentAt }),
+      ...(request.deliveredAt !== undefined && {
+        deliveredAt: request.deliveredAt,
+      }),
+      ...(request.completedAt !== undefined && {
+        completedAt: request.completedAt,
+      }),
+      ...(request.cancelledAt !== undefined && {
+        cancelledAt: request.cancelledAt,
+      }),
       items: (request.items || []).map((item) => this.mapItemToDto(item)),
       createdAt: request.createdAt,
       updatedAt: request.updatedAt,

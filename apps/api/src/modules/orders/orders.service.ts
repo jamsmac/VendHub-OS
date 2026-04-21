@@ -118,8 +118,10 @@ export class OrdersService {
           quantity: item.quantity,
           unitPrice,
           totalPrice,
-          customizations: item.customizations,
-          notes: item.notes,
+          ...(item.customizations !== undefined && {
+            customizations: item.customizations,
+          }),
+          ...(item.notes !== undefined && { notes: item.notes }),
         });
       }
 
@@ -174,12 +176,14 @@ export class OrdersService {
         discountAmount,
         bonusAmount,
         totalAmount,
-        promoCode: dto.promoCode,
+        ...(dto.promoCode !== undefined && { promoCode: dto.promoCode }),
         promoDiscount,
         pointsUsed: bonusAmount,
-        notes: dto.notes,
-        items: orderItems.map((item) => txItemRepo.create(item)),
-      });
+        ...(dto.notes !== undefined && { notes: dto.notes }),
+        items: orderItems.map((item) =>
+          txItemRepo.create(item as Parameters<typeof txItemRepo.create>[0]),
+        ),
+      } as Parameters<typeof txOrderRepo.create>[0]);
 
       await txOrderRepo.save(order);
 
@@ -571,37 +575,41 @@ export class OrdersService {
   }
 
   private mapToDto(order: Order): OrderDto {
-    return {
+    const userName = order.user
+      ? `${order.user.firstName} ${order.user.lastName}`
+      : undefined;
+    const dto: OrderDto = {
       id: order.id,
       organizationId: order.organizationId,
       orderNumber: order.orderNumber,
       userId: order.userId,
-      userName: order.user
-        ? `${order.user.firstName} ${order.user.lastName}`
-        : undefined,
       machineId: order.machineId,
-      machineName: order.machine?.name,
       status: order.status,
       paymentStatus: order.paymentStatus,
-      paymentMethod: order.paymentMethod,
       subtotalAmount: Number(order.subtotalAmount),
       discountAmount: Number(order.discountAmount),
       bonusAmount: Number(order.bonusAmount),
       totalAmount: Number(order.totalAmount),
-      pointsEarned: order.pointsEarned,
-      pointsUsed: order.pointsUsed,
-      promoCode: order.promoCode,
+      pointsEarned: order.pointsEarned ?? 0,
+      pointsUsed: order.pointsUsed ?? 0,
       promoDiscount: Number(order.promoDiscount),
       items: (order.items || []).map((item) => this.mapItemToDto(item)),
-      notes: order.notes,
-      cancellationReason: order.cancellationReason,
-      confirmedAt: order.confirmedAt,
-      completedAt: order.completedAt,
-      cancelledAt: order.cancelledAt,
-      paidAt: order.paidAt,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
     };
+    if (userName !== undefined) dto.userName = userName;
+    if (order.machine?.name !== undefined) dto.machineName = order.machine.name;
+    if (order.paymentMethod !== undefined)
+      dto.paymentMethod = order.paymentMethod;
+    if (order.promoCode !== undefined) dto.promoCode = order.promoCode;
+    if (order.notes !== undefined) dto.notes = order.notes;
+    if (order.cancellationReason !== undefined)
+      dto.cancellationReason = order.cancellationReason;
+    if (order.confirmedAt !== undefined) dto.confirmedAt = order.confirmedAt;
+    if (order.completedAt !== undefined) dto.completedAt = order.completedAt;
+    if (order.cancelledAt !== undefined) dto.cancelledAt = order.cancelledAt;
+    if (order.paidAt !== undefined) dto.paidAt = order.paidAt;
+    return dto;
   }
 
   private mapItemToDto(item: OrderItem): OrderItemDto {

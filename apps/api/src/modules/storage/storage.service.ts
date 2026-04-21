@@ -97,10 +97,10 @@ export class StorageService {
     send: (command: unknown) => Promise<S3Response>;
   };
   private readonly bucket: string;
-  private readonly cdnDomain?: string;
+  private readonly cdnDomain: string | undefined;
   private readonly region: string;
-  private readonly endpoint?: string;
-  private readonly publicBaseUrl?: string;
+  private readonly endpoint: string | undefined;
+  private readonly publicBaseUrl: string | undefined;
   private readonly forcePathStyle: boolean;
 
   // Allowed MIME types for different categories
@@ -219,7 +219,7 @@ export class StorageService {
         cdnUrl,
         size: buffer.length,
         mimeType,
-        etag: result.ETag,
+        ...(result.ETag !== undefined && { etag: result.ETag }),
       };
     } catch (error: unknown) {
       this.logger.error(`Failed to upload file: ${key}`, error);
@@ -445,8 +445,10 @@ export class StorageService {
         key,
         size: response.ContentLength || 0,
         lastModified: response.LastModified || new Date(),
-        contentType: response.ContentType,
-        etag: response.ETag,
+        ...(response.ContentType !== undefined && {
+          contentType: response.ContentType,
+        }),
+        ...(response.ETag !== undefined && { etag: response.ETag }),
       };
     } catch (error: unknown) {
       if (error instanceof Error && error.name === "NotFound") {
@@ -559,12 +561,14 @@ export class StorageService {
 
       const response = await this.s3Client.send(command);
 
-      return (response.Contents || []).map((item) => ({
-        key: item.Key || "",
-        size: item.Size || 0,
-        lastModified: item.LastModified || new Date(),
-        etag: item.ETag,
-      }));
+      return (response.Contents || []).map(
+        (item): FileMetadata => ({
+          key: item.Key || "",
+          size: item.Size || 0,
+          lastModified: item.LastModified || new Date(),
+          ...(item.ETag !== undefined && { etag: item.ETag }),
+        }),
+      );
     } catch (error: unknown) {
       this.logger.error(`Failed to list files in ${prefix}`, error);
       throw new BadRequestException("Failed to list files");

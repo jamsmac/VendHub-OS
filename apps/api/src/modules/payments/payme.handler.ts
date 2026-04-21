@@ -90,7 +90,7 @@ export class PaymeHandler {
       status: "pending",
       amount,
       orderId,
-      transactionId,
+      ...(transactionId !== undefined && { transactionId }),
       checkoutUrl: `${baseUrl}/${params}`,
     };
   }

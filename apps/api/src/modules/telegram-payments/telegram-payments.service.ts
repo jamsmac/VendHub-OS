@@ -109,7 +109,9 @@ export class TelegramPaymentsService {
       currency: dto.currency,
       amount: order.totalAmount,
       telegramUserId: dto.telegramUserId,
-      telegramChatId: dto.telegramChatId,
+      ...(dto.telegramChatId !== undefined && {
+        telegramChatId: dto.telegramChatId,
+      }),
       invoicePayload: JSON.stringify({
         orderId: dto.orderId,
         userId,
@@ -310,8 +312,10 @@ export class TelegramPaymentsService {
         telegramPaymentChargeId: dto.telegramPaymentChargeId,
         providerPaymentChargeId: dto.providerPaymentChargeId,
         invoicePayload: dto.invoicePayload,
-        shippingOptionId: dto.shippingOptionId,
-        orderInfo: dto.orderInfo,
+        ...(dto.shippingOptionId !== undefined && {
+          shippingOptionId: dto.shippingOptionId,
+        }),
+        ...(dto.orderInfo !== undefined && { orderInfo: dto.orderInfo }),
         status: TelegramPaymentStatus.COMPLETED,
         completedAt: new Date(),
       });
@@ -731,16 +735,28 @@ export class TelegramPaymentsService {
       currency: payment.currency,
       amount: Number(payment.amount),
       telegramUserId: Number(payment.telegramUserId),
-      telegramPaymentChargeId: payment.telegramPaymentChargeId,
-      providerPaymentChargeId: payment.providerPaymentChargeId,
-      description: payment.description,
-      failureReason: payment.failureReason,
+      ...(payment.telegramPaymentChargeId !== undefined && {
+        telegramPaymentChargeId: payment.telegramPaymentChargeId,
+      }),
+      ...(payment.providerPaymentChargeId !== undefined && {
+        providerPaymentChargeId: payment.providerPaymentChargeId,
+      }),
+      ...(payment.description !== undefined && {
+        description: payment.description,
+      }),
+      ...(payment.failureReason !== undefined && {
+        failureReason: payment.failureReason,
+      }),
       createdAt: payment.createdAt,
-      completedAt: payment.completedAt,
-      refundedAt: payment.refundedAt,
-      refundedAmount: payment.refundedAmount
-        ? Number(payment.refundedAmount)
-        : undefined,
+      ...(payment.completedAt !== undefined && {
+        completedAt: payment.completedAt,
+      }),
+      ...(payment.refundedAt !== undefined && {
+        refundedAt: payment.refundedAt,
+      }),
+      ...(payment.refundedAmount != null && {
+        refundedAmount: Number(payment.refundedAmount),
+      }),
     };
   }
 }

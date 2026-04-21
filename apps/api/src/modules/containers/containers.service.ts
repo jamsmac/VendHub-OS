@@ -127,7 +127,7 @@ export class ContainersService {
     }
 
     const container = this.containerRepository.create({
-      ...dto,
+      ...(dto as Partial<Container>),
       organizationId,
       nomenclatureId: dto.nomenclatureId ?? null,
       name: dto.name ?? null,
@@ -137,10 +137,12 @@ export class ContainersService {
       status: dto.status ?? ContainerStatus.ACTIVE,
       metadata: dto.metadata ?? null,
       notes: dto.notes ?? null,
-      createdById: userId,
+      ...(userId !== undefined && { createdById: userId }),
     });
 
-    return this.containerRepository.save(container);
+    return this.containerRepository.save(
+      container,
+    ) as unknown as Promise<Container>;
   }
 
   /**

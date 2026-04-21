@@ -155,19 +155,21 @@ export class AgentBridgeService {
 
     const progress = this.progressRepo.create({
       sessionId: session.id,
-      taskId: dto.taskId || null,
-      status: dto.status,
-      category: dto.category,
+      taskId: dto.taskId ?? null,
+      ...(dto.status !== undefined && { status: dto.status }),
+      ...(dto.category !== undefined && { category: dto.category }),
       message: dto.message,
-      filesChanged: dto.filesChanged || [],
+      filesChanged: dto.filesChanged ?? [],
       linesAdded: dto.linesAdded ?? null,
       linesRemoved: dto.linesRemoved ?? null,
       durationMs: dto.durationMs ?? null,
-      proposalId: dto.proposalId || null,
-      metadata: dto.metadata || null,
+      proposalId: dto.proposalId ?? null,
+      metadata: dto.metadata ?? null,
     });
 
-    const saved = await this.progressRepo.save(progress);
+    const saved = (await this.progressRepo.save(
+      progress,
+    )) as unknown as AgentProgress;
 
     // Update session counters
     if (dto.filesChanged?.length) {

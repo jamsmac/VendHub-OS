@@ -54,11 +54,15 @@ export class DataParserController {
   ) {
     this.validateFile(file);
     return this.dataParserService.parse(file.buffer, file.originalname, {
-      delimiter: options.delimiter,
-      encoding: (options.encoding as BufferEncoding) || undefined,
-      sheetIndex: options.sheetIndex,
-      headerRow: options.headerRow,
-      maxRows: options.maxRows,
+      ...(options.delimiter !== undefined && { delimiter: options.delimiter }),
+      ...(options.encoding !== undefined && {
+        encoding: options.encoding as BufferEncoding,
+      }),
+      ...(options.sheetIndex !== undefined && {
+        sheetIndex: options.sheetIndex,
+      }),
+      ...(options.headerRow !== undefined && { headerRow: options.headerRow }),
+      ...(options.maxRows !== undefined && { maxRows: options.maxRows }),
     });
   }
 
@@ -83,11 +87,15 @@ export class DataParserController {
   ) {
     this.validateFile(file);
     return this.dataParserService.parseSales(file.buffer, file.originalname, {
-      delimiter: options.delimiter,
-      encoding: (options.encoding as BufferEncoding) || undefined,
-      sheetIndex: options.sheetIndex,
-      headerRow: options.headerRow,
-      maxRows: options.maxRows,
+      ...(options.delimiter !== undefined && { delimiter: options.delimiter }),
+      ...(options.encoding !== undefined && {
+        encoding: options.encoding as BufferEncoding,
+      }),
+      ...(options.sheetIndex !== undefined && {
+        sheetIndex: options.sheetIndex,
+      }),
+      ...(options.headerRow !== undefined && { headerRow: options.headerRow }),
+      ...(options.maxRows !== undefined && { maxRows: options.maxRows }),
     });
   }
 
@@ -115,11 +123,19 @@ export class DataParserController {
       file.buffer,
       file.originalname,
       {
-        delimiter: options.delimiter,
-        encoding: (options.encoding as BufferEncoding) || undefined,
-        sheetIndex: options.sheetIndex,
-        headerRow: options.headerRow,
-        maxRows: options.maxRows,
+        ...(options.delimiter !== undefined && {
+          delimiter: options.delimiter,
+        }),
+        ...(options.encoding !== undefined && {
+          encoding: options.encoding as BufferEncoding,
+        }),
+        ...(options.sheetIndex !== undefined && {
+          sheetIndex: options.sheetIndex,
+        }),
+        ...(options.headerRow !== undefined && {
+          headerRow: options.headerRow,
+        }),
+        ...(options.maxRows !== undefined && { maxRows: options.maxRows }),
       },
     );
   }
@@ -148,11 +164,19 @@ export class DataParserController {
       file.buffer,
       file.originalname,
       {
-        delimiter: options.delimiter,
-        encoding: (options.encoding as BufferEncoding) || undefined,
-        sheetIndex: options.sheetIndex,
-        headerRow: options.headerRow,
-        maxRows: options.maxRows,
+        ...(options.delimiter !== undefined && {
+          delimiter: options.delimiter,
+        }),
+        ...(options.encoding !== undefined && {
+          encoding: options.encoding as BufferEncoding,
+        }),
+        ...(options.sheetIndex !== undefined && {
+          sheetIndex: options.sheetIndex,
+        }),
+        ...(options.headerRow !== undefined && {
+          headerRow: options.headerRow,
+        }),
+        ...(options.maxRows !== undefined && { maxRows: options.maxRows }),
       },
     );
   }
@@ -200,8 +224,10 @@ export class DataParserController {
   ) {
     this.validateFile(file);
     return this.dataParserService.recover(file.buffer, file.originalname, {
-      delimiter: dto.delimiter,
-      encoding: (dto.encoding as BufferEncoding) || undefined,
+      ...(dto.delimiter !== undefined && { delimiter: dto.delimiter }),
+      ...(dto.encoding !== undefined && {
+        encoding: dto.encoding as BufferEncoding,
+      }),
     });
   }
 

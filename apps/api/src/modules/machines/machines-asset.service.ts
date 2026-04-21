@@ -71,10 +71,14 @@ export class MachinesAssetService {
       {
         machineId,
         reason: reason as WriteoffJobData["reason"],
-        notes: options?.notes,
-        disposalDate: options?.disposalDate,
-        userId,
-        requestId: options?.requestId,
+        ...(options?.notes !== undefined && { notes: options.notes }),
+        ...(options?.disposalDate !== undefined && {
+          disposalDate: options.disposalDate,
+        }),
+        ...(userId !== undefined && { userId }),
+        ...(options?.requestId !== undefined && {
+          requestId: options.requestId,
+        }),
       },
       {
         attempts: 3,

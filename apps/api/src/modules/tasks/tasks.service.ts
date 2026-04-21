@@ -414,7 +414,7 @@ export class TasksService {
 
     task.photoAfterUrl = photoUrl;
     task.hasPhotoAfter = true;
-    task.completionNotes = completionNotes;
+    if (completionNotes !== undefined) task.completionNotes = completionNotes;
     task.status = TaskStatus.COMPLETED;
     task.completedAt = new Date();
 
@@ -453,7 +453,8 @@ export class TasksService {
 
     task.status = TaskStatus.COMPLETED;
     task.completedAt = new Date();
-    task.completionNotes = completionData.completionNotes;
+    if (completionData.completionNotes !== undefined)
+      task.completionNotes = completionData.completionNotes;
 
     if (completionData.collectedCash !== undefined) {
       task.actualCashAmount = completionData.collectedCash;
@@ -656,7 +657,7 @@ export class TasksService {
       userId,
       comment: data.comment,
       isInternal: data.isInternal ?? false,
-      attachments: data.attachments,
+      ...(data.attachments !== undefined && { attachments: data.attachments }),
     });
 
     return this.taskCommentRepository.save(comment);
@@ -731,12 +732,14 @@ export class TasksService {
       uploadedByUserId: userId,
       category: data.category,
       url: data.url,
-      thumbnailUrl: data.thumbnailUrl,
-      fileSize: data.fileSize,
-      mimeType: data.mimeType,
-      latitude: data.latitude,
-      longitude: data.longitude,
-      description: data.description,
+      ...(data.thumbnailUrl !== undefined && {
+        thumbnailUrl: data.thumbnailUrl,
+      }),
+      ...(data.fileSize !== undefined && { fileSize: data.fileSize }),
+      ...(data.mimeType !== undefined && { mimeType: data.mimeType }),
+      ...(data.latitude !== undefined && { latitude: data.latitude }),
+      ...(data.longitude !== undefined && { longitude: data.longitude }),
+      ...(data.description !== undefined && { description: data.description }),
     });
 
     return this.taskPhotoRepository.save(photo);

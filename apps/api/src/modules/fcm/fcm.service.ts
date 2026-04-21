@@ -233,7 +233,13 @@ export class FcmService implements OnModuleInit {
     for (const userId of userIds) {
       try {
         const count = await this.sendToUser(
-          { userId, title, body, url, data },
+          {
+            userId,
+            title,
+            body,
+            ...(url !== undefined && { url }),
+            ...(data !== undefined && { data }),
+          },
           organizationId,
         );
         sent += count;

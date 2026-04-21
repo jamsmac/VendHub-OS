@@ -179,7 +179,7 @@ export class AIParserService {
     return {
       session,
       response: aiResponse,
-      configUpdates: configUpdates || undefined,
+      ...(configUpdates ? { configUpdates } : {}),
     };
   }
 

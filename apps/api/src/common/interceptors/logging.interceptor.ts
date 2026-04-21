@@ -88,9 +88,9 @@ export class LoggingInterceptor implements NestInterceptor {
             url,
             statusCode,
             duration,
-            userId: userId !== "anonymous" ? userId : undefined,
-            requestId,
-            ip,
+            ...(userId !== "anonymous" && { userId }),
+            ...(requestId !== undefined && { requestId }),
+            ...(ip !== undefined && { ip }),
           });
 
           this.logger.log(
@@ -113,9 +113,9 @@ export class LoggingInterceptor implements NestInterceptor {
             url,
             statusCode,
             duration,
-            userId: userId !== "anonymous" ? userId : undefined,
-            requestId,
-            ip,
+            ...(userId !== "anonymous" && { userId }),
+            ...(requestId !== undefined && { requestId }),
+            ...(ip !== undefined && { ip }),
           });
         },
       }),

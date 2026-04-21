@@ -135,15 +135,17 @@ export class FiscalService {
       organizationId,
       name: dto.name,
       provider: dto.provider,
-      serialNumber: dto.serial_number,
-      terminalId: dto.terminal_id,
+      ...(dto.serial_number !== undefined && {
+        serialNumber: dto.serial_number,
+      }),
+      ...(dto.terminal_id !== undefined && { terminalId: dto.terminal_id }),
       credentials,
       sandboxMode: dto.sandbox_mode ?? true,
       config,
       status: FiscalDeviceStatus.INACTIVE,
-    });
+    } as Partial<FiscalDevice>);
 
-    const saved = await this.deviceRepo.save(device);
+    const saved = await this.deviceRepo.save(device as FiscalDevice);
 
     // Register with provider service
     if (dto.provider === "multikassa") {
@@ -154,7 +156,9 @@ export class FiscalService {
           login: dto.credentials.login || "",
           password: dto.credentials.password || "",
           companyTin: dto.credentials.company_tin || "",
-          defaultCashier: dto.config?.default_cashier,
+          ...(dto.config?.default_cashier !== undefined && {
+            defaultCashier: dto.config.default_cashier,
+          }),
         },
       });
     }
@@ -228,7 +232,9 @@ export class FiscalService {
           login: device.credentials.login || "",
           password: device.credentials.password || "",
           companyTin: device.credentials.companyTin || "",
-          defaultCashier: device.config.defaultCashier,
+          ...(device.config.defaultCashier !== undefined && {
+            defaultCashier: device.config.defaultCashier,
+          }),
         },
       });
     }
@@ -320,7 +326,9 @@ export class FiscalService {
     const shift = this.shiftRepo.create({
       organizationId,
       deviceId,
-      externalShiftId: externalResult?.shiftId,
+      ...(externalResult?.shiftId !== undefined && {
+        externalShiftId: externalResult.shiftId,
+      }),
       shiftNumber: (lastShift?.shiftNumber || 0) + 1,
       status: FiscalShiftStatus.OPEN,
       cashierName,
@@ -531,8 +539,10 @@ export class FiscalService {
       organizationId,
       deviceId: dto.device_id,
       shiftId: shift.id,
-      orderId: dto.order_id,
-      transactionId: dto.transaction_id,
+      ...(dto.order_id !== undefined && { orderId: dto.order_id }),
+      ...(dto.transaction_id !== undefined && {
+        transactionId: dto.transaction_id,
+      }),
       type: dto.type,
       status: FiscalReceiptStatus.PENDING,
       items,
@@ -540,9 +550,9 @@ export class FiscalService {
       total,
       vatTotal,
       metadata,
-    });
+    } as Partial<FiscalReceipt>);
 
-    const saved = await this.receiptRepo.save(receipt);
+    const saved = await this.receiptRepo.save(receipt as FiscalReceipt);
 
     // Send to provider
     try {
@@ -578,7 +588,7 @@ export class FiscalService {
           items: receipt.items.map((i) => ({
             name: i.name,
             ikpu_code: i.ikpuCode,
-            package_code: i.packageCode,
+            ...(i.packageCode !== undefined && { package_code: i.packageCode }),
             quantity: i.quantity,
             price: i.price,
             vat_rate: i.vatRate,
@@ -881,7 +891,7 @@ export class FiscalService {
       deviceId,
       deviceName: device.name,
       status: device.status,
-      currentShift: shiftStats,
+      ...(shiftStats !== undefined && { currentShift: shiftStats }),
       todayStats,
       queueStats: { pending: pendingQueue, failed: failedQueue },
     };

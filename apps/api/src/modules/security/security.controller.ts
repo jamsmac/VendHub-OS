@@ -46,19 +46,29 @@ export class SecurityController {
 
     return this.securityEventService.findAll({
       organizationId,
-      userId: filterDto.user_id,
-      eventType: filterDto.event_type,
-      severity: filterDto.severity,
-      ipAddress: filterDto.ip_address,
-      resource: filterDto.resource,
-      resourceId: filterDto.resource_id,
-      isResolved: filterDto.is_resolved,
-      startDate: filterDto.start_date
-        ? new Date(filterDto.start_date)
-        : undefined,
-      endDate: filterDto.end_date ? new Date(filterDto.end_date) : undefined,
-      page: filterDto.page,
-      limit: filterDto.limit,
+      ...(filterDto.user_id !== undefined && { userId: filterDto.user_id }),
+      ...(filterDto.event_type !== undefined && {
+        eventType: filterDto.event_type,
+      }),
+      ...(filterDto.severity !== undefined && { severity: filterDto.severity }),
+      ...(filterDto.ip_address !== undefined && {
+        ipAddress: filterDto.ip_address,
+      }),
+      ...(filterDto.resource !== undefined && { resource: filterDto.resource }),
+      ...(filterDto.resource_id !== undefined && {
+        resourceId: filterDto.resource_id,
+      }),
+      ...(filterDto.is_resolved !== undefined && {
+        isResolved: filterDto.is_resolved,
+      }),
+      ...(filterDto.start_date !== undefined && {
+        startDate: new Date(filterDto.start_date),
+      }),
+      ...(filterDto.end_date !== undefined && {
+        endDate: new Date(filterDto.end_date),
+      }),
+      ...(filterDto.page !== undefined && { page: filterDto.page }),
+      ...(filterDto.limit !== undefined && { limit: filterDto.limit }),
     });
   }
 

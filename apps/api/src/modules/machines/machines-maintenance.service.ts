@@ -111,9 +111,9 @@ export class MachinesMaintenanceService {
       costPrice: dto.costPrice,
       minQuantity: dto.minQuantity ?? 0,
       createdById: userId,
-    });
+    } as Partial<MachineSlot>);
 
-    return this.slotRepository.save(slot);
+    return this.slotRepository.save(slot as MachineSlot);
   }
 
   async updateSlot(
@@ -184,9 +184,11 @@ export class MachinesMaintenanceService {
       notes: dto.notes,
       movedAt: new Date(),
       createdById: userId,
-    });
+    } as Partial<MachineLocationHistory>);
 
-    const savedHistory = await this.locationHistoryRepository.save(history);
+    const savedHistory = await this.locationHistoryRepository.save(
+      history as MachineLocationHistory,
+    );
 
     const updateData: Partial<Machine> = {
       locationId: dto.toLocationId,
@@ -261,9 +263,9 @@ export class MachinesMaintenanceService {
       installedAt: new Date(),
       installedByUserId: userId,
       createdById: userId,
-    });
+    } as Partial<MachineComponent>);
 
-    return this.componentRepository.save(component);
+    return this.componentRepository.save(component as MachineComponent);
   }
 
   async removeComponent(
@@ -301,9 +303,11 @@ export class MachinesMaintenanceService {
       context: dto.context ?? {},
       occurredAt: new Date(),
       createdById: userId,
-    });
+    } as Partial<MachineErrorLog>);
 
-    const savedError = await this.errorLogRepository.save(errorLog);
+    const savedError = await this.errorLogRepository.save(
+      errorLog as MachineErrorLog,
+    );
 
     if (dto.severity === "error" || dto.severity === "critical") {
       await this.machineRepository.update(machineId, {
@@ -396,9 +400,11 @@ export class MachinesMaintenanceService {
       repeatIntervalDays: dto.repeatIntervalDays,
       status: MaintenanceStatus.SCHEDULED,
       createdById: userId,
-    });
+    } as unknown as Partial<MachineMaintenanceSchedule>);
 
-    return this.maintenanceRepository.save(schedule);
+    return this.maintenanceRepository.save(
+      schedule as MachineMaintenanceSchedule,
+    );
   }
 
   async getUpcomingMaintenance(
@@ -522,9 +528,9 @@ export class MachinesMaintenanceService {
       currency: "UZS",
       notes: dto.notes,
       createdById: user.id,
-    });
+    } as unknown as Partial<SimUsageLog>);
 
-    return this.simUsageRepository.save(log);
+    return this.simUsageRepository.save(log as SimUsageLog);
   }
 
   // ── Connectivity (Связь) ───────────────────────────────────
@@ -561,9 +567,9 @@ export class MachinesMaintenanceService {
       endDate: dto.endDate,
       notes: dto.notes,
       createdById: user.id,
-    });
+    } as unknown as Partial<MachineConnectivity>);
 
-    return this.connectivityRepository.save(conn);
+    return this.connectivityRepository.save(conn as MachineConnectivity);
   }
 
   async updateConnectivityService(
@@ -631,9 +637,9 @@ export class MachinesMaintenanceService {
       invoiceNumber: dto.invoiceNumber,
       notes: dto.notes,
       createdById: user.id,
-    });
+    } as unknown as Partial<MachineExpense>);
 
-    return this.expenseRepository.save(expense);
+    return this.expenseRepository.save(expense as MachineExpense);
   }
 
   async updateExpense(

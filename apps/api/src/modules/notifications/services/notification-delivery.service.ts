@@ -174,13 +174,14 @@ export class NotificationDeliveryService {
     }
 
     try {
+      const htmlContent = notification.content?.body
+        ? `<p>${notification.content.body}</p>`
+        : undefined;
       await this.emailService.sendEmail({
         to: user.email,
         subject: notification.content?.title || "VendHub Notification",
         text: notification.content?.body || "",
-        html: notification.content?.body
-          ? `<p>${notification.content.body}</p>`
-          : undefined,
+        ...(htmlContent !== undefined && { html: htmlContent }),
       });
     } catch (error: unknown) {
       this.logger.error(

@@ -38,7 +38,7 @@ export class VehiclesService {
       plateNumber: dto.plateNumber,
       currentOdometer: dto.currentOdometer ?? 0,
       notes: dto.notes ?? null,
-      createdById: userId,
+      ...(userId !== undefined && { createdById: userId }),
     });
 
     return this.vehicleRepository.save(vehicle);

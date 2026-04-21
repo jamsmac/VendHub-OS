@@ -106,9 +106,12 @@ export class InventoryAdjustmentService {
         notes: dto.notes,
         adjustedByUserId: dto.adjustedByUserId,
         isApproved: false,
-      });
+      } as Partial<InventoryAdjustment>);
 
-      await manager.save(InventoryAdjustment, adjustment);
+      await manager.save(
+        InventoryAdjustment,
+        adjustment as InventoryAdjustment,
+      );
 
       // If there's a difference, update inventory and create movement
       let movement: InventoryMovement | undefined;
@@ -139,20 +142,12 @@ export class InventoryAdjustmentService {
         }
 
         // Create movement record
-        movement = manager.create(InventoryMovement, {
+        const adjustMovementData: Partial<InventoryMovement> = {
           organizationId: dto.organizationId,
           movementType: MovementType.ADJUSTMENT,
           productId: dto.productId,
           quantity: Math.abs(difference),
           performedByUserId: dto.adjustedByUserId,
-          operatorId:
-            dto.inventoryLevel === InventoryLevel.OPERATOR
-              ? dto.referenceId
-              : undefined,
-          machineId:
-            dto.inventoryLevel === InventoryLevel.MACHINE
-              ? dto.referenceId
-              : undefined,
           operationDate: new Date(),
           notes: `Adjustment (${dto.adjustmentType}): ${systemQuantity} -> ${dto.actualQuantity}`,
           metadata: {
@@ -162,9 +157,16 @@ export class InventoryAdjustmentService {
             actualQuantity: dto.actualQuantity,
             difference,
           },
-        });
+        };
+        if (dto.inventoryLevel === InventoryLevel.OPERATOR) {
+          adjustMovementData.operatorId = dto.referenceId;
+        }
+        if (dto.inventoryLevel === InventoryLevel.MACHINE) {
+          adjustMovementData.machineId = dto.referenceId;
+        }
+        movement = manager.create(InventoryMovement, adjustMovementData);
 
-        await manager.save(InventoryMovement, movement);
+        await manager.save(InventoryMovement, movement as InventoryMovement);
 
         // Link movement to adjustment
         adjustment.movementId = movement.id;
@@ -175,7 +177,7 @@ export class InventoryAdjustmentService {
         `Adjustment created: level=${dto.inventoryLevel}, product=${dto.productId}, diff=${difference}`,
       );
 
-      return { adjustment, movement };
+      return { adjustment, ...(movement !== undefined && { movement }) };
     });
   }
 }

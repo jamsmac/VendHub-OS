@@ -165,7 +165,7 @@ export class ReferralsService {
       referrerRewardPoints: LOYALTY_BONUSES.referral,
       referredRewardPoints: LOYALTY_BONUSES.referralBonus,
       source: dto.source || "code",
-      utmCampaign: dto.utmCampaign,
+      ...(dto.utmCampaign !== undefined && { utmCampaign: dto.utmCampaign }),
     });
 
     await this.referralRepo.save(referral);
@@ -574,11 +574,12 @@ export class ReferralsService {
    * Преобразовать в DTO
    */
   private mapToReferralInfo(referral: Referral): ReferralInfoDto {
+    const referredAvatar = referral.referred?.avatar || undefined;
     return {
       id: referral.id,
       referredId: referral.referredId,
       referredName: referral.referred?.firstName || "Unknown",
-      referredAvatar: referral.referred?.avatar || undefined,
+      ...(referredAvatar !== undefined && { referredAvatar }),
       status: referral.status,
       referrerRewardPoints: referral.referrerRewardPoints,
       referrerRewardPaid: referral.referrerRewardPaid,

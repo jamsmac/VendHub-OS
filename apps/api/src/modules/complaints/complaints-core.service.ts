@@ -86,8 +86,8 @@ export class ComplaintsCoreService {
 
     const complaint = this.complaintRepo.create({
       organizationId: dto.organizationId,
-      machineId: dto.machineId,
-      locationId: dto.locationId,
+      machineId: dto.machineId ?? "",
+      locationId: dto.locationId ?? "",
       category: dto.category,
       source: dto.source,
       subject: dto.subject,
@@ -104,20 +104,24 @@ export class ComplaintsCoreService {
           }))
         : [],
       customer: {
-        name: dto.customerName,
-        phone: dto.customerPhone,
-        email: dto.customerEmail,
-        telegramId: dto.customerTelegramId,
+        ...(dto.customerName !== undefined && { name: dto.customerName }),
+        ...(dto.customerPhone !== undefined && { phone: dto.customerPhone }),
+        ...(dto.customerEmail !== undefined && { email: dto.customerEmail }),
+        ...(dto.customerTelegramId !== undefined && {
+          telegramId: dto.customerTelegramId,
+        }),
       },
       ticketNumber,
       status: ComplaintStatus.NEW,
-      priority: automationResult.priority || priority,
-      assignedToId: automationResult.assignedToId,
+      priority: automationResult.priority ?? priority,
+      assignedToId: automationResult.assignedToId ?? "",
       resolutionDeadline: slaDeadline,
       isSlaBreached: false,
     });
 
-    const saved = await this.complaintRepo.save(complaint);
+    const saved = (await this.complaintRepo.save(
+      complaint,
+    )) as unknown as Complaint;
 
     if (dto.qrCodeId) {
       await this.complaintRepo.manager
@@ -407,7 +411,7 @@ export class ComplaintsCoreService {
     const comment = this.commentRepo.create({
       complaintId: dto.complaintId,
       organizationId: complaint.organizationId,
-      authorId: dto.userId,
+      authorId: dto.userId ?? "",
       authorName: "",
       authorType: dto.userId ? "staff" : "customer",
       content: dto.content,
@@ -427,7 +431,7 @@ export class ComplaintsCoreService {
 
     // Atomic: save comment + increment count in one transaction
     const saved = await this.dataSource.transaction(async (manager) => {
-      const savedComment = await manager.save(comment);
+      const savedComment = (await manager.save(comment)) as ComplaintComment;
       await manager
         .createQueryBuilder()
         .update(Complaint)
@@ -478,7 +482,7 @@ export class ComplaintsCoreService {
         scope: "complaint.feedback",
       },
       {
-        secret: this.configService.get<string>("JWT_SECRET"),
+        secret: this.configService.get<string>("JWT_SECRET") ?? "",
         expiresIn: "14d",
       },
     );
@@ -492,7 +496,7 @@ export class ComplaintsCoreService {
     let decoded: { cid: string; oid: string; scope: string };
     try {
       decoded = await this.jwtService.verifyAsync(token, {
-        secret: this.configService.get<string>("JWT_SECRET"),
+        secret: this.configService.get<string>("JWT_SECRET") ?? "",
       });
     } catch {
       throw new UnauthorizedException(
@@ -672,17 +676,20 @@ export class ComplaintsCoreService {
     const action = this.actionRepo.create({
       complaintId,
       organizationId: "",
-      performedById: performedById || undefined,
+      ...(performedById !== undefined &&
+        performedById !== null && { performedById }),
       performedByName: "",
       actionType:
-        actionTypeMap[actionType] || ComplaintActionType.STATUS_CHANGED,
+        actionTypeMap[actionType] ?? ComplaintActionType.STATUS_CHANGED,
       description:
-        description ||
-        `${actionType}: ${oldStatus || ""} -> ${newStatus || ""}`,
-      changes:
-        oldStatus && newStatus
-          ? [{ field: "status", oldValue: oldStatus, newValue: newStatus }]
-          : undefined,
+        description ??
+        `${actionType}: ${oldStatus ?? ""} -> ${newStatus ?? ""}`,
+      ...(oldStatus !== undefined &&
+        newStatus !== undefined && {
+          changes: [
+            { field: "status", oldValue: oldStatus, newValue: newStatus },
+          ],
+        }),
     });
 
     await this.actionRepo.save(action);

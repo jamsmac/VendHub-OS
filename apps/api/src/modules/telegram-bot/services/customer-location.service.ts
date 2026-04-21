@@ -86,7 +86,7 @@ export class CustomerLocationService {
       machines = result.entities.map((entity, idx) => {
         const raw = result.raw[idx];
         const m = entity as Machine & { distance_km?: number };
-        m.distance_km = raw ? parseFloat(raw.distance_km) : undefined;
+        if (raw) m.distance_km = parseFloat(raw.distance_km);
         return m;
       });
     } catch (err) {

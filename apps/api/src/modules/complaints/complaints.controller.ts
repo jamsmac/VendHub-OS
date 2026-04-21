@@ -198,10 +198,14 @@ export class ComplaintsController {
     return this.complaintsService.createPublicComplaint({
       organizationId,
       machineId,
-      qrCodeId,
-      customerName: dto.customerName,
-      customerPhone: dto.customerPhone,
-      customerEmail: dto.customerEmail,
+      ...(qrCodeId !== undefined && { qrCodeId }),
+      ...(dto.customerName !== undefined && { customerName: dto.customerName }),
+      ...(dto.customerPhone !== undefined && {
+        customerPhone: dto.customerPhone,
+      }),
+      ...(dto.customerEmail !== undefined && {
+        customerEmail: dto.customerEmail,
+      }),
       category: dto.category,
       source,
       subject: dto.subject,
@@ -281,7 +285,7 @@ export class ComplaintsController {
     return this.complaintsService.query({
       organizationId: orgId,
       assignedToId: userId,
-      status,
+      ...(status !== undefined && { status }),
     });
   }
 
@@ -488,9 +492,9 @@ export class ComplaintsController {
       {
         complaintId: id,
         userId,
-        isInternal: dto.isInternal || false,
+        isInternal: dto.isInternal ?? false,
         content: dto.content,
-        attachments: dto.attachments,
+        ...(dto.attachments !== undefined && { attachments: dto.attachments }),
       },
       orgId,
     );

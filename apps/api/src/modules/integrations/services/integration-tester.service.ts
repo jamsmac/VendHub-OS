@@ -68,7 +68,7 @@ export class IntegrationTesterService {
       {
         status: newStatus,
         lastTestedAt: new Date(),
-        lastError: failedTests > 0 ? `${failedTests} tests failed` : undefined,
+        ...(failedTests > 0 && { lastError: `${failedTests} tests failed` }),
       },
       "system",
     );

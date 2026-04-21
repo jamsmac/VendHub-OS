@@ -170,7 +170,9 @@ export class UsersService {
       id: user.id,
       email: user.email,
       role: user.role,
-      organizationId: user.organizationId,
+      ...(user.organizationId !== undefined && {
+        organizationId: user.organizationId,
+      }),
       firstName: user.firstName || "",
       lastName: user.lastName || "",
       isActive:

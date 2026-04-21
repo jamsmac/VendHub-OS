@@ -305,7 +305,7 @@ export class PromoCodesService {
         code: dto.code,
         organizationId,
         clientUserId: dto.clientUserId,
-        orderAmount: dto.orderAmount,
+        ...(dto.orderAmount !== undefined && { orderAmount: dto.orderAmount }),
       },
       organizationId,
     );

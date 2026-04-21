@@ -278,10 +278,8 @@ export class FavoritesService {
     dto: ReorderFavoritesDto,
   ): Promise<void> {
     for (let i = 0; i < dto.orderedIds.length; i++) {
-      await this.favoriteRepo.update(
-        { id: dto.orderedIds[i], userId },
-        { sortOrder: i },
-      );
+      const id = dto.orderedIds[i] as string;
+      await this.favoriteRepo.update({ id, userId }, { sortOrder: i });
     }
   }
 

@@ -70,14 +70,14 @@ export class QuestService {
       icon: dto.icon || "🎯",
       color: dto.color || "#4CAF50",
       imageUrl: dto.imageUrl,
-      startsAt: dto.startsAt ? new Date(dto.startsAt) : undefined,
-      endsAt: dto.endsAt ? new Date(dto.endsAt) : undefined,
+      ...(dto.startsAt !== undefined && { startsAt: new Date(dto.startsAt) }),
+      ...(dto.endsAt !== undefined && { endsAt: new Date(dto.endsAt) }),
       isActive: dto.isActive ?? true,
       isFeatured: dto.isFeatured ?? false,
       displayOrder: dto.displayOrder ?? 0,
-    });
+    } as Partial<Quest>);
 
-    const saved = await this.questRepo.save(quest);
+    const saved = await this.questRepo.save(quest as Quest);
     this.logger.log(`Quest created: ${saved.id} - ${saved.title}`);
 
     this.eventEmitter.emit("quest.created", {
@@ -345,18 +345,20 @@ export class QuestService {
       sourceMap[userQuest.quest.period] || PointsSource.ACHIEVEMENT;
 
     // Earn points via LoyaltyService
-    const earnResult = await this.loyaltyService.earnPoints({
-      userId,
-      organizationId,
-      amount: userQuest.rewardPoints,
-      source,
-      referenceId: userQuest.id,
-      referenceType: "quest",
-      description: `Квест: ${userQuest.quest.title}`,
-      descriptionUz: userQuest.quest.titleUz
-        ? `Vazifa: ${userQuest.quest.titleUz}`
-        : undefined,
-    });
+    const earnPointsDto: Parameters<typeof this.loyaltyService.earnPoints>[0] =
+      {
+        userId,
+        organizationId,
+        amount: userQuest.rewardPoints,
+        source,
+        referenceId: userQuest.id,
+        referenceType: "quest",
+        description: `Квест: ${userQuest.quest.title}`,
+      };
+    if (userQuest.quest.titleUz) {
+      earnPointsDto.descriptionUz = `Vazifa: ${userQuest.quest.titleUz}`;
+    }
+    const earnResult = await this.loyaltyService.earnPoints(earnPointsDto);
 
     // Update user quest status
     userQuest.status = UserQuestStatus.CLAIMED;

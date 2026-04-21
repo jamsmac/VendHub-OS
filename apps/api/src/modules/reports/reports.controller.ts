@@ -91,7 +91,7 @@ export class ReportsController {
     return this.reportsService.createDefinition({
       ...dto,
       organizationId: orgId,
-    } as Partial<ReportDefinition>);
+    } as unknown as Partial<ReportDefinition>);
   }
 
   // ============================================================================
@@ -109,13 +109,14 @@ export class ReportsController {
     @CurrentUser() user: ICurrentUser,
   ) {
     const organizationId = resolveOrganizationId(user, dto.organizationId);
+    const { dateFrom: rawDateFrom, dateTo: rawDateTo, ...restDto } = dto;
     return this.reportsService.generate(
       {
-        ...dto,
+        ...restDto,
         organizationId,
         format: dto.format,
-        dateFrom: dto.dateFrom ? new Date(dto.dateFrom) : undefined,
-        dateTo: dto.dateTo ? new Date(dto.dateTo) : undefined,
+        ...(rawDateFrom !== undefined && { dateFrom: new Date(rawDateFrom) }),
+        ...(rawDateTo !== undefined && { dateTo: new Date(rawDateTo) }),
       },
       userId,
     );
@@ -136,10 +137,10 @@ export class ReportsController {
     @Query("limit") limit?: number,
   ) {
     return this.reportsService.getGeneratedReports(orgId, {
-      type,
-      dateFrom: dateFrom ? new Date(dateFrom) : undefined,
-      dateTo: dateTo ? new Date(dateTo) : undefined,
-      limit,
+      ...(type !== undefined && { type }),
+      ...(dateFrom !== undefined && { dateFrom: new Date(dateFrom) }),
+      ...(dateTo !== undefined && { dateTo: new Date(dateTo) }),
+      ...(limit !== undefined && { limit }),
     });
   }
 

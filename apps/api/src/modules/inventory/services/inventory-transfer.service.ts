@@ -100,7 +100,7 @@ export class InventoryTransferService {
       await manager.save(WarehouseInventory, warehouse);
 
       // Create movement record
-      const movement = manager.create(InventoryMovement, {
+      const warehouseInData: Partial<InventoryMovement> = {
         organizationId: dto.organizationId,
         movementType: MovementType.WAREHOUSE_IN,
         productId: dto.productId,
@@ -108,12 +108,17 @@ export class InventoryTransferService {
         performedByUserId: userId,
         operationDate: new Date(),
         notes: dto.notes || `Stock received: ${dto.quantity}`,
-        metadata: dto.metadata,
-        unitCost: dto.unitCost,
-        totalCost: dto.unitCost ? dto.unitCost * dto.quantity : undefined,
-      });
+      };
+      if (dto.metadata !== undefined) {
+        warehouseInData.metadata = dto.metadata;
+      }
+      if (dto.unitCost !== undefined) {
+        warehouseInData.unitCost = dto.unitCost;
+        warehouseInData.totalCost = dto.unitCost * dto.quantity;
+      }
+      const movement = manager.create(InventoryMovement, warehouseInData);
 
-      await manager.save(InventoryMovement, movement);
+      await manager.save(InventoryMovement, movement as InventoryMovement);
 
       this.logger.log(
         `Warehouse stock in: product=${dto.productId}, qty=${dto.quantity}, org=${dto.organizationId}`,
@@ -390,9 +395,9 @@ export class InventoryTransferService {
         taskId: dto.taskId,
         operationDate: dto.operationDate || new Date(),
         notes: dto.notes || `Machine refill: ${dto.quantity}`,
-      });
+      } as Partial<InventoryMovement>);
 
-      await manager.save(InventoryMovement, movement);
+      await manager.save(InventoryMovement, movement as InventoryMovement);
 
       this.logger.log(
         `Transfer O->M: product=${dto.productId}, qty=${dto.quantity}, machine=${dto.machineId}`,
@@ -550,7 +555,7 @@ export class InventoryTransferService {
           totalPrice: dto.unitPrice * saleQty,
           transactionId: dto.transactionId,
         },
-      });
+      } as Partial<InventoryMovement>);
 
       await manager.save(InventoryMovement, movement);
 

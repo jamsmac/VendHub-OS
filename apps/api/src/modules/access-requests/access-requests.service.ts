@@ -8,6 +8,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import {
   AccessRequest,
+  AccessRequestSource,
   AccessRequestStatus,
 } from "../telegram-bot/entities/access-request.entity";
 import { UsersService } from "../users/users.service";
@@ -50,11 +51,11 @@ export class AccessRequestsService {
       telegramUsername: dto.telegramUsername ?? null,
       telegramFirstName: dto.telegramFirstName ?? null,
       telegramLastName: dto.telegramLastName ?? null,
-      source: dto.source,
+      source: dto.source ?? AccessRequestSource.TELEGRAM,
       notes: dto.notes ?? null,
     });
 
-    return this.accessRequestRepository.save(request);
+    return this.accessRequestRepository.save(request) as Promise<AccessRequest>;
   }
 
   async findAll(

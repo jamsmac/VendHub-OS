@@ -158,7 +158,12 @@ export class TelegramPaymentsController {
   ): Promise<WebhookResponseDto> {
     this.validateWebhookSecret(secretToken);
     const result = await this.paymentsService.handlePreCheckoutQuery(dto);
-    return { success: result.ok, message: result.errorMessage };
+    return {
+      success: result.ok,
+      ...(result.errorMessage !== undefined && {
+        message: result.errorMessage,
+      }),
+    };
   }
 
   @Post("webhook/successful-payment")

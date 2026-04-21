@@ -59,11 +59,13 @@ export class ContractorsService {
   ): Promise<ContractorDto> {
     const contractor = this.contractorRepo.create({
       organizationId,
-      ...dto,
-      contractStart: dto.contractStart
-        ? new Date(dto.contractStart)
-        : undefined,
-      contractEnd: dto.contractEnd ? new Date(dto.contractEnd) : undefined,
+      ...(dto as unknown as Partial<Contractor>),
+      ...(dto.contractStart !== undefined && {
+        contractStart: new Date(dto.contractStart),
+      }),
+      ...(dto.contractEnd !== undefined && {
+        contractEnd: new Date(dto.contractEnd),
+      }),
     });
 
     await this.contractorRepo.save(contractor);
@@ -581,7 +583,7 @@ export class ContractorsService {
       contractEnd: contractor.contractEnd,
       contractNumber: contractor.contractNumber,
       paymentTerms: contractor.paymentTerms,
-      rating: contractor.rating ? Number(contractor.rating) : undefined,
+      ...(contractor.rating != null && { rating: Number(contractor.rating) }),
       isActive: contractor.isActive,
       bankDetails: contractor.bankDetails,
       notes: contractor.notes,
@@ -598,7 +600,9 @@ export class ContractorsService {
       id: invoice.id,
       organizationId: invoice.organizationId,
       contractorId: invoice.contractorId,
-      contractorName: contractor?.companyName,
+      ...(contractor?.companyName !== undefined && {
+        contractorName: contractor.companyName,
+      }),
       invoiceNumber: invoice.invoiceNumber,
       amount: Number(invoice.amount),
       paidAmount: Number(invoice.paidAmount),

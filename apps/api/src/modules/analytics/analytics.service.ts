@@ -281,15 +281,15 @@ export class DashboardStatsService {
       organizationId,
       title: dto.title,
       widgetType: dto.widgetType,
-      chartType: dto.chartType || null,
-      timeRange: dto.timeRange,
+      chartType: dto.chartType ?? null,
+      ...(dto.timeRange !== undefined && { timeRange: dto.timeRange }),
       position: dto.position,
-      width: dto.width || 6,
-      height: dto.height || 4,
-      config: dto.config || {},
+      width: dto.width ?? 6,
+      height: dto.height ?? 4,
+      config: dto.config ?? {},
     });
 
-    return this.widgetRepo.save(widget);
+    return this.widgetRepo.save(widget) as unknown as Promise<DashboardWidget>;
   }
 
   async updateWidget(
@@ -317,10 +317,8 @@ export class DashboardStatsService {
 
   async reorderWidgets(userId: string, widgetIds: string[]): Promise<void> {
     for (let i = 0; i < widgetIds.length; i++) {
-      await this.widgetRepo.update(
-        { id: widgetIds[i], userId },
-        { position: i },
-      );
+      const id = widgetIds[i] as string;
+      await this.widgetRepo.update({ id, userId }, { position: i });
     }
   }
 

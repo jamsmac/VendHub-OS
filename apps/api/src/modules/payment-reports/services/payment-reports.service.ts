@@ -97,7 +97,7 @@ export class PaymentReportsService {
       fileSize: dto.fileSize,
       mimeType: dto.mimeType,
       status: UploadStatus.PENDING,
-      uploadedBy: dto.uploadedBy,
+      ...(dto.uploadedBy !== undefined && { uploadedBy: dto.uploadedBy }),
     });
     await this.uploadRepo.save(upload);
 

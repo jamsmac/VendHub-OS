@@ -225,7 +225,7 @@ export class RouteTrackingService {
   ): Promise<void> {
     await this.routeRepository.update(routeId, {
       liveLocationActive: isActive,
-      telegramMessageId: telegramMessageId ?? undefined,
+      ...(telegramMessageId !== undefined && { telegramMessageId }),
       lastLocationUpdate: new Date(),
     });
   }

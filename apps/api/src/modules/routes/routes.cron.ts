@@ -139,8 +139,14 @@ export class RoutesCronService {
           {
             type: AnomalyType.LONG_STOP,
             severity: AnomalySeverity.WARNING,
-            latitude: stop.latitude ? Number(stop.latitude) : undefined,
-            longitude: stop.longitude ? Number(stop.longitude) : undefined,
+            ...(stop.latitude !== null &&
+              stop.latitude !== undefined && {
+                latitude: Number(stop.latitude),
+              }),
+            ...(stop.longitude !== null &&
+              stop.longitude !== undefined && {
+                longitude: Number(stop.longitude),
+              }),
             details: {
               durationMinutes: Math.round(durationSeconds / 60),
               expectedMaxMinutes:

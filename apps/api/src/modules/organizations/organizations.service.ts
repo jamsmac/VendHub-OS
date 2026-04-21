@@ -56,8 +56,10 @@ export class OrganizationsService {
     const organization = this.organizationRepository.create({
       ...dto,
       createdById,
-    });
-    return this.organizationRepository.save(organization);
+    } as Parameters<typeof this.organizationRepository.create>[0]);
+    return this.organizationRepository.save(
+      organization,
+    ) as Promise<Organization>;
   }
 
   async findAll(): Promise<Organization[]> {

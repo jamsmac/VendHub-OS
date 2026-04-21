@@ -205,8 +205,8 @@ export class AuditReportingService {
       reportType,
       dateFrom,
       dateTo,
-      filters,
-      generatedBy,
+      ...(filters !== undefined && { filters }),
+      ...(generatedBy !== undefined && { generatedBy }),
       status: "generating",
     });
 

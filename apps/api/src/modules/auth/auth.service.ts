@@ -86,7 +86,7 @@ export class AuthService {
     return this.jwtService.sign(
       { sub: userId, purpose },
       {
-        secret: this.configService.get<string>("JWT_SECRET"),
+        secret: this.configService.get<string>("JWT_SECRET") ?? "",
         expiresIn: "5m",
       },
     );
@@ -101,7 +101,7 @@ export class AuthService {
   ): string {
     try {
       const payload = this.jwtService.verify(token, {
-        secret: this.configService.get<string>("JWT_SECRET"),
+        secret: this.configService.get<string>("JWT_SECRET") ?? "",
       });
       if (payload.purpose !== expectedPurpose) {
         throw new UnauthorizedException("Invalid challenge token purpose");
@@ -144,7 +144,7 @@ export class AuthService {
       password: hashedPassword,
       firstName: dto.firstName,
       lastName: dto.lastName,
-      phone: dto.phone,
+      phone: dto.phone ?? "",
       role: UserRole.VIEWER,
       status: UserStatus.PENDING,
       preferences: {
@@ -224,7 +224,7 @@ export class AuthService {
     let hashedPassword: string | undefined;
     if (dto.password) {
       const policyResult = this.passwordPolicyService.validate(dto.password, {
-        email: dto.email,
+        ...(dto.email !== undefined && { email: dto.email }),
         firstName: dto.firstName,
         lastName: dto.lastName,
       });
@@ -236,12 +236,12 @@ export class AuthService {
 
     // 5. Create user
     const user = this.userRepository.create({
-      email: dto.email?.toLowerCase(),
+      email: dto.email?.toLowerCase() ?? "",
       password: hashedPassword ?? "",
       firstName: dto.firstName,
       lastName: dto.lastName,
-      telegramId,
-      telegramUsername,
+      ...(telegramId !== undefined && { telegramId }),
+      ...(telegramUsername !== undefined && { telegramUsername }),
       role: invite.role,
       status: UserStatus.ACTIVE,
       organizationId: invite.organizationId,
@@ -1276,8 +1276,8 @@ export class AuthService {
       ipAddress,
       userAgent,
       success,
-      userId,
-      failureReason,
+      ...(userId !== undefined && { userId }),
+      ...(failureReason !== undefined && { failureReason }),
     });
     await this.loginAttemptRepository.save(attempt);
   }

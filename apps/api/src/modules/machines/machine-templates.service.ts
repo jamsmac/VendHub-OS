@@ -51,10 +51,7 @@ export class MachineTemplatesService {
 
   async findAll(organizationId: string): Promise<MachineTemplate[]> {
     return this.templateRepo.find({
-      where: [
-        { organizationId },
-        { organizationId: this.SYSTEM_ORG_ID },
-      ],
+      where: [{ organizationId }, { organizationId: this.SYSTEM_ORG_ID }],
       order: { isSystem: "DESC", type: "ASC", name: "ASC" },
     });
   }
@@ -69,10 +66,7 @@ export class MachineTemplatesService {
     });
   }
 
-  async findOne(
-    id: string,
-    organizationId: string,
-  ): Promise<MachineTemplate> {
+  async findOne(id: string, organizationId: string): Promise<MachineTemplate> {
     const template = await this.templateRepo.findOne({
       where: [
         { id, organizationId },
@@ -149,8 +143,8 @@ export class MachineTemplatesService {
         locationId: dto.locationId,
         purchasePrice: dto.purchasePrice,
         createdById: userId,
-      });
-      const savedMachine = await manager.save(machine);
+      } as Partial<Machine>);
+      const savedMachine = await manager.save(machine as Machine);
 
       // 2. Create containers from template
       if (template.defaultContainers.length > 0) {

@@ -261,11 +261,10 @@ export class LoyaltyPromoCodeService {
       valid: true,
       type: promoCode.type,
       value: Number(promoCode.value),
-      discountAmount:
-        promoCode.type === LoyaltyPromoCodeType.DISCOUNT_PERCENT ||
-        promoCode.type === LoyaltyPromoCodeType.DISCOUNT_FIXED
-          ? discountAmount
-          : undefined,
+      ...(promoCode.type === LoyaltyPromoCodeType.DISCOUNT_PERCENT ||
+      promoCode.type === LoyaltyPromoCodeType.DISCOUNT_FIXED
+        ? { discountAmount }
+        : {}),
     };
   }
 
@@ -388,7 +387,7 @@ export class LoyaltyPromoCodeService {
               organizationId,
               amount: result.pointsAwarded,
               source: PointsSource.PROMO,
-              referenceId: orderId,
+              ...(orderId !== undefined && { referenceId: orderId }),
               referenceType: "promo_code",
               description: `Promo code "${upperCode}" bonus`,
               descriptionUz: `"${upperCode}" promo-kod bonusi`,

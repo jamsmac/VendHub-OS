@@ -69,23 +69,41 @@ export class ContractService {
       contractorId: dto.contractorId,
       contractNumber: dto.contractNumber,
       startDate: new Date(dto.startDate),
-      endDate: dto.endDate ? new Date(dto.endDate) : undefined,
+      ...(dto.endDate !== undefined && { endDate: new Date(dto.endDate) }),
       status: ContractStatus.DRAFT,
       commissionType: dto.commissionType,
-      commissionRate: dto.commissionRate,
-      commissionFixedAmount: dto.commissionFixedAmount,
-      commissionFixedPeriod: dto.commissionFixedPeriod,
-      commissionTiers: dto.commissionTiers,
-      commissionHybridFixed: dto.commissionHybridFixed,
-      commissionHybridRate: dto.commissionHybridRate,
-      currency: dto.currency || "UZS",
+      ...(dto.commissionRate !== undefined && {
+        commissionRate: dto.commissionRate,
+      }),
+      ...(dto.commissionFixedAmount !== undefined && {
+        commissionFixedAmount: dto.commissionFixedAmount,
+      }),
+      ...(dto.commissionFixedPeriod !== undefined && {
+        commissionFixedPeriod: dto.commissionFixedPeriod,
+      }),
+      ...(dto.commissionTiers !== undefined && {
+        commissionTiers: dto.commissionTiers,
+      }),
+      ...(dto.commissionHybridFixed !== undefined && {
+        commissionHybridFixed: dto.commissionHybridFixed,
+      }),
+      ...(dto.commissionHybridRate !== undefined && {
+        commissionHybridRate: dto.commissionHybridRate,
+      }),
+      currency: dto.currency ?? "UZS",
       paymentTermDays: dto.paymentTermDays ?? 30,
-      paymentType: dto.paymentType,
-      minimumMonthlyRevenue: dto.minimumMonthlyRevenue,
-      penaltyRate: dto.penaltyRate,
-      specialConditions: dto.specialConditions,
-      notes: dto.notes,
-      contractFileId: dto.contractFileId,
+      ...(dto.paymentType !== undefined && { paymentType: dto.paymentType }),
+      ...(dto.minimumMonthlyRevenue !== undefined && {
+        minimumMonthlyRevenue: dto.minimumMonthlyRevenue,
+      }),
+      ...(dto.penaltyRate !== undefined && { penaltyRate: dto.penaltyRate }),
+      ...(dto.specialConditions !== undefined && {
+        specialConditions: dto.specialConditions,
+      }),
+      ...(dto.notes !== undefined && { notes: dto.notes }),
+      ...(dto.contractFileId !== undefined && {
+        contractFileId: dto.contractFileId,
+      }),
       createdById: userId,
     });
 

@@ -63,7 +63,9 @@ export class ReportsGeneratorService {
   async getDefinitions(organizationId?: string): Promise<ReportDefinition[]> {
     return this.definitionRepo.find({
       where: [
-        { organizationId, isActive: true },
+        ...(organizationId !== undefined
+          ? [{ organizationId, isActive: true as const }]
+          : []),
         { isSystem: true, isActive: true },
       ],
       order: { category: "ASC", name: "ASC" },
@@ -134,13 +136,15 @@ export class ReportsGeneratorService {
         format: dto.format,
         ...dto.parameters,
       },
-      filters: dto.parameters as Record<string, unknown>,
-      dateFrom: dto.dateFrom,
-      dateTo: dto.dateTo,
+      ...(dto.parameters !== undefined && {
+        filters: dto.parameters as Record<string, unknown>,
+      }),
+      ...(dto.dateFrom !== undefined && { dateFrom: dto.dateFrom }),
+      ...(dto.dateTo !== undefined && { dateTo: dto.dateTo }),
       status: ReportStatus.GENERATING,
-      createdById: generatedById,
+      ...(generatedById !== undefined && { createdById: generatedById }),
       startedAt: new Date(),
-    });
+    } as Parameters<typeof this.generatedRepo.create>[0]);
 
     await this.generatedRepo.save(report);
 

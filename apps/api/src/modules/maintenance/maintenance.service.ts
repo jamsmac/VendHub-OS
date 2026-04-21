@@ -402,10 +402,12 @@ export class MaintenanceService {
 
     request.status = MaintenanceStatus.COMPLETED;
     request.completedAt = new Date();
-    request.completionNotes = dto.completionNotes;
-    request.rootCause = dto.rootCause;
-    request.actionsTaken = dto.actionsTaken;
-    request.recommendations = dto.recommendations;
+    if (dto.completionNotes !== undefined)
+      request.completionNotes = dto.completionNotes;
+    if (dto.rootCause !== undefined) request.rootCause = dto.rootCause;
+    if (dto.actionsTaken !== undefined) request.actionsTaken = dto.actionsTaken;
+    if (dto.recommendations !== undefined)
+      request.recommendations = dto.recommendations;
 
     // Calculate actual duration
     if (request.startedAt) {
@@ -631,9 +633,11 @@ export class MaintenanceService {
 
     if (dto.hourlyRate !== undefined || dto.startTime || dto.endTime) {
       const hourlyRate = dto.hourlyRate ?? workLog.hourlyRate;
-      workLog.laborCost = hourlyRate
-        ? (hourlyRate / 60) * workLog.durationMinutes
-        : undefined;
+      if (hourlyRate) {
+        workLog.laborCost = (hourlyRate / 60) * workLog.durationMinutes;
+      } else {
+        delete (workLog as Partial<typeof workLog>).laborCost;
+      }
     }
 
     return this.workLogRepository.save(workLog);
@@ -857,11 +861,15 @@ export class MaintenanceService {
             priority: MaintenancePriority.NORMAL,
             machineId: schedule.machineId || "",
             title: `Scheduled: ${schedule.name}`,
-            description: schedule.description,
-            estimatedDuration: schedule.estimatedDuration,
-            estimatedCost: schedule.estimatedCost
-              ? Number(schedule.estimatedCost)
-              : undefined,
+            ...(schedule.description !== undefined && {
+              description: schedule.description,
+            }),
+            ...(schedule.estimatedDuration !== undefined && {
+              estimatedDuration: schedule.estimatedDuration,
+            }),
+            ...(schedule.estimatedCost !== undefined && {
+              estimatedCost: Number(schedule.estimatedCost),
+            }),
             maintenanceScheduleId: schedule.id,
           },
         );

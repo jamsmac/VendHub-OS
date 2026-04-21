@@ -110,12 +110,18 @@ export class GeocodingService {
 
       return {
         displayName: data.display_name,
-        road: data.address?.road,
-        houseNumber: data.address?.house_number,
-        city: data.address?.city,
-        state: data.address?.state,
-        country: data.address?.country,
-        postcode: data.address?.postcode,
+        ...(data.address?.road !== undefined && { road: data.address.road }),
+        ...(data.address?.house_number !== undefined && {
+          houseNumber: data.address.house_number,
+        }),
+        ...(data.address?.city !== undefined && { city: data.address.city }),
+        ...(data.address?.state !== undefined && { state: data.address.state }),
+        ...(data.address?.country !== undefined && {
+          country: data.address.country,
+        }),
+        ...(data.address?.postcode !== undefined && {
+          postcode: data.address.postcode,
+        }),
       };
     } catch (error) {
       this.logger.error(

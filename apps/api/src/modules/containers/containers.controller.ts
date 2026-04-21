@@ -102,10 +102,10 @@ export class ContainersController {
     @Query("limit") limit?: number,
   ) {
     return this.containersService.findAll(user.organizationId, {
-      machineId,
-      status,
-      page: page ? Number(page) : undefined,
-      limit: limit ? Number(limit) : undefined,
+      ...(machineId !== undefined && { machineId }),
+      ...(status !== undefined && { status }),
+      ...(page !== undefined && { page: Number(page) }),
+      ...(limit !== undefined && { limit: Number(limit) }),
     });
   }
 

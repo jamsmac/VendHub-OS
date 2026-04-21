@@ -53,10 +53,12 @@ export class PaymentReportAnalyticsController {
   ) {
     return this.analytics.getRevenueDynamics({
       organizationId: this.getOrgId(req),
-      dateFrom: dateFrom ? new Date(dateFrom) : undefined,
-      dateTo: dateTo ? new Date(dateTo) : undefined,
+      ...(dateFrom !== undefined && { dateFrom: new Date(dateFrom) }),
+      ...(dateTo !== undefined && { dateTo: new Date(dateTo) }),
       groupBy: groupBy ?? "day",
-      reportTypes: types ? (types.split(",") as ReportType[]) : undefined,
+      ...(types !== undefined && {
+        reportTypes: types.split(",") as ReportType[],
+      }),
     });
   }
 
@@ -72,10 +74,12 @@ export class PaymentReportAnalyticsController {
   ) {
     return this.analytics.getTopMachines({
       organizationId: this.getOrgId(req),
-      dateFrom: dateFrom ? new Date(dateFrom) : undefined,
-      dateTo: dateTo ? new Date(dateTo) : undefined,
+      ...(dateFrom !== undefined && { dateFrom: new Date(dateFrom) }),
+      ...(dateTo !== undefined && { dateTo: new Date(dateTo) }),
       limit: limit ? Number(limit) : 20,
-      reportTypes: types ? (types.split(",") as ReportType[]) : undefined,
+      ...(types !== undefined && {
+        reportTypes: types.split(",") as ReportType[],
+      }),
     });
   }
 
@@ -90,9 +94,11 @@ export class PaymentReportAnalyticsController {
   ) {
     return this.analytics.getPaymentMethodBreakdown({
       organizationId: this.getOrgId(req),
-      dateFrom: dateFrom ? new Date(dateFrom) : undefined,
-      dateTo: dateTo ? new Date(dateTo) : undefined,
-      reportTypes: types ? (types.split(",") as ReportType[]) : undefined,
+      ...(dateFrom !== undefined && { dateFrom: new Date(dateFrom) }),
+      ...(dateTo !== undefined && { dateTo: new Date(dateTo) }),
+      ...(types !== undefined && {
+        reportTypes: types.split(",") as ReportType[],
+      }),
     });
   }
 
@@ -108,8 +114,8 @@ export class PaymentReportAnalyticsController {
   ) {
     return this.analytics.getProviderComparison({
       organizationId: this.getOrgId(req),
-      dateFrom: dateFrom ? new Date(dateFrom) : undefined,
-      dateTo: dateTo ? new Date(dateTo) : undefined,
+      ...(dateFrom !== undefined && { dateFrom: new Date(dateFrom) }),
+      ...(dateTo !== undefined && { dateTo: new Date(dateTo) }),
     });
   }
 
@@ -124,9 +130,11 @@ export class PaymentReportAnalyticsController {
   ) {
     return this.analytics.getHeatmap({
       organizationId: this.getOrgId(req),
-      dateFrom: dateFrom ? new Date(dateFrom) : undefined,
-      dateTo: dateTo ? new Date(dateTo) : undefined,
-      reportTypes: types ? (types.split(",") as ReportType[]) : undefined,
+      ...(dateFrom !== undefined && { dateFrom: new Date(dateFrom) }),
+      ...(dateTo !== undefined && { dateTo: new Date(dateTo) }),
+      ...(types !== undefined && {
+        reportTypes: types.split(",") as ReportType[],
+      }),
     });
   }
 

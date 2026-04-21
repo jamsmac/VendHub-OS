@@ -108,12 +108,15 @@ export class InventoryReservationService {
         expiresAt: dto.expiresAt,
         notes: dto.notes,
         createdByUserId: dto.createdByUserId,
-      });
+      } as Partial<InventoryReservation>);
 
-      await manager.save(InventoryReservation, reservation);
+      await manager.save(
+        InventoryReservation,
+        reservation as InventoryReservation,
+      );
 
       // Create movement record for reservation
-      const movement = manager.create(InventoryMovement, {
+      const movementData: Partial<InventoryMovement> = {
         organizationId: dto.organizationId,
         movementType:
           dto.inventoryLevel === InventoryLevel.WAREHOUSE
@@ -121,17 +124,19 @@ export class InventoryReservationService {
             : MovementType.OPERATOR_RESERVATION,
         productId: dto.productId,
         quantity: dto.quantity,
-        performedByUserId: dto.createdByUserId,
-        operatorId:
-          dto.inventoryLevel === InventoryLevel.OPERATOR
-            ? dto.referenceId
-            : undefined,
         taskId: dto.taskId,
         operationDate: new Date(),
         notes: `Reservation created: ${dto.quantity}`,
-      });
+      };
+      if (dto.createdByUserId !== undefined) {
+        movementData.performedByUserId = dto.createdByUserId;
+      }
+      if (dto.inventoryLevel === InventoryLevel.OPERATOR) {
+        movementData.operatorId = dto.referenceId;
+      }
+      const movement = manager.create(InventoryMovement, movementData);
 
-      await manager.save(InventoryMovement, movement);
+      await manager.save(InventoryMovement, movement as InventoryMovement);
 
       this.logger.log(
         `Reservation created: task=${dto.taskId}, product=${dto.productId}, qty=${dto.quantity}`,
@@ -306,7 +311,7 @@ export class InventoryReservationService {
       await manager.save(InventoryReservation, reservation);
 
       // Create movement record
-      const movement = manager.create(InventoryMovement, {
+      const cancelMovementData: Partial<InventoryMovement> = {
         organizationId: reservation.organizationId,
         movementType:
           reservation.inventoryLevel === InventoryLevel.WAREHOUSE
@@ -314,17 +319,19 @@ export class InventoryReservationService {
             : MovementType.OPERATOR_RESERVATION_RELEASE,
         productId: reservation.productId,
         quantity: releaseQty,
-        performedByUserId: userId,
-        operatorId:
-          reservation.inventoryLevel === InventoryLevel.OPERATOR
-            ? reservation.referenceId
-            : undefined,
         taskId: reservation.taskId,
         operationDate: new Date(),
         notes: `Reservation cancelled: ${releaseQty}`,
-      });
+      };
+      if (userId !== undefined) {
+        cancelMovementData.performedByUserId = userId;
+      }
+      if (reservation.inventoryLevel === InventoryLevel.OPERATOR) {
+        cancelMovementData.operatorId = reservation.referenceId;
+      }
+      const movement = manager.create(InventoryMovement, cancelMovementData);
 
-      await manager.save(InventoryMovement, movement);
+      await manager.save(InventoryMovement, movement as InventoryMovement);
 
       this.logger.log(`Reservation cancelled: id=${reservationId}`);
 
@@ -694,7 +701,7 @@ export class InventoryReservationService {
           await manager.save(InventoryReservation, locked);
 
           // Create movement record for release
-          const movement = manager.create(InventoryMovement, {
+          const expireMovementData: Partial<InventoryMovement> = {
             organizationId: locked.organizationId,
             movementType:
               locked.inventoryLevel === InventoryLevel.WAREHOUSE
@@ -702,16 +709,19 @@ export class InventoryReservationService {
                 : MovementType.OPERATOR_RESERVATION_RELEASE,
             productId: locked.productId,
             quantity: releaseQty,
-            operatorId:
-              locked.inventoryLevel === InventoryLevel.OPERATOR
-                ? locked.referenceId
-                : undefined,
             taskId: locked.taskId,
             operationDate: new Date(),
             notes: `Reservation expired: ${releaseQty} released`,
-          });
+          };
+          if (locked.inventoryLevel === InventoryLevel.OPERATOR) {
+            expireMovementData.operatorId = locked.referenceId;
+          }
+          const movement = manager.create(
+            InventoryMovement,
+            expireMovementData,
+          );
 
-          await manager.save(InventoryMovement, movement);
+          await manager.save(InventoryMovement, movement as InventoryMovement);
 
           this.logger.log(
             `Reservation expired: id=${locked.id}, qty=${releaseQty}`,

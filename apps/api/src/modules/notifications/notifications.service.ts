@@ -139,7 +139,7 @@ export class NotificationsService {
   async create(dto: CreateNotificationDto): Promise<Notification> {
     const notification = this.notificationRepo.create({
       organizationId: dto.organizationId,
-      userId: dto.userId,
+      ...(dto.userId !== undefined && { userId: dto.userId }),
       type: dto.type,
       priority: dto.priority || NotificationPriority.NORMAL,
       status: dto.scheduledFor
@@ -148,14 +148,14 @@ export class NotificationsService {
       content: {
         title: dto.title,
         body: dto.body,
-        titleUz: dto.titleUz,
-        bodyUz: dto.bodyUz,
-        actionUrl: dto.actionUrl,
-        imageUrl: dto.imageUrl,
+        ...(dto.titleUz !== undefined && { titleUz: dto.titleUz }),
+        ...(dto.bodyUz !== undefined && { bodyUz: dto.bodyUz }),
+        ...(dto.actionUrl !== undefined && { actionUrl: dto.actionUrl }),
+        ...(dto.imageUrl !== undefined && { imageUrl: dto.imageUrl }),
       },
       channels: dto.channels,
-      scheduledAt: dto.scheduledFor,
-      expiresAt: dto.expiresAt,
+      ...(dto.scheduledFor !== undefined && { scheduledAt: dto.scheduledFor }),
+      ...(dto.expiresAt !== undefined && { expiresAt: dto.expiresAt }),
       metadata: dto.data ? { ...dto.data } : {},
       deliveryStatus: [],
     });
@@ -420,11 +420,19 @@ export class NotificationsService {
       priority: notification.priority,
       title: notification.content?.title || "",
       body: notification.content?.body || "",
-      titleUz: notification.content?.titleUz,
-      bodyUz: notification.content?.bodyUz,
+      ...(notification.content?.titleUz !== undefined && {
+        titleUz: notification.content.titleUz,
+      }),
+      ...(notification.content?.bodyUz !== undefined && {
+        bodyUz: notification.content.bodyUz,
+      }),
       data: notification.metadata,
-      imageUrl: notification.content?.imageUrl,
-      actionUrl: notification.content?.actionUrl,
+      ...(notification.content?.imageUrl !== undefined && {
+        imageUrl: notification.content.imageUrl,
+      }),
+      ...(notification.content?.actionUrl !== undefined && {
+        actionUrl: notification.content.actionUrl,
+      }),
       channels: notification.channels,
     });
   }
@@ -590,14 +598,14 @@ export class NotificationsService {
 
     return this.create({
       organizationId: dto.organizationId,
-      userId: dto.recipientUserId,
+      ...(dto.recipientUserId !== undefined && { userId: dto.recipientUserId }),
       type: template.type,
       priority: dto.priority || template.defaultPriority,
       title,
       body,
       data: dto.variables,
       channels: filteredChannels,
-      scheduledFor: dto.scheduledFor,
+      ...(dto.scheduledFor !== undefined && { scheduledFor: dto.scheduledFor }),
     });
   }
 
@@ -648,7 +656,9 @@ export class NotificationsService {
   async getTemplates(organizationId?: string): Promise<NotificationTemplate[]> {
     return this.templateRepo.find({
       where: [
-        { organizationId, isActive: true },
+        ...(organizationId !== undefined
+          ? [{ organizationId, isActive: true as const }]
+          : []),
         { isSystem: true, isActive: true },
       ],
       order: { type: "ASC", name: "ASC" },
@@ -705,8 +715,8 @@ export class NotificationsService {
     const campaign = this.campaignRepo.create({
       organizationId: dto.organizationId,
       name: dto.name,
-      description: dto.description,
-      templateId: dto.templateId,
+      ...(dto.description !== undefined && { description: dto.description }),
+      ...(dto.templateId !== undefined && { templateId: dto.templateId }),
       content: {
         title: dto.title,
         body: dto.body,
@@ -718,10 +728,10 @@ export class NotificationsService {
           : dto.targetType === "role"
             ? "roles"
             : dto.targetType,
-      roles: dto.targetRoles,
+      ...(dto.targetRoles !== undefined && { roles: dto.targetRoles }),
       userIds: dto.targetUserIds || [],
-      filter: dto.targetFilter ? { conditions: [] } : undefined,
-      scheduledAt: dto.scheduledFor,
+      ...(dto.targetFilter !== undefined ? { filter: { conditions: [] } } : {}),
+      ...(dto.scheduledFor !== undefined && { scheduledAt: dto.scheduledFor }),
       status: dto.scheduledFor ? "scheduled" : "draft",
       estimatedRecipients: totalRecipients,
       totalSent: 0,
@@ -730,7 +740,7 @@ export class NotificationsService {
       totalFailed: 0,
     });
 
-    return this.campaignRepo.save(campaign);
+    return this.campaignRepo.save(campaign) as Promise<NotificationCampaign>;
   }
 
   async startCampaign(
@@ -875,14 +885,15 @@ export class NotificationsService {
 
       // Send notification
       if (rule.templateId) {
+        const recipientUserId = this.resolveRecipient(rule, data);
         await this.sendTemplated({
           templateCode: rule.templateId,
           organizationId,
-          recipientUserId: this.resolveRecipient(rule, data),
+          ...(recipientUserId !== undefined && { recipientUserId }),
           variables: data,
           channels: rule.channels,
           priority: rule.priority,
-          scheduledFor,
+          ...(scheduledFor !== undefined && { scheduledFor }),
         });
       }
     }

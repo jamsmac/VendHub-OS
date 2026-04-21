@@ -84,7 +84,7 @@ export class WebhooksController {
       url: dto.url,
       events: dto.events,
       secret,
-      description: dto.description,
+      ...(dto.description !== undefined && { description: dto.description }),
       is_active: dto.is_active ?? true,
       createdAt: new Date(),
       failure_count: 0,
@@ -97,7 +97,7 @@ export class WebhooksController {
       url: dto.url,
       events: dto.events,
       secret, // Only shown once on creation!
-      description: dto.description,
+      ...(dto.description !== undefined && { description: dto.description }),
       is_active: webhook.is_active,
       createdAt: webhook.createdAt,
     };
@@ -208,11 +208,15 @@ export class WebhooksController {
       throw new BadRequestException("Webhook not found");
     }
 
+    const resolvedDescription = dto.description ?? webhook.description;
+    const { description: _desc, ...webhookWithoutDesc } = webhook;
     const updated = {
-      ...webhook,
+      ...webhookWithoutDesc,
       url: dto.url ?? webhook.url,
       events: dto.events ?? webhook.events,
-      description: dto.description ?? webhook.description,
+      ...(resolvedDescription !== undefined && {
+        description: resolvedDescription,
+      }),
       is_active: dto.is_active ?? webhook.is_active,
     };
 
@@ -222,7 +226,9 @@ export class WebhooksController {
       id: updated.id,
       url: updated.url,
       events: updated.events,
-      description: updated.description,
+      ...(updated.description !== undefined && {
+        description: updated.description,
+      }),
       is_active: updated.is_active,
     };
   }

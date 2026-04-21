@@ -115,8 +115,10 @@ export class PaymentReportParserService {
     return {
       detection,
       rows: parsedRows,
-      periodFrom: times[0],
-      periodTo: times[times.length - 1],
+      ...(times[0] !== undefined && { periodFrom: times[0] }),
+      ...(times[times.length - 1] !== undefined && {
+        periodTo: times[times.length - 1],
+      }),
       totalAmount,
       meta: detection.meta,
       fileHash,
@@ -241,6 +243,7 @@ export class PaymentReportParserService {
       const amount = this.toNumber(get("СУММА БЕЗ КОМИССИИ"));
       if (amount === undefined && !get("ВРЕМЯ ОПЛАТЫ")) continue; // пропускаем пустые
 
+      const paymentTime0 = this.toDate(get("ВРЕМЯ ОПЛАТЫ"));
       results.push({
         rowIndex: i,
         externalId: String(
@@ -249,8 +252,8 @@ export class PaymentReportParserService {
             "",
         ),
         orderNumber: String(get("НОМЕР ЗАКАЗА") ?? ""),
-        paymentTime: this.toDate(get("ВРЕМЯ ОПЛАТЫ")),
-        amount,
+        ...(paymentTime0 !== undefined && { paymentTime: paymentTime0 }),
+        ...(amount !== undefined && { amount }),
         paymentStatus: String(get("СОСТОЯНИЕ ОПЛАТЫ") ?? ""),
         paymentMethod: String(get("НАЗВАНИЕ ПРОЦЕССИНГА") ?? ""),
         cardNumber: String(get("НОМЕР КАРТЫ") ?? ""),
@@ -284,12 +287,16 @@ export class PaymentReportParserService {
 
       const get = (col: string) => row[headers[col] ?? -1];
 
+      const paymentTimeClick = this.toDate(get("Дата"));
+      const amountClick = this.toNumber(get("Сумма"));
       results.push({
         rowIndex: i,
         externalId: String(get("Click ID") ?? ""),
         orderNumber: String(get("Идент-р") ?? ""),
-        paymentTime: this.toDate(get("Дата")),
-        amount: this.toNumber(get("Сумма")),
+        ...(paymentTimeClick !== undefined && {
+          paymentTime: paymentTimeClick,
+        }),
+        ...(amountClick !== undefined && { amount: amountClick }),
         paymentStatus: String(get("Статус платежа") ?? ""),
         paymentMethod: String(get("Способ оплаты") ?? ""),
         clientPhone: String(get("Клиент") ?? ""),
@@ -322,11 +329,13 @@ export class PaymentReportParserService {
 
       const get = (col: string) => row[headers[col] ?? -1];
 
+      const paymentTimeVh = this.toDate(get("Время оплаты"));
+      const amountVh = this.toNumber(get("Цена заказа"));
       results.push({
         rowIndex: i,
         orderNumber: String(get("Номер заказа") ?? ""),
-        paymentTime: this.toDate(get("Время оплаты")),
-        amount: this.toNumber(get("Цена заказа")),
+        ...(paymentTimeVh !== undefined && { paymentTime: paymentTimeVh }),
+        ...(amountVh !== undefined && { amount: amountVh }),
         paymentStatus: String(get("Статус платежа") ?? ""),
         paymentMethod: String(get("Ресурс заказа") ?? ""),
         cardNumber: String(get("Платежная карта") ?? ""),
@@ -365,12 +374,14 @@ export class PaymentReportParserService {
         .replace(/\s/g, "")
         .replace(",", ".");
 
+      const paymentTimeCsv = this.toDate(get("Time"));
+      const amountCsv = this.toNumber(priceStr);
       results.push({
         rowIndex: i,
         externalId: String(get("ID") ?? ""),
         orderNumber: String(get("Order number") ?? ""),
-        paymentTime: this.toDate(get("Time")),
-        amount: this.toNumber(priceStr),
+        ...(paymentTimeCsv !== undefined && { paymentTime: paymentTimeCsv }),
+        ...(amountCsv !== undefined && { amount: amountCsv }),
         paymentMethod: String(get("Payment type") ?? ""),
         goodsName: String(get("Goods name") ?? ""),
         machineCode: String(get("Machine Code") ?? ""),
@@ -410,11 +421,15 @@ export class PaymentReportParserService {
       const total =
         this.toNumber(get("Сумма операции")) ?? (cash ?? 0) + (card ?? 0);
 
+      const paymentTimeKassa = this.toDate(get("Дата и время"));
+      const amountKassa = total > 0 ? total : undefined;
       results.push({
         rowIndex: i,
         externalId: String(get("Номер чека") ?? ""),
-        paymentTime: this.toDate(get("Дата и время")),
-        amount: total > 0 ? total : undefined,
+        ...(paymentTimeKassa !== undefined && {
+          paymentTime: paymentTimeKassa,
+        }),
+        ...(amountKassa !== undefined && { amount: amountKassa }),
         paymentStatus: operation,
         paymentMethod: card ? "Карта" : "Наличные",
         location: String(get("Торговый пункт") ?? ""),

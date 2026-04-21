@@ -184,7 +184,10 @@ export class PromoCodesController {
   ) {
     return this.promoCodesService.getRedemptions(
       id,
-      { page, limit },
+      {
+        ...(page !== undefined && { page }),
+        ...(limit !== undefined && { limit }),
+      },
       organizationId,
     );
   }

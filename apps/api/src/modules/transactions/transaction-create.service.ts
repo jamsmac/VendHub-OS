@@ -109,7 +109,7 @@ export class TransactionCreateService {
         transactionId: saved.id,
         productId: item.productId,
         productName: item.productName,
-        sku: item.productSku,
+        ...(item.productSku !== undefined && { sku: item.productSku }),
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         totalAmount: item.unitPrice * item.quantity,
@@ -421,7 +421,7 @@ export class TransactionCreateService {
     transaction.fiscalizedAt = new Date();
     transaction.fiscalData = {
       ...transaction.fiscalData,
-      ofdName: fiscalData.ofdName,
+      ...(fiscalData.ofdName !== undefined && { ofdName: fiscalData.ofdName }),
     };
 
     return this.transactionRepo.save(transaction);

@@ -754,7 +754,7 @@ export class EmployeesService {
       employeeNumber: employee.employeeNumber,
       firstName: employee.firstName,
       lastName: employee.lastName,
-      middleName: employee.middleName,
+      ...(employee.middleName != null && { middleName: employee.middleName }),
       fullName: [employee.firstName, employee.middleName, employee.lastName]
         .filter(Boolean)
         .join(" "),
@@ -762,20 +762,36 @@ export class EmployeesService {
       email: employee.email,
       employeeRole: employee.employeeRole,
       status: employee.status,
-      telegramUserId: employee.telegramUserId,
-      telegramUsername: employee.telegramUsername,
+      ...(employee.telegramUserId != null && {
+        telegramUserId: employee.telegramUserId,
+      }),
+      ...(employee.telegramUsername != null && {
+        telegramUsername: employee.telegramUsername,
+      }),
       hireDate: employee.hireDate,
-      terminationDate: employee.terminationDate,
-      terminationReason: employee.terminationReason,
-      salary: employee.salary ? Number(employee.salary) : undefined,
-      salaryFrequency: employee.salaryFrequency,
-      address: employee.address,
-      city: employee.city,
-      district: employee.district,
-      emergencyContactName: employee.emergencyContactName,
-      emergencyContactPhone: employee.emergencyContactPhone,
-      emergencyContactRelation: employee.emergencyContactRelation,
-      notes: employee.notes,
+      ...(employee.terminationDate != null && {
+        terminationDate: employee.terminationDate,
+      }),
+      ...(employee.terminationReason != null && {
+        terminationReason: employee.terminationReason,
+      }),
+      ...(employee.salary != null && { salary: Number(employee.salary) }),
+      ...(employee.salaryFrequency != null && {
+        salaryFrequency: employee.salaryFrequency,
+      }),
+      ...(employee.address != null && { address: employee.address }),
+      ...(employee.city != null && { city: employee.city }),
+      ...(employee.district != null && { district: employee.district }),
+      ...(employee.emergencyContactName != null && {
+        emergencyContactName: employee.emergencyContactName,
+      }),
+      ...(employee.emergencyContactPhone != null && {
+        emergencyContactPhone: employee.emergencyContactPhone,
+      }),
+      ...(employee.emergencyContactRelation != null && {
+        emergencyContactRelation: employee.emergencyContactRelation,
+      }),
+      ...(employee.notes != null && { notes: employee.notes }),
       createdAt: employee.createdAt,
       updatedAt: employee.updatedAt,
     };

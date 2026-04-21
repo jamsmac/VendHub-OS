@@ -93,10 +93,10 @@ export class ProductsController {
     @Query("limit") limit?: number,
   ) {
     return this.productsService.findAll(user.organizationId, {
-      category,
-      search,
-      page,
-      limit,
+      ...(category !== undefined && { category }),
+      ...(search !== undefined && { search }),
+      ...(page !== undefined && { page }),
+      ...(limit !== undefined && { limit }),
     });
   }
 

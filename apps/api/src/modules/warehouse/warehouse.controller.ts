@@ -99,11 +99,11 @@ export class WarehouseController {
     @Query("limit") limit?: string,
   ) {
     return this.warehouseService.findAll(user.organizationId, {
-      type,
-      isActive: isActive !== undefined ? isActive === "true" : undefined,
-      search,
-      page: page ? parseInt(page, 10) : undefined,
-      limit: limit ? parseInt(limit, 10) : undefined,
+      ...(type !== undefined && { type }),
+      ...(isActive !== undefined && { isActive: isActive === "true" }),
+      ...(search !== undefined && { search }),
+      ...(page !== undefined && { page: parseInt(page, 10) }),
+      ...(limit !== undefined && { limit: parseInt(limit, 10) }),
     });
   }
 
@@ -237,11 +237,11 @@ export class WarehouseController {
     await this.verifyWarehouseAccess(id, user);
     return this.stockTakeService.getMovements(user.organizationId, {
       warehouseId: id,
-      productId,
-      type,
-      status,
-      page: page ? parseInt(page, 10) : undefined,
-      limit: limit ? parseInt(limit, 10) : undefined,
+      ...(productId !== undefined && { productId }),
+      ...(type !== undefined && { type }),
+      ...(status !== undefined && { status }),
+      ...(page !== undefined && { page: parseInt(page, 10) }),
+      ...(limit !== undefined && { limit: parseInt(limit, 10) }),
     });
   }
 
@@ -349,9 +349,11 @@ export class WarehouseController {
       dto.quantity,
       user.id,
       {
-        referenceNumber: dto.referenceNumber,
-        cost: dto.cost,
-        notes: dto.notes,
+        ...(dto.referenceNumber !== undefined && {
+          referenceNumber: dto.referenceNumber,
+        }),
+        ...(dto.cost !== undefined && { cost: dto.cost }),
+        ...(dto.notes !== undefined && { notes: dto.notes }),
       },
     );
   }
@@ -386,10 +388,10 @@ export class WarehouseController {
     await this.verifyWarehouseAccess(id, user);
     return this.stockTakeService.getBatches(user.organizationId, {
       warehouseId: id,
-      productId,
+      ...(productId !== undefined && { productId }),
       onlyAvailable: onlyAvailable === "true",
-      page: page ? parseInt(page, 10) : undefined,
-      limit: limit ? parseInt(limit, 10) : undefined,
+      ...(page !== undefined && { page: parseInt(page, 10) }),
+      ...(limit !== undefined && { limit: parseInt(limit, 10) }),
     });
   }
 
@@ -587,9 +589,11 @@ export class WarehouseController {
       dto.reservedFor,
       user.id,
       {
-        batchId: dto.batchId,
-        expiresInHours: dto.expiresInHours,
-        notes: dto.notes,
+        ...(dto.batchId !== undefined && { batchId: dto.batchId }),
+        ...(dto.expiresInHours !== undefined && {
+          expiresInHours: dto.expiresInHours,
+        }),
+        ...(dto.notes !== undefined && { notes: dto.notes }),
       },
     );
   }

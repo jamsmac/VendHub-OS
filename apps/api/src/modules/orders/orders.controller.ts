@@ -264,7 +264,7 @@ export class OrdersController {
   ): Promise<OrderDto> {
     return this.service.updateStatus(id, organizationId, {
       status: OrderStatus.CANCELLED,
-      reason: dto.reason,
+      ...(dto.reason !== undefined && { reason: dto.reason }),
     });
   }
 

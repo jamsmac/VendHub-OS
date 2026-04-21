@@ -173,7 +173,7 @@ export class ImportController {
 
     if (source === ImportSource.CSV) {
       parsed = await this.importService.parseCSV(file.buffer, {
-        delimiter: body.delimiter,
+        ...(body.delimiter !== undefined && { delimiter: body.delimiter }),
       });
     } else if (source === ImportSource.EXCEL) {
       parsed = await this.importService.parseExcel(file.buffer);
@@ -193,7 +193,7 @@ export class ImportController {
         skipDuplicates: body.skipDuplicates === "true",
         updateExisting: body.updateExisting === "true",
         dryRun: body.dryRun === "true",
-        templateId: body.templateId,
+        ...(body.templateId !== undefined && { templateId: body.templateId }),
       },
     );
 
@@ -277,7 +277,10 @@ export class ImportController {
   ) {
     return this.importService.listImportJobs(
       organizationId,
-      { importType, status },
+      {
+        ...(importType !== undefined && { importType }),
+        ...(status !== undefined && { status }),
+      },
       page || 1,
       limit || 20,
     );

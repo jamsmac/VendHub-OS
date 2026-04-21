@@ -386,12 +386,12 @@ export class PaymentExecutorService {
     // Build query parameters
     const params = this.buildQueryParams(endpoint, bodyData);
 
-    const axiosConfig: AxiosRequestConfig = {
+    const axiosConfig = {
       method: endpoint.method.toLowerCase() as AxiosRequestConfig["method"],
       url: `${baseUrl}${path}`,
       headers,
       timeout: endpoint.timeout || 30000,
-    };
+    } as AxiosRequestConfig;
 
     if (endpoint.method !== HttpMethod.GET && body) {
       axiosConfig.data = body;
@@ -818,12 +818,14 @@ export class PaymentExecutorService {
         endpoint: endpoint.path,
         requestHeaders: request?.headers as Record<string, string>,
         requestBody: request?.data,
-        responseStatus: response?.status,
+        ...(response?.status !== undefined && {
+          responseStatus: response.status,
+        }),
         responseHeaders: response?.headers as Record<string, string>,
         responseBody: response?.data,
         duration: Date.now() - startTime,
         success,
-        error,
+        ...(error !== undefined && { error }),
       });
 
       // Update integration statistics
@@ -842,7 +844,7 @@ export class PaymentExecutorService {
           integration.id,
           integration.organizationId,
           {
-            lastError: error,
+            ...(error !== undefined && { lastError: error }),
             errorCount: integration.errorCount + 1,
           },
           "system",

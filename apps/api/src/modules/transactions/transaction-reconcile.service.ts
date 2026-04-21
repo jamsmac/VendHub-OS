@@ -11,7 +11,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, FindOptionsWhere } from "typeorm";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   Transaction,
@@ -418,12 +418,13 @@ export class TransactionReconcileService {
     const netAmount = salesAmount - refundsAmount - expensesAmount;
 
     // Upsert summary: find existing or create new
+    const summaryWhere: FindOptionsWhere<TransactionDailySummary> = {
+      organizationId,
+      summaryDate,
+    };
+    if (machineId) summaryWhere.machineId = machineId;
     let summary = await this.dailySummaryRepo.findOne({
-      where: {
-        organizationId,
-        summaryDate: summaryDate,
-        machineId: machineId || undefined,
-      },
+      where: summaryWhere,
     });
 
     if (!summary) {

@@ -60,7 +60,7 @@ export class TracingService {
       name,
       traceId,
       spanId,
-      parentSpanId,
+      ...(parentSpanId !== undefined && { parentSpanId }),
       startTime: Date.now(),
       attributes: {
         "service.name": this.serviceName,
@@ -102,7 +102,11 @@ export class TracingService {
     if (!this.enabled || !spanId) return;
     const span = this.activeSpans.get(spanId);
     if (span) {
-      span.events.push({ name, timestamp: Date.now(), attributes });
+      span.events.push({
+        name,
+        timestamp: Date.now(),
+        ...(attributes !== undefined && { attributes }),
+      });
     }
   }
 

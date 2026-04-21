@@ -338,7 +338,7 @@ export class Vhm24IntegrationService {
           await this.syncMachines(organizationId, [
             {
               machineId: data.machineId,
-              machineName: data.name,
+              ...(data.name !== undefined && { machineName: data.name }),
               latitude: data.latitude,
               longitude: data.longitude,
             },

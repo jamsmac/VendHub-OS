@@ -348,7 +348,7 @@ export class IntegrationsController {
     return this.integrationService.getLogs(id, req.user.organizationId, {
       limit: limit || 50,
       offset: offset || 0,
-      success: success === undefined ? undefined : success === "true",
+      ...(success !== undefined && { success: success === "true" }),
     });
   }
 

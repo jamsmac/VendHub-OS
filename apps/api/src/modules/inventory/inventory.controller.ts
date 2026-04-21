@@ -168,7 +168,7 @@ export class InventoryController {
           operatorId: operatorId!,
           productId,
           quantity,
-          notes,
+          ...(notes !== undefined && { notes }),
         },
         user.id,
       );
@@ -184,7 +184,7 @@ export class InventoryController {
           operatorId: operatorId!,
           productId,
           quantity,
-          notes,
+          ...(notes !== undefined && { notes }),
         },
         user.id,
       );
@@ -201,7 +201,7 @@ export class InventoryController {
           machineId: machineId!,
           productId,
           quantity,
-          notes,
+          ...(notes !== undefined && { notes }),
         },
         user.id,
       );
@@ -218,7 +218,7 @@ export class InventoryController {
           machineId: machineId!,
           productId,
           quantity,
-          notes,
+          ...(notes !== undefined && { notes }),
         },
         user.id,
       );
@@ -242,9 +242,9 @@ export class InventoryController {
     @Query("movementType") movementType?: MovementType,
   ) {
     return this.inventoryService.getMovements(user.organizationId, {
-      productId,
-      machineId,
-      movementType,
+      ...(productId !== undefined && { productId }),
+      ...(machineId !== undefined && { machineId }),
+      ...(movementType !== undefined && { movementType }),
     });
   }
 
@@ -327,8 +327,8 @@ export class InventoryController {
       quantity: dto.quantity,
       inventoryLevel: dto.inventoryLevel,
       referenceId: dto.referenceId,
-      expiresAt: dto.expiresAt,
-      notes: dto.notes,
+      ...(dto.expiresAt !== undefined && { expiresAt: dto.expiresAt }),
+      ...(dto.notes !== undefined && { notes: dto.notes }),
       createdByUserId: user.id,
     });
   }

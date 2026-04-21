@@ -247,9 +247,9 @@ export class LoyaltyService {
       metadata,
       expiresAt: calculateExpiryDate(),
       remainingAmount: multipliedAmount,
-    });
+    } as Partial<PointsTransaction>);
 
-    await this.pointsTransactionRepo.save(transaction);
+    await this.pointsTransactionRepo.save(transaction as PointsTransaction);
 
     // Update user balance
     const oldLevel = user.loyaltyLevel || LoyaltyLevel.BRONZE;
@@ -345,7 +345,7 @@ export class LoyaltyService {
         referenceId,
         referenceType,
         description: description || `Списание ${amount} баллов`,
-      });
+      } as Partial<PointsTransaction>);
 
       await txRepo.save(transaction);
 

@@ -39,7 +39,7 @@ export class WarehouseService {
   async create(dto: CreateWarehouseDto, userId?: string): Promise<Warehouse> {
     const warehouse = this.warehouseRepository.create({
       ...dto,
-      createdById: userId,
+      ...(userId !== undefined && { createdById: userId }),
     });
     return this.warehouseRepository.save(warehouse);
   }
@@ -184,9 +184,11 @@ export class WarehouseService {
       type: StockMovementType.TRANSFER,
       status: StockMovementStatus.IN_TRANSIT,
       requestedByUserId: userId,
-      referenceNumber: options?.referenceNumber,
-      cost: options?.cost,
-      notes: options?.notes,
+      ...(options?.referenceNumber !== undefined && {
+        referenceNumber: options.referenceNumber,
+      }),
+      ...(options?.cost !== undefined && { cost: options.cost }),
+      ...(options?.notes !== undefined && { notes: options.notes }),
       createdById: userId,
     });
 

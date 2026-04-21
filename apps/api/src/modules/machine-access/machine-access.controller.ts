@@ -98,10 +98,10 @@ export class MachineAccessController {
     @Query("userId") userId?: string,
   ) {
     return this.machineAccessService.findAll(orgId, {
-      page,
-      limit,
-      machineId,
-      userId,
+      ...(page !== undefined && { page }),
+      ...(limit !== undefined && { limit }),
+      ...(machineId !== undefined && { machineId }),
+      ...(userId !== undefined && { userId }),
     });
   }
 

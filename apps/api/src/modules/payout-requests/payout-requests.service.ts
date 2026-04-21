@@ -91,9 +91,9 @@ export class PayoutRequestsService {
       requestedById: userId,
       createdById: userId,
       status: PayoutRequestStatus.PENDING,
-    });
+    } as Parameters<typeof this.repo.create>[0]);
 
-    const saved = await this.repo.save(request);
+    const saved = (await this.repo.save(request)) as unknown as PayoutRequest;
     this.logger.log(
       `Payout request ${saved.id} created by user ${userId} for ${dto.amount} UZS`,
     );

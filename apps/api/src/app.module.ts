@@ -350,8 +350,9 @@ const defaultedNumber = (value: number) =>
         // If Redis is configured, use Redis store; otherwise fall back to in-memory
         if (redisUrl || redisHost) {
           try {
+            const redisPassword = configService.get<string>("REDIS_PASSWORD");
             const storePromise = redisStore({
-              url: redisUrl || undefined,
+              ...(redisUrl !== undefined && { url: redisUrl }),
               socket: !redisUrl
                 ? {
                     host: redisHost,
@@ -361,7 +362,8 @@ const defaultedNumber = (value: number) =>
                 : {
                     connectTimeout: 5000,
                   },
-              password: configService.get("REDIS_PASSWORD") || undefined,
+              ...(redisPassword !== undefined &&
+                redisPassword !== "" && { password: redisPassword }),
               ttl,
             });
             // Timeout after 10s to prevent hanging during startup

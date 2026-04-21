@@ -20,7 +20,7 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from "cache-manager";
-import { Repository, IsNull } from "typeorm";
+import { Repository, IsNull, FindOptionsWhere } from "typeorm";
 import {
   SystemSetting,
   SettingCategory,
@@ -154,8 +154,10 @@ export class SettingsService {
   ): Promise<SystemSetting> {
     const orgId = organizationId || dto.organizationId || null;
 
+    const whereCondition: FindOptionsWhere<SystemSetting> = { key: dto.key };
+    if (orgId) whereCondition.organizationId = orgId;
     const existing = await this.settingRepository.findOne({
-      where: { key: dto.key, organizationId: orgId || undefined },
+      where: whereCondition,
     });
 
     if (existing) {

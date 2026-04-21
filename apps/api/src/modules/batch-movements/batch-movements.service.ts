@@ -93,7 +93,7 @@ export class BatchMovementsService {
             entityType: TrackedEntityType.INGREDIENT_BATCH,
             eventType,
             quantity: dto.quantity,
-            notes: dto.notes,
+            ...(dto.notes !== undefined && { notes: dto.notes }),
           },
           performedBy,
           organizationId,

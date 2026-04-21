@@ -37,7 +37,7 @@ import {
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get("JWT_SECRET"),
+        secret: configService.get<string>("JWT_SECRET") ?? "",
         signOptions: {
           expiresIn: configService.get("JWT_EXPIRES_IN", "15m"),
           issuer: "vendhub-api",

@@ -321,14 +321,18 @@ export class FiscalController {
     @Req() req: AuthenticatedRequest,
   ) {
     return this.fiscalService.getReceipts(req.user.organizationId, {
-      deviceId: filterDto.device_id,
-      shiftId: filterDto.shift_id,
-      type: filterDto.type,
-      status: filterDto.status,
-      startDate: filterDto.start_date
-        ? new Date(filterDto.start_date)
-        : undefined,
-      endDate: filterDto.end_date ? new Date(filterDto.end_date) : undefined,
+      ...(filterDto.device_id !== undefined && {
+        deviceId: filterDto.device_id,
+      }),
+      ...(filterDto.shift_id !== undefined && { shiftId: filterDto.shift_id }),
+      ...(filterDto.type !== undefined && { type: filterDto.type }),
+      ...(filterDto.status !== undefined && { status: filterDto.status }),
+      ...(filterDto.start_date !== undefined && {
+        startDate: new Date(filterDto.start_date),
+      }),
+      ...(filterDto.end_date !== undefined && {
+        endDate: new Date(filterDto.end_date),
+      }),
       limit: filterDto.limit || 50,
       offset: filterDto.offset || 0,
     });

@@ -5,7 +5,7 @@
 
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { FindOptionsWhere, Repository } from "typeorm";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   Achievement,
@@ -164,8 +164,8 @@ export class AchievementService {
     return visibleAchievements.map((a) => ({
       ...this.mapToResponseDto(a),
       unlockedCount: countMap.get(a.id) || 0,
-      unlocked: userId ? userUnlockMap.has(a.id) : undefined,
-      unlockedAt: userId ? userUnlockMap.get(a.id) || null : undefined,
+      ...(userId ? { unlocked: userUnlockMap.has(a.id) } : {}),
+      ...(userId ? { unlockedAt: userUnlockMap.get(a.id) || null } : {}),
     }));
   }
 
@@ -408,12 +408,13 @@ export class AchievementService {
 
     const created: AchievementResponseDto[] = [];
     for (const def of defaults) {
+      const where: Record<string, unknown> = { organizationId };
+      if (def.conditionType !== undefined)
+        where.conditionType = def.conditionType;
+      if (def.conditionValue !== undefined)
+        where.conditionValue = def.conditionValue;
       const exists = await this.achievementRepo.findOne({
-        where: {
-          organizationId,
-          conditionType: def.conditionType,
-          conditionValue: def.conditionValue,
-        },
+        where: where as FindOptionsWhere<Achievement>,
       });
       if (!exists) {
         const achievement = this.achievementRepo.create({
@@ -550,7 +551,7 @@ export class AchievementService {
 
       // Award points if configured
       if (achievement.pointsReward > 0) {
-        await this.loyaltyService.earnPoints({
+        const earnDto: Parameters<typeof this.loyaltyService.earnPoints>[0] = {
           userId,
           organizationId,
           amount: achievement.pointsReward,
@@ -558,10 +559,11 @@ export class AchievementService {
           referenceId: achievement.id,
           referenceType: "achievement",
           description: `Достижение: ${achievement.title}`,
-          descriptionUz: achievement.titleUz
-            ? `Yutuq: ${achievement.titleUz}`
-            : undefined,
-        });
+        };
+        if (achievement.titleUz) {
+          earnDto.descriptionUz = `Yutuq: ${achievement.titleUz}`;
+        }
+        await this.loyaltyService.earnPoints(earnDto);
       }
 
       // Emit event

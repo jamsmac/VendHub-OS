@@ -119,9 +119,9 @@ export class IntegrationService {
       config,
       status: IntegrationStatus.DRAFT,
       createdById: userId,
-    });
+    } as Partial<Integration>);
 
-    return this.integrationRepo.save(integration);
+    return this.integrationRepo.save(integration as Integration);
   }
 
   async update(

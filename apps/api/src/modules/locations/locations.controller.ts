@@ -53,7 +53,7 @@ export class LocationsController {
     return this.locationsService.create({
       ...createLocationDto,
       organizationId: user.organizationId,
-    } as Partial<Location>);
+    } as unknown as Partial<Location>);
   }
 
   @Get()
@@ -125,7 +125,7 @@ export class LocationsController {
   ) {
     return this.locationsService.update(
       id,
-      updateLocationDto as Partial<Location>,
+      updateLocationDto as unknown as Partial<Location>,
       user.organizationId,
     );
   }

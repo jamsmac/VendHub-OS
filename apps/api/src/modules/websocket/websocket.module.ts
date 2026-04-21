@@ -17,7 +17,7 @@ import { Order } from "../orders/entities/order.entity";
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>("JWT_SECRET"),
+        secret: configService.get<string>("JWT_SECRET") as string,
         signOptions: {
           expiresIn: configService.get("JWT_EXPIRES_IN", "15m"),
         },

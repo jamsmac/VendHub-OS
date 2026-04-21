@@ -53,8 +53,8 @@ export class RbacController {
   ) {
     return this.rbacService.findAllRoles({
       organizationId: orgId,
-      page: page ? Number(page) : undefined,
-      limit: limit ? Number(limit) : undefined,
+      ...(page !== undefined && { page: Number(page) }),
+      ...(limit !== undefined && { limit: Number(limit) }),
     });
   }
 
@@ -124,7 +124,9 @@ export class RbacController {
   @ApiResponse({ status: 200, description: "Permissions list" })
   @ApiQuery({ name: "resource", required: false })
   async findAllPermissions(@Query("resource") resource?: string) {
-    return this.rbacService.findAllPermissions({ resource });
+    return this.rbacService.findAllPermissions({
+      ...(resource !== undefined && { resource }),
+    });
   }
 
   @Post("permissions")

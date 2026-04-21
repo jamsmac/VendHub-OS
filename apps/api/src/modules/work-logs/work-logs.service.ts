@@ -238,9 +238,9 @@ export class WorkLogsService {
       activityType: ActivityType.OTHER,
       description: "Auto clock-in",
       status: WorkLogStatus.DRAFT,
-      checkInLatitude: dto.latitude,
-      checkInLongitude: dto.longitude,
-      notes: dto.notes,
+      ...(dto.latitude !== undefined && { checkInLatitude: dto.latitude }),
+      ...(dto.longitude !== undefined && { checkInLongitude: dto.longitude }),
+      ...(dto.notes !== undefined && { notes: dto.notes }),
     });
 
     const saved = await this.workLogRepository.save(workLog);
@@ -268,8 +268,8 @@ export class WorkLogsService {
 
     const now = new Date();
     workLog.clockOut = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
-    workLog.checkOutLatitude = dto.latitude;
-    workLog.checkOutLongitude = dto.longitude;
+    if (dto.latitude !== undefined) workLog.checkOutLatitude = dto.latitude;
+    if (dto.longitude !== undefined) workLog.checkOutLongitude = dto.longitude;
 
     if (dto.description) {
       workLog.description = dto.description;

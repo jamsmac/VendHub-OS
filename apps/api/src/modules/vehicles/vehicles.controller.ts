@@ -71,12 +71,12 @@ export class VehiclesController {
     @Query("limit") limit?: string,
   ) {
     return this.vehiclesService.findAll(user.organizationId, {
-      type,
-      ownerId,
-      status,
-      search,
-      page: page ? parseInt(page, 10) : undefined,
-      limit: limit ? parseInt(limit, 10) : undefined,
+      ...(type !== undefined && { type }),
+      ...(ownerId !== undefined && { ownerId }),
+      ...(status !== undefined && { status }),
+      ...(search !== undefined && { search }),
+      ...(page !== undefined && { page: parseInt(page, 10) }),
+      ...(limit !== undefined && { limit: parseInt(limit, 10) }),
     });
   }
 

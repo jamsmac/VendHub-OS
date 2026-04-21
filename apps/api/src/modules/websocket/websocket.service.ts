@@ -53,9 +53,11 @@ export class WebSocketService {
   addClient(client: Socket, userData: Partial<WebSocketUser>) {
     const user: WebSocketUser = {
       id: client.id,
-      userId: userData.userId,
-      organizationId: userData.organizationId,
-      role: userData.role,
+      ...(userData.userId !== undefined && { userId: userData.userId }),
+      ...(userData.organizationId !== undefined && {
+        organizationId: userData.organizationId,
+      }),
+      ...(userData.role !== undefined && { role: userData.role }),
       rooms: new Set(),
     };
     this.connectedClients.set(client.id, user);

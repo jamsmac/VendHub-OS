@@ -78,10 +78,10 @@ export class ContractController {
     @Query("limit") limit?: number,
   ) {
     return this.contractService.findAll(organizationId, {
-      contractorId,
-      status,
-      page: page ? Number(page) : undefined,
-      limit: limit ? Number(limit) : undefined,
+      ...(contractorId !== undefined && { contractorId }),
+      ...(status !== undefined && { status }),
+      ...(page !== undefined && { page: Number(page) }),
+      ...(limit !== undefined && { limit: Number(limit) }),
     });
   }
 

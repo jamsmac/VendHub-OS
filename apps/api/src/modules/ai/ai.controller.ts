@@ -129,7 +129,9 @@ export class AiController {
         subject: dto.subject,
         description: dto.description,
         category: dto.category,
-        customerName: dto.customer_name,
+        ...(dto.customer_name !== undefined && {
+          customerName: dto.customer_name,
+        }),
       },
       dto.language || "ru",
     );

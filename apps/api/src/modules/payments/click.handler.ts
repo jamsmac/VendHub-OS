@@ -85,7 +85,7 @@ export class ClickHandler {
       status: "pending",
       amount,
       orderId,
-      transactionId,
+      ...(transactionId !== undefined && { transactionId }),
       checkoutUrl: checkoutUrl.toString(),
     };
   }

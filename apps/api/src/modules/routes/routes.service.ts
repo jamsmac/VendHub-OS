@@ -79,13 +79,17 @@ export class RoutesService {
       type: dto.type ?? RouteType.REFILL,
       status: RouteStatus.PLANNED,
       plannedDate: new Date(dto.plannedDate),
-      estimatedDurationMinutes: dto.estimatedDurationMinutes,
-      estimatedDistanceKm: dto.estimatedDistanceKm,
+      ...(dto.estimatedDurationMinutes !== undefined && {
+        estimatedDurationMinutes: dto.estimatedDurationMinutes,
+      }),
+      ...(dto.estimatedDistanceKm !== undefined && {
+        estimatedDistanceKm: dto.estimatedDistanceKm,
+      }),
       vehicleId: dto.vehicleId ?? null,
       transportType: dto.transportType ?? null,
-      notes: dto.notes,
+      ...(dto.notes !== undefined && { notes: dto.notes }),
       metadata: dto.metadata ?? {},
-      createdById: userId,
+      ...(userId !== undefined && { createdById: userId }),
     });
 
     return this.routeRepository.save(route);
@@ -542,7 +546,7 @@ export class RoutesService {
       routeId,
       taskId,
       status: RouteTaskLinkStatus.PENDING,
-      createdById: userId,
+      ...(userId !== undefined && { createdById: userId }),
     });
 
     return this.taskLinkRepository.save(link);
@@ -757,7 +761,7 @@ export class RoutesService {
       latitude: dto.latitude ?? null,
       longitude: dto.longitude ?? null,
       metadata: dto.metadata ?? {},
-      createdById: userId,
+      ...(userId !== undefined && { createdById: userId }),
     });
 
     return this.routeStopRepository.save(stop);

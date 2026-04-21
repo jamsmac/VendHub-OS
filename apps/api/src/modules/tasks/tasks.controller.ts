@@ -91,10 +91,10 @@ export class TasksController {
     @Query("priority") priority?: string,
   ) {
     return this.tasksService.getKanbanBoard(user.organizationId, {
-      assigneeId,
-      machineId,
-      type,
-      priority,
+      ...(assigneeId !== undefined && { assigneeId }),
+      ...(machineId !== undefined && { machineId }),
+      ...(type !== undefined && { type }),
+      ...(priority !== undefined && { priority }),
     });
   }
 
@@ -206,12 +206,12 @@ export class TasksController {
     @Query("search") search?: string,
   ) {
     return this.tasksService.findAll(user.organizationId, {
-      status,
-      type,
-      machineId,
-      assigneeId,
-      priority,
-      search,
+      ...(status !== undefined && { status }),
+      ...(type !== undefined && { type }),
+      ...(machineId !== undefined && { machineId }),
+      ...(assigneeId !== undefined && { assigneeId }),
+      ...(priority !== undefined && { priority }),
+      ...(search !== undefined && { search }),
     });
   }
 

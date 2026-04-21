@@ -84,10 +84,10 @@ export class ClientPublicController {
     @Query("limit") limit?: string,
   ) {
     return this.publicService.getProducts({
-      category,
-      search,
-      page: page ? parseInt(page, 10) : undefined,
-      limit: limit ? parseInt(limit, 10) : undefined,
+      ...(category !== undefined && { category }),
+      ...(search !== undefined && { search }),
+      ...(page !== undefined && { page: parseInt(page, 10) }),
+      ...(limit !== undefined && { limit: parseInt(limit, 10) }),
     });
   }
 

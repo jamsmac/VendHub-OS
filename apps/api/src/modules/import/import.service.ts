@@ -112,9 +112,9 @@ export class ImportService {
       options,
       createdByUserId: userId,
       status: ImportStatus.PENDING,
-    });
+    } as Partial<ImportJob>);
 
-    const saved = await this.importJobRepository.save(job);
+    const saved = await this.importJobRepository.save(job as ImportJob);
 
     this.eventEmitter.emit("import.created", { job: saved });
     this.logger.log(`Import job created: ${saved.jobNumber}`);

@@ -227,14 +227,14 @@ export class RoutesController {
     @Query("limit") limit?: string,
   ) {
     return this.routesService.findAll(user.organizationId, {
-      operatorId,
-      type,
-      status,
-      plannedDateFrom,
-      plannedDateTo,
-      search,
-      page: page ? parseInt(page, 10) : undefined,
-      limit: limit ? parseInt(limit, 10) : undefined,
+      ...(operatorId !== undefined && { operatorId }),
+      ...(type !== undefined && { type }),
+      ...(status !== undefined && { status }),
+      ...(plannedDateFrom !== undefined && { plannedDateFrom }),
+      ...(plannedDateTo !== undefined && { plannedDateTo }),
+      ...(search !== undefined && { search }),
+      ...(page !== undefined && { page: parseInt(page, 10) }),
+      ...(limit !== undefined && { limit: parseInt(limit, 10) }),
     });
   }
 

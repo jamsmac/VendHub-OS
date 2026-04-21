@@ -136,10 +136,12 @@ export class GeoController {
       { latitude: query.latitude, longitude: query.longitude },
       user.organizationId,
       {
-        maxDistance: query.maxDistance,
-        limit: query.limit,
-        onlyOnline: query.onlyOnline,
-        productId: query.productId,
+        ...(query.maxDistance !== undefined && {
+          maxDistance: query.maxDistance,
+        }),
+        ...(query.limit !== undefined && { limit: query.limit }),
+        ...(query.onlyOnline !== undefined && { onlyOnline: query.onlyOnline }),
+        ...(query.productId !== undefined && { productId: query.productId }),
       },
     );
 

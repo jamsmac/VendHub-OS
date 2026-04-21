@@ -206,9 +206,11 @@ export class DepartmentService {
       parentDepartmentId: department.parentDepartmentId,
       isActive: department.isActive,
       sortOrder: department.sortOrder,
-      subDepartments: department.subDepartments
-        ? department.subDepartments.map((d) => this.mapDepartmentToDto(d))
-        : undefined,
+      ...(department.subDepartments !== undefined && {
+        subDepartments: department.subDepartments.map((d) =>
+          this.mapDepartmentToDto(d),
+        ),
+      }),
       createdAt: department.createdAt,
       updatedAt: department.updatedAt,
     };

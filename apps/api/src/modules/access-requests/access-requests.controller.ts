@@ -65,10 +65,10 @@ export class AccessRequestsController {
     @Query("limit") limit?: number,
   ) {
     return this.accessRequestsService.findAll(user.organizationId, {
-      status,
-      source,
-      page: page ? Number(page) : undefined,
-      limit: limit ? Number(limit) : undefined,
+      ...(status !== undefined && { status }),
+      ...(source !== undefined && { source }),
+      ...(page !== undefined && { page: Number(page) }),
+      ...(limit !== undefined && { limit: Number(limit) }),
     });
   }
 

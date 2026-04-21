@@ -84,17 +84,25 @@ export class ProductsRecipeService {
       productId,
       organizationId,
       name: dto.name,
-      nameUz: dto.nameUz,
+      ...(dto.nameUz !== undefined && { nameUz: dto.nameUz }),
       typeCode: dto.typeCode,
-      description: dto.description,
-      preparationTimeSeconds: dto.preparationTimeSeconds,
-      temperatureCelsius: dto.temperatureCelsius,
-      servingSizeMl: dto.servingSizeMl,
+      ...(dto.description !== undefined && { description: dto.description }),
+      ...(dto.preparationTimeSeconds !== undefined && {
+        preparationTimeSeconds: dto.preparationTimeSeconds,
+      }),
+      ...(dto.temperatureCelsius !== undefined && {
+        temperatureCelsius: dto.temperatureCelsius,
+      }),
+      ...(dto.servingSizeMl !== undefined && {
+        servingSizeMl: dto.servingSizeMl,
+      }),
       settings: dto.settings || {},
       createdById: userId,
-    });
+    } as Parameters<typeof this.recipeRepository.create>[0]);
 
-    const savedRecipe = await this.recipeRepository.save(recipe);
+    const savedRecipe = (await this.recipeRepository.save(
+      recipe,
+    )) as unknown as Recipe;
 
     if (dto.ingredients && dto.ingredients.length > 0) {
       const ingredientIds = dto.ingredients.map((i) => i.ingredientId);
@@ -117,8 +125,8 @@ export class ProductsRecipeService {
           unitOfMeasure: ing.unitOfMeasure,
           sortOrder: ing.sortOrder ?? 1,
           isOptional: ing.isOptional ?? false,
-          createdById: userId,
-        }),
+          ...(userId !== undefined && { createdById: userId }),
+        } as Parameters<typeof this.recipeIngredientRepository.create>[0]),
       );
       await this.recipeIngredientRepository.save(ingredientEntities);
     }
@@ -263,10 +271,12 @@ export class ProductsRecipeService {
       unitOfMeasure: unitOfMeasure as UnitOfMeasure,
       sortOrder: sortOrder ?? 1,
       isOptional: isOptional ?? false,
-      createdById: userId,
+      ...(userId !== undefined && { createdById: userId }),
     });
 
-    const saved = await this.recipeIngredientRepository.save(ingredient);
+    const saved = (await this.recipeIngredientRepository.save(
+      ingredient,
+    )) as RecipeIngredient;
     await this.recalculateRecipeCost(recipeId);
 
     return saved;
@@ -380,11 +390,13 @@ export class ProductsRecipeService {
       version: recipe.version,
       snapshot: snapshotData,
       checksum,
-      changeReason,
-      createdById: userId,
+      ...(changeReason !== undefined && { changeReason }),
+      ...(userId !== undefined && { createdById: userId }),
     });
 
-    return this.recipeSnapshotRepository.save(snapshot);
+    return this.recipeSnapshotRepository.save(
+      snapshot,
+    ) as Promise<RecipeSnapshot>;
   }
 
   async getCurrentSnapshot(recipeId: string): Promise<RecipeSnapshot | null> {
