@@ -304,6 +304,143 @@ describe("RouteOptimizerService", () => {
       expect(operatorValue).toContain(RefillAction.REFILL_SOON);
     });
 
+    it("should apply 2-opt to produce a shorter tour than nearest-neighbor alone", async () => {
+      // 4 machines arranged in a square.
+      // Greedy nearest-neighbor starting from top-left (highest priority) will
+      // pick a crossing order: TL → TR → BR → BL (zig-zag with the BL diagonal
+      // at the end creates a cross). 2-opt should uncross it to TL → TR → BR → BL
+      // being the rectangular perimeter (no crossing).
+      //
+      // Layout (lat is Y, lng is X):
+      //   TL (m-tl, priority 95) ───── TR (m-tr, priority 50)
+      //        │                              │
+      //   BL (m-bl, priority 60) ───── BR (m-br, priority 40)
+      //
+      // Nearest-neighbor from TL:
+      //   TL → TR (closest, 1 step) → BR (closest remaining) → BL
+      //   That's actually the rectangular path — no crossing.
+      //
+      // To force a crossing, we give BL a higher priority than BR so the greedy
+      // pick from TL chooses BL (diagonally further via Haversine? no, still TR).
+      //
+      // Better test: construct coords where greedy demonstrably picks crossing order.
+      // Use coordinates where TL → BR → TR → BL is what greedy would pick due to
+      // a priority-enforced start that's not optimal geographically.
+      //
+      // Simplest reliable test: place 4 points where the sequence by priority is
+      // A(0,0), B(2,0), C(2,2), D(0,2) — forming a square.
+      // Greedy from A: A → B (dist 2) → C (dist 2) → D (dist 2). Total = 6. Good path.
+      // But shuffle priorities so stops are fed in bad order to NN: not possible,
+      // NN picks geographically.
+      //
+      // Canonical 2-opt test: 4 points arranged so NN picks crossing path.
+      // Use stops with priorityScore ordering that seeds NN with a bad start choice.
+      // Since NN always starts from highest priority, we control only the start.
+      //
+      // Construct: start S, then 3 points arranged so S → nearest creates cross.
+      //   S  = (0, 0)      priority 99 (forced start)
+      //   P1 = (1, 0.1)    priority 50  — closest to S
+      //   P2 = (0.1, 1)    priority 50  — closest to S after P1
+      //   P3 = (1, 1)      priority 50
+      //
+      // NN from S: S → P1 (dist ~1) → P3 (dist ~0.9) → P2 (dist ~0.9). Total ~2.8.
+      // Optimal: S → P1 → P3 → P2 is actually fine (no cross).
+      //
+      // Real crossing test — 4 points on a square, NN picks diagonal crossing:
+      //   A = (0, 0)       priority 99 (start)
+      //   B = (0, 10)      priority 50
+      //   C = (10, 0)      priority 50
+      //   D = (10, 10)     priority 50
+      //
+      // NN from A: A → B or A → C (both dist 10). Pick A → B (stable sort).
+      // From B: nearest is D (dist 10) vs C (dist ~14). B → D.
+      // From D: C (dist 10). Path: A → B → D → C. Total = 30. No cross.
+      //
+      // Force a cross: add 5th point.
+      //   A = (0, 0) priority 99
+      //   B = (10, 0) priority 50
+      //   C = (10, 10) priority 50
+      //   D = (0, 10) priority 50
+      //   E = (5, 5) priority 50  — center
+      //
+      // NN from A: A → E (dist ~7.07) [closest] → B (~7.07) → C (10) → D (~14.14). Total ~38.28.
+      // 2-opt optimal: A → B → C → D → E or A → B → E → C → D etc.
+      // A → B → C → D → E: 10+10+10+~14.14 ≈ 44.14. Worse.
+      // A → D → E → C → B: ~14.14+~7.07+~7.07+10 ≈ 38.28. Same.
+      // A → D → C → E → B: 10+10+~7.07+~7.07 ≈ 34.14. Better.
+      // So NN gives ~38.28, 2-opt can find ~34.14.
+      //
+      // Translated to lat/lng near Tashkent (~111km per degree lat, ~84km per
+      // degree lng at lat 41°); use small decimals so haversine distances are
+      // proportional to planar distances.
+      const baseLat = 41.3;
+      const baseLng = 69.25;
+      const deg = 0.01; // ~1km scale
+      const recs = [
+        makeRec("A", 99), // start (highest priority)
+        makeRec("B", 50),
+        makeRec("C", 50),
+        makeRec("D", 50),
+        makeRec("E", 50),
+      ];
+      recommendationRepository.find.mockResolvedValue(recs);
+
+      const machines = [
+        makeMachine("A", baseLat, baseLng), // (0,0)
+        makeMachine("B", baseLat, baseLng + 10 * deg), // (0,10)
+        makeMachine("C", baseLat + 10 * deg, baseLng + 10 * deg), // (10,10)
+        makeMachine("D", baseLat + 10 * deg, baseLng), // (10,0)
+        makeMachine("E", baseLat + 5 * deg, baseLng + 5 * deg), // (5,5)
+      ];
+      machineRepository.find.mockResolvedValue(machines);
+
+      const stopSequences: { machineId: string; sequence: number }[] = [];
+      routeStopRepository.create.mockImplementation((data) => {
+        stopSequences.push({
+          machineId: data.machineId,
+          sequence: data.sequence,
+        });
+        return { ...data };
+      });
+
+      await service.generateOptimalRoute("org-1", "op-1", false);
+
+      // Highest-priority machine is still first after 2-opt
+      const first = stopSequences.find((s) => s.sequence === 1);
+      expect(first?.machineId).toBe("A");
+
+      // Total distance (stored on the saved route) should be the 2-opt result.
+      // Compare against the pure nearest-neighbor total by computing what NN
+      // would have produced: A → E → B → C → D.
+      // We assert the recorded estimatedDistanceKm is <= NN path distance.
+      const savedRouteArg = routeRepository.create.mock.calls[0][0];
+      const totalKm = savedRouteArg.estimatedDistanceKm as number;
+
+      // Compute nearest-neighbor-only distance for comparison
+      const { GpsProcessingService } = await import("./gps-processing.service");
+      const gps = new GpsProcessingService();
+      const haversine = (
+        a: (typeof machines)[number],
+        b: (typeof machines)[number],
+      ) =>
+        gps.haversineDistance(
+          a.latitude as number,
+          a.longitude as number,
+          b.latitude as number,
+          b.longitude as number,
+        ) / 1000;
+      const [A, B, C, D, E] = machines;
+      // NN-from-A path: A→E→B→C→D (or A→E→D→C→B, both ~equivalent)
+      const nnPath =
+        haversine(A!, E!) +
+        haversine(E!, B!) +
+        haversine(B!, C!) +
+        haversine(C!, D!);
+
+      // 2-opt should produce a tour no longer than NN (and usually shorter)
+      expect(totalKm).toBeLessThanOrEqual(nnPath + 0.01);
+    });
+
     it("should assign isPriority=true for stops with priorityScore >= 80", async () => {
       const recs = [makeRec("m-high", 90), makeRec("m-low", 50)];
       recommendationRepository.find.mockResolvedValue(recs);

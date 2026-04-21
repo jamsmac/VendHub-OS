@@ -131,7 +131,10 @@ export class RouteOptimizerService {
     );
 
     // 5. Nearest-neighbor ordering starting from highest priority
-    const ordered = this.nearestNeighborOrder(stops);
+    const nearestNeighborTour = this.nearestNeighborOrder(stops);
+
+    // 5b. 2-opt improvement pass (preserves first stop = highest priority)
+    const ordered = this.twoOptImprove(nearestNeighborTour);
 
     // 6. Calculate total estimated distance
     let totalDistanceKm = 0;
@@ -241,5 +244,68 @@ export class RouteOptimizerService {
     }
 
     return ordered;
+  }
+
+  /**
+   * 2-opt local-search improvement over an open tour.
+   *
+   * Iterates all non-adjacent edge pairs (i, i+1) and (j, j+1); if reversing
+   * the segment between them reduces total distance, the reversal is applied.
+   * Repeats until a full pass yields no improvement (or MAX_ITER is reached).
+   *
+   * The first stop is preserved as the start (i starts at 0 but index 0 is
+   * never removed — 2-opt reversals only touch indices >= 1, so the priority
+   * start remains unchanged).
+   *
+   * Treats the tour as OPEN (no return-to-start edge): the last node has no
+   * outgoing edge, which is correct for refill routes where the operator
+   * finishes at the last machine.
+   */
+  private twoOptImprove<T extends { latitude: number; longitude: number }>(
+    tour: T[],
+  ): T[] {
+    if (tour.length < 4) return tour; // 2-opt needs 4+ nodes to swap
+
+    const n = tour.length;
+    let improved = true;
+    let iterations = 0;
+    const MAX_ITER = 100;
+
+    const dist = (a: T, b: T): number =>
+      this.gpsProcessingService.haversineDistance(
+        a.latitude,
+        a.longitude,
+        b.latitude,
+        b.longitude,
+      );
+
+    while (improved && iterations < MAX_ITER) {
+      improved = false;
+      iterations++;
+
+      for (let i = 0; i < n - 2; i++) {
+        for (let j = i + 2; j < n; j++) {
+          const a = tour[i]!;
+          const b = tour[i + 1]!;
+          const c = tour[j]!;
+          const d = j + 1 < n ? tour[j + 1]! : null;
+
+          const before = dist(a, b) + (d ? dist(c, d) : 0);
+          const after = dist(a, c) + (d ? dist(b, d) : 0);
+
+          if (after + 0.001 < before) {
+            // Reverse segment [i+1 .. j]
+            const segment = tour.slice(i + 1, j + 1).reverse();
+            tour.splice(i + 1, segment.length, ...segment);
+            improved = true;
+          }
+        }
+      }
+    }
+
+    this.logger.debug(
+      `2-opt: ${iterations} iterations, final tour length ${n}`,
+    );
+    return tour;
   }
 }
