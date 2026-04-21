@@ -15,6 +15,15 @@ export enum ImportFileType {
   CSV = "CSV",
 }
 
+export enum SalesImportFormat {
+  HICON = "hicon",
+  MULTIKASSA = "multikassa",
+  CLICK = "click",
+  PAYME = "payme",
+  UZUM = "uzum",
+  CUSTOM = "custom",
+}
+
 @Entity("sales_imports")
 @Index(["organizationId"])
 @Index(["status"])
@@ -106,4 +115,58 @@ export class SalesImport extends BaseEntity {
   @ApiProperty({ description: "Additional metadata", default: {} })
   @Column({ type: "jsonb", default: {} })
   metadata: Record<string, unknown>;
+
+  // ─────────────────────────────────────────────────────────────────
+  // G3 fields — HICON import with 3-level dedup
+  // ─────────────────────────────────────────────────────────────────
+
+  @ApiPropertyOptional({
+    description: "Import format",
+    enum: SalesImportFormat,
+  })
+  @Column({ type: "enum", enum: SalesImportFormat, nullable: true })
+  format: SalesImportFormat | null;
+
+  @ApiPropertyOptional({ description: "Report day (YYYY-MM-DD)" })
+  @Column({ type: "date", nullable: true })
+  reportDay: string | null;
+
+  @ApiPropertyOptional({ description: "Machine ID", format: "uuid" })
+  @Column({ type: "uuid", nullable: true })
+  machineId: string | null;
+
+  @ApiProperty({ description: "Rows imported", default: 0 })
+  @Column({ type: "int", default: 0 })
+  imported: number;
+
+  @ApiProperty({ description: "Rows skipped via dedup", default: 0 })
+  @Column({ type: "int", default: 0 })
+  skipped: number;
+
+  @ApiProperty({ description: "Rows with unmapped products", default: 0 })
+  @Column({ type: "int", default: 0 })
+  unmapped: number;
+
+  @ApiProperty({ description: "Rows adjusted via HICON delta", default: 0 })
+  @Column({ type: "int", default: 0 })
+  deltaAdjusted: number;
+
+  @ApiProperty({ description: "Total quantity sold", default: 0 })
+  @Column({ type: "int", default: 0 })
+  totalQty: number;
+
+  @ApiProperty({ description: "Total revenue", default: 0 })
+  @Column({ type: "decimal", precision: 14, scale: 2, default: 0 })
+  totalRevenue: number;
+
+  @ApiProperty({ description: "Delta log entries", default: [] })
+  @Column({ type: "jsonb", default: () => "'[]'::jsonb" })
+  deltaLog: string[];
+
+  @ApiProperty({
+    description: "Product names that could not be mapped",
+    default: [],
+  })
+  @Column({ type: "jsonb", default: () => "'[]'::jsonb" })
+  unmappedNames: string[];
 }

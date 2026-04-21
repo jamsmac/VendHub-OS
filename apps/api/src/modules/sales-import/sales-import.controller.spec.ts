@@ -6,16 +6,23 @@ import {
 } from "../../common/test-utils/controller-test.helper";
 import { SalesImportController } from "./sales-import.controller";
 import { SalesImportService } from "./sales-import.service";
+import { SalesImportIngestService } from "./services/sales-import-ingest.service";
 
 describe("SalesImportController", () => {
   let app: any;
   let mockService: Record<string, jest.Mock>;
 
   beforeAll(async () => {
+    const mockIngest = {
+      uploadAndParse: jest.fn().mockResolvedValue({}),
+      confirmMapping: jest.fn().mockResolvedValue({}),
+      execute: jest.fn().mockResolvedValue({}),
+    };
     ({ app, mockService } = await createControllerTestApp(
       SalesImportController,
       SalesImportService,
       ["create", "findAll", "getStats", "findById", "remove"],
+      [{ provide: SalesImportIngestService, useValue: mockIngest }],
     ));
   });
 
