@@ -8,6 +8,11 @@ import {
 import { Machine } from "../../machines/entities/machine.entity";
 import { ForecastService, SlotForecast } from "./forecast.service";
 import { GetRecommendationsDto } from "../dto/forecast-query.dto";
+import { AlertsService } from "../../alerts/alerts.service";
+import {
+  AlertRule,
+  AlertMetric,
+} from "../../alerts/entities/alert-rule.entity";
 
 @Injectable()
 export class RecommendationService {
@@ -18,7 +23,10 @@ export class RecommendationService {
     private readonly recRepo: Repository<RefillRecommendation>,
     @InjectRepository(Machine)
     private readonly machineRepo: Repository<Machine>,
+    @InjectRepository(AlertRule)
+    private readonly alertRuleRepo: Repository<AlertRule>,
     private readonly forecastService: ForecastService,
+    private readonly alertsService: AlertsService,
   ) {}
 
   async generateForMachine(
@@ -41,14 +49,20 @@ export class RecommendationService {
   async generateForOrganization(organizationId: string): Promise<number> {
     const machines = await this.machineRepo.find({
       where: { organizationId },
-      select: ["id"],
+      select: ["id", "name"],
     });
 
+    const machineNameMap = new Map(machines.map((m) => [m.id, m.name]));
     let count = 0;
+    const allRecs: RefillRecommendation[] = [];
+
     for (const machine of machines) {
       const recs = await this.generateForMachine(organizationId, machine.id);
       count += recs.length;
+      allRecs.push(...recs);
     }
+
+    await this.fireStockoutAlerts(organizationId, allRecs, machineNameMap);
 
     this.logger.log(
       `Generated ${count} recommendations for org ${organizationId}`,
@@ -93,6 +107,43 @@ export class RecommendationService {
     }
     rec.actedUponAt = new Date();
     return this.recRepo.save(rec);
+  }
+
+  private async fireStockoutAlerts(
+    organizationId: string,
+    recs: RefillRecommendation[],
+    machineNameMap: Map<string, string>,
+  ): Promise<void> {
+    const rule = await this.alertRuleRepo.findOne({
+      where: {
+        organizationId,
+        metric: AlertMetric.PREDICTED_STOCKOUT,
+        isActive: true,
+      },
+    });
+    if (!rule) return;
+
+    const urgentRecs = recs.filter(
+      (r) => r.recommendedAction === RefillAction.REFILL_NOW,
+    );
+
+    for (const rec of urgentRecs) {
+      const machineName = machineNameMap.get(rec.machineId) ?? rec.machineId;
+      try {
+        await this.alertsService.triggerAlert(
+          organizationId,
+          rule.id,
+          rec.machineId,
+          Number(rec.priorityScore),
+          `${machineName}: ${rec.daysOfSupply} дн. запаса (маржа ${rec.margin} UZS/шт)`,
+        );
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "unknown error";
+        this.logger.debug(
+          `Alert failed for machine ${rec.machineId}: ${message}`,
+        );
+      }
+    }
   }
 
   private async upsertRecommendation(
