@@ -198,6 +198,21 @@ export const inventoryApi = {
   }) => api.post("/inventory/transfer", data),
   getMovements: (params?: Record<string, unknown>) =>
     api.get("/inventory/movements", { params }),
+  getTransfers: (params?: { machineId?: string; limit?: number }) =>
+    api.get("/inventory/movements", {
+      params: {
+        ...(params?.machineId !== undefined && { machineId: params.machineId }),
+        ...(params?.limit !== undefined && { limit: params.limit }),
+      },
+    }),
+};
+
+export const maintenanceApi = {
+  getMyTasks: () => api.get("/maintenance", { params: { assignedToMe: true } }),
+  getTask: (id: string) => api.get(`/maintenance/${id}`),
+  startTask: (id: string) => api.post(`/maintenance/${id}/start`, {}),
+  completeTask: (id: string, payload: { notes: string; photoUrl?: string }) =>
+    api.post(`/maintenance/${id}/complete`, payload),
 };
 
 export const notificationsApi = {

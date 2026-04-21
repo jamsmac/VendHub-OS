@@ -21,12 +21,15 @@ import { TaskPhotoScreen } from "../screens/tasks/TaskPhotoScreen";
 import { MachineDetailScreen } from "../screens/machines/MachineDetailScreen";
 import { InventoryScreen } from "../screens/inventory/InventoryScreen";
 import { TransferScreen } from "../screens/inventory/TransferScreen";
+import { TransferHistoryScreen } from "../screens/inventory/TransferHistoryScreen";
 import { NotificationsScreen } from "../screens/NotificationsScreen";
 import { SettingsScreen } from "../screens/SettingsScreen";
 import { RouteScreen } from "../screens/staff/RouteScreen";
 import { MaintenanceScreen } from "../screens/staff/MaintenanceScreen";
+import { MaintenanceDetailScreen } from "../screens/staff/MaintenanceDetailScreen";
 import { BarcodeScanScreen } from "../screens/staff/BarcodeScanScreen";
 import { ProductDetailScreen } from "../screens/products/ProductDetailScreen";
+import { useRealtimeNotifications } from "../hooks/useRealtimeNotifications";
 
 export type MainTabParamList = {
   HomeTab: undefined;
@@ -43,10 +46,12 @@ export type MainStackParamList = {
   ProductDetail: { productId: string };
   Inventory: { machineId?: string };
   Transfer: { type: "warehouse" | "operator" | "machine" };
+  TransferHistory: { machineId?: string } | undefined;
   Notifications: undefined;
   Settings: undefined;
   Route: undefined;
-  Maintenance: { machineId: string };
+  Maintenance: { machineId?: string } | undefined;
+  MaintenanceDetail: { taskId: string };
   BarcodeScan: undefined;
 };
 
@@ -112,6 +117,7 @@ function HomeTabs() {
 
 export function MainNavigator() {
   const { t } = useTranslation();
+  useRealtimeNotifications();
 
   return (
     <Stack.Navigator>
@@ -146,6 +152,11 @@ export function MainNavigator() {
         options={{ title: t("nav.transfer") }}
       />
       <Stack.Screen
+        name="TransferHistory"
+        component={TransferHistoryScreen}
+        options={{ title: t("inventory.history", "История переводов") }}
+      />
+      <Stack.Screen
         name="Notifications"
         component={NotificationsScreen}
         options={{ title: t("nav.notifications") }}
@@ -164,6 +175,11 @@ export function MainNavigator() {
         name="Maintenance"
         component={MaintenanceScreen}
         options={{ title: t("nav.maintenance") }}
+      />
+      <Stack.Screen
+        name="MaintenanceDetail"
+        component={MaintenanceDetailScreen}
+        options={{ title: t("maintenance.title", "Техобслуживание") }}
       />
       <Stack.Screen
         name="BarcodeScan"

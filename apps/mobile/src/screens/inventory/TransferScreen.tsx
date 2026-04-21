@@ -6,7 +6,7 @@
  * Step 3: Review and confirm
  */
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useLayoutEffect } from "react";
 import {
   View,
   Text,
@@ -24,6 +24,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { machinesApi, inventoryApi } from "../../services/api";
 import { enqueue, isNetworkError } from "../../services/offline-queue";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { MainStackParamList } from "../../navigation/MainNavigator";
 
 interface Machine {
   id: string;
@@ -54,9 +56,23 @@ type Step = 1 | 2 | 3;
 
 export function TransferScreen() {
   const { t } = useTranslation();
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useRoute<any>();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => navigation.navigate("TransferHistory", undefined)}
+          style={{ marginRight: 4, padding: 4 }}
+        >
+          <Ionicons name="time-outline" size={22} color="#4F46E5" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, t]);
 
   const [step, setStep] = useState<Step>(1);
   const [fromMachineId, setFromMachineId] = useState<string | null>(null);

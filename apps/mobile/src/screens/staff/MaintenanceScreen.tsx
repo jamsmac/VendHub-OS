@@ -1,24 +1,27 @@
 /**
  * Maintenance Screen
- * Machine maintenance checklist and reporting
+ * Lists operator's maintenance tasks fetched from the backend.
  */
 
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
+  FlatList,
   TouchableOpacity,
-  TextInput,
-  Alert,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRoute, useNavigation } from "@react-navigation/native";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { machinesApi, api } from "../../services/api";
+import { maintenanceApi } from "../../services/api";
+import { MainStackParamList } from "../../navigation/MainNavigator";
+
+type NavProp = NativeStackNavigationProp<MainStackParamList>;
 
 const COLORS = {
   primary: "#4F46E5",
@@ -32,400 +35,281 @@ const COLORS = {
   muted: "#6B7280",
 };
 
-interface ChecklistItem {
+type MaintenanceStatus =
+  | "draft"
+  | "submitted"
+  | "approved"
+  | "rejected"
+  | "scheduled"
+  | "in_progress"
+  | "awaiting_parts"
+  | "completed"
+  | "verified"
+  | "cancelled";
+
+interface MaintenanceTask {
   id: string;
-  labelKey: string;
-  category: string;
-  isRequired: boolean;
-  checked: boolean;
+  title: string;
+  status: MaintenanceStatus;
+  priority: "low" | "normal" | "high" | "critical";
+  maintenanceType: string;
+  machineId?: string;
+  machine?: { name: string; address?: string };
+  scheduledDate?: string;
+  dueDate?: string;
+  createdAt: string;
 }
 
-const DEFAULT_CHECKLIST: Omit<ChecklistItem, "checked">[] = [
-  {
-    id: "1",
-    labelKey: "maintenance.checklist.visualInspection",
-    category: "visual",
-    isRequired: true,
-  },
-  {
-    id: "2",
-    labelKey: "maintenance.checklist.checkDisplay",
-    category: "visual",
-    isRequired: true,
-  },
-  {
-    id: "3",
-    labelKey: "maintenance.checklist.checkPayment",
-    category: "payment",
-    isRequired: true,
-  },
-  {
-    id: "4",
-    labelKey: "maintenance.checklist.checkChange",
-    category: "payment",
-    isRequired: false,
-  },
-  {
-    id: "5",
-    labelKey: "maintenance.checklist.cleanDispensers",
-    category: "cleaning",
-    isRequired: true,
-  },
-  {
-    id: "6",
-    labelKey: "maintenance.checklist.cleanTray",
-    category: "cleaning",
-    isRequired: true,
-  },
-  {
-    id: "7",
-    labelKey: "maintenance.checklist.checkTemperature",
-    category: "tech",
-    isRequired: true,
-  },
-  {
-    id: "8",
-    labelKey: "maintenance.checklist.checkWaterPressure",
-    category: "tech",
-    isRequired: false,
-  },
-  {
-    id: "9",
-    labelKey: "maintenance.checklist.updateFirmware",
-    category: "tech",
-    isRequired: false,
-  },
-  {
-    id: "10",
-    labelKey: "maintenance.checklist.checkIngredients",
-    category: "inventory",
-    isRequired: true,
-  },
-  {
-    id: "11",
-    labelKey: "maintenance.checklist.refillCups",
-    category: "inventory",
-    isRequired: true,
-  },
-  {
-    id: "12",
-    labelKey: "maintenance.checklist.replaceFilter",
-    category: "maintenance",
-    isRequired: false,
-  },
-];
+function statusColor(status: MaintenanceStatus): string {
+  switch (status) {
+    case "in_progress":
+      return COLORS.blue;
+    case "completed":
+    case "verified":
+      return COLORS.green;
+    case "cancelled":
+    case "rejected":
+      return COLORS.red;
+    case "awaiting_parts":
+      return COLORS.amber;
+    default:
+      return COLORS.muted;
+  }
+}
 
-const CATEGORIES: Record<
-  string,
-  { key: string; icon: keyof typeof Ionicons.glyphMap; color: string }
-> = {
-  visual: {
-    key: "maintenance.categories.visual",
-    icon: "eye",
-    color: COLORS.blue,
-  },
-  payment: {
-    key: "maintenance.categories.payment",
-    icon: "card",
-    color: COLORS.green,
-  },
-  cleaning: {
-    key: "maintenance.categories.cleaning",
-    icon: "sparkles",
-    color: COLORS.amber,
-  },
-  tech: {
-    key: "maintenance.categories.tech",
-    icon: "settings",
-    color: COLORS.primary,
-  },
-  inventory: {
-    key: "maintenance.categories.inventory",
-    icon: "cube",
-    color: "#8B5CF6",
-  },
-  maintenance: {
-    key: "maintenance.categories.maintenance",
-    icon: "construct",
-    color: COLORS.red,
-  },
-};
+function priorityColor(priority: string): string {
+  switch (priority) {
+    case "critical":
+      return COLORS.red;
+    case "high":
+      return COLORS.amber;
+    case "normal":
+      return COLORS.primary;
+    default:
+      return COLORS.muted;
+  }
+}
+
+function statusLabel(
+  status: MaintenanceStatus,
+  t: (k: string) => string,
+): string {
+  const map: Record<MaintenanceStatus, string> = {
+    draft: t("maintenance.status.draft"),
+    submitted: t("maintenance.status.submitted"),
+    approved: t("maintenance.status.approved"),
+    rejected: t("maintenance.status.rejected"),
+    scheduled: t("maintenance.status.scheduled"),
+    in_progress: t("maintenance.status.inProgress"),
+    awaiting_parts: t("maintenance.status.awaitingParts"),
+    completed: t("maintenance.status.completed"),
+    verified: t("maintenance.status.verified"),
+    cancelled: t("maintenance.status.cancelled"),
+  };
+  return map[status] ?? status;
+}
 
 export function MaintenanceScreen() {
   const { t } = useTranslation();
-  const navigation = useNavigation();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const route = useRoute<any>();
-  const queryClient = useQueryClient();
-  const machineId = route.params?.machineId;
+  const navigation = useNavigation<NavProp>();
 
-  const [checklist, setChecklist] = useState<ChecklistItem[]>(
-    DEFAULT_CHECKLIST.map((item) => ({ ...item, checked: false })),
-  );
-  const [notes, setNotes] = useState("");
-  const [issues, setIssues] = useState("");
-
-  const { data: machine } = useQuery({
-    queryKey: ["machine", machineId],
-    queryFn: () => machinesApi.getById(machineId).then((res) => res.data),
-    enabled: !!machineId,
-  });
-
-  const submitMutation = useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mutationFn: (data: any) => api.post("/maintenance/reports", data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["my-tasks"] });
-      Alert.alert(t("common.done"), t("maintenance.reportSent"), [
-        { text: t("common.ok"), onPress: () => navigation.goBack() },
-      ]);
+  const { data, isLoading, isError, refetch, isFetching } = useQuery({
+    queryKey: ["my-maintenance-tasks"],
+    queryFn: async () => {
+      const res = await maintenanceApi.getMyTasks();
+      const raw = res.data;
+      return (
+        Array.isArray(raw) ? raw : (raw?.data ?? raw?.items ?? [])
+      ) as MaintenanceTask[];
     },
-    onError: () =>
-      Alert.alert(t("common.error"), t("maintenance.reportFailed")),
   });
 
-  const toggleCheck = (id: string) => {
-    setChecklist((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, checked: !item.checked } : item,
-      ),
-    );
-  };
+  const tasks = data ?? [];
 
-  const requiredCount = checklist.filter((i) => i.isRequired).length;
-  const checkedRequired = checklist.filter(
-    (i) => i.isRequired && i.checked,
-  ).length;
-  const totalChecked = checklist.filter((i) => i.checked).length;
-  const canSubmit = checkedRequired === requiredCount;
+  const renderItem = ({ item }: { item: MaintenanceTask }) => {
+    const machineName =
+      item.machine?.name ?? t("maintenance.unknownMachine", "Автомат");
+    const machineAddr = item.machine?.address;
+    const due = item.scheduledDate ?? item.dueDate ?? item.createdAt;
+    const dueFormatted = due ? new Date(due).toLocaleDateString("ru-RU") : null;
 
-  const handleSubmit = () => {
-    if (!canSubmit) {
-      Alert.alert(t("common.error"), t("maintenance.completeRequired"));
-      return;
-    }
-
-    submitMutation.mutate({
-      machineId,
-      checklist: checklist.map((i) => ({
-        id: i.id,
-        label: t(i.labelKey),
-        checked: i.checked,
-      })),
-      notes,
-      issues: issues || null,
-      completedAt: new Date().toISOString(),
-    });
-  };
-
-  // Group by category
-  const categories = [...new Set(checklist.map((i) => i.category))];
-
-  return (
-    <ScrollView style={styles.container}>
-      {/* Machine Info */}
-      {machine && (
-        <View style={styles.machineCard}>
-          <Ionicons name="cafe" size={24} color={COLORS.primary} />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={styles.machineName}>{machine.name}</Text>
-            <Text style={styles.machineAddress}>
-              {machine.address || machine.location?.address}
-            </Text>
-          </View>
-        </View>
-      )}
-
-      {/* Progress */}
-      <View style={styles.progressCard}>
-        <Text style={styles.progressText}>
-          {t("maintenance.progress", {
-            done: totalChecked,
-            total: checklist.length,
-            doneRequired: checkedRequired,
-            totalRequired: requiredCount,
-          })}
-        </Text>
-        <View style={styles.progressBar}>
+    return (
+      <TouchableOpacity
+        style={styles.taskCard}
+        onPress={() =>
+          navigation.navigate("MaintenanceDetail", { taskId: item.id })
+        }
+        activeOpacity={0.7}
+      >
+        <View style={styles.taskHeader}>
           <View
             style={[
-              styles.progressFill,
-              { width: `${(totalChecked / checklist.length) * 100}%` },
+              styles.statusBadge,
+              { backgroundColor: statusColor(item.status) + "20" },
+            ]}
+          >
+            <Text
+              style={[styles.statusText, { color: statusColor(item.status) }]}
+            >
+              {statusLabel(item.status, t)}
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.priorityDot,
+              { backgroundColor: priorityColor(item.priority) },
             ]}
           />
         </View>
-      </View>
 
-      {/* Checklist by Category */}
-      {categories.map((cat) => {
-        const catInfo = CATEGORIES[cat];
-        const items = checklist.filter((i) => i.category === cat);
+        <Text style={styles.taskTitle} numberOfLines={2}>
+          {item.title}
+        </Text>
 
-        return (
-          <View key={cat} style={styles.categorySection}>
-            <View style={styles.categoryHeader}>
-              <Ionicons name={catInfo.icon} size={18} color={catInfo.color} />
-              <Text style={styles.categoryTitle}>{t(catInfo.key)}</Text>
-            </View>
-            {items.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.checkItem}
-                onPress={() => toggleCheck(item.id)}
-              >
-                <Ionicons
-                  name={item.checked ? "checkbox" : "square-outline"}
-                  size={24}
-                  color={item.checked ? COLORS.green : COLORS.muted}
-                />
-                <Text
-                  style={[
-                    styles.checkLabel,
-                    item.checked && styles.checkLabelDone,
-                  ]}
-                >
-                  {t(item.labelKey)}
-                </Text>
-                {item.isRequired && <Text style={styles.requiredBadge}>*</Text>}
-              </TouchableOpacity>
-            ))}
-          </View>
-        );
-      })}
+        <View style={styles.taskMeta}>
+          <Ionicons name="cafe-outline" size={14} color={COLORS.muted} />
+          <Text style={styles.taskMetaText}>{machineName}</Text>
+        </View>
 
-      {/* Issues */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t("maintenance.issuesTitle")}</Text>
-        <TextInput
-          style={styles.textArea}
-          value={issues}
-          onChangeText={setIssues}
-          placeholder={t("maintenance.issuesPlaceholder")}
-          multiline
-          numberOfLines={3}
-          textAlignVertical="top"
-        />
-      </View>
-
-      {/* Notes */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t("maintenance.notesTitle")}</Text>
-        <TextInput
-          style={styles.textArea}
-          value={notes}
-          onChangeText={setNotes}
-          placeholder={t("maintenance.notesPlaceholder")}
-          multiline
-          numberOfLines={3}
-          textAlignVertical="top"
-        />
-      </View>
-
-      {/* Submit */}
-      <TouchableOpacity
-        style={[styles.submitButton, !canSubmit && styles.submitDisabled]}
-        onPress={handleSubmit}
-        disabled={!canSubmit || submitMutation.isPending}
-      >
-        {submitMutation.isPending ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <>
-            <Ionicons name="checkmark-circle" size={20} color="#fff" />
-            <Text style={styles.submitText}>
-              {t("maintenance.submitReport")}
+        {machineAddr ? (
+          <View style={styles.taskMeta}>
+            <Ionicons name="location-outline" size={14} color={COLORS.muted} />
+            <Text style={styles.taskMetaText} numberOfLines={1}>
+              {machineAddr}
             </Text>
-          </>
-        )}
-      </TouchableOpacity>
+          </View>
+        ) : null}
 
-      <View style={{ height: 32 }} />
-    </ScrollView>
+        {dueFormatted ? (
+          <View style={styles.taskMeta}>
+            <Ionicons name="calendar-outline" size={14} color={COLORS.muted} />
+            <Text style={styles.taskMetaText}>{dueFormatted}</Text>
+          </View>
+        ) : null}
+
+        <Ionicons
+          name="chevron-forward"
+          size={16}
+          color={COLORS.muted}
+          style={styles.chevron}
+        />
+      </TouchableOpacity>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={styles.center}>
+        <Ionicons name="alert-circle-outline" size={48} color={COLORS.red} />
+        <Text style={styles.errorText}>{t("common.error")}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
+          <Text style={styles.retryText}>{t("common.retry")}</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return (
+    <FlatList
+      style={styles.container}
+      data={tasks}
+      keyExtractor={(item) => item.id}
+      renderItem={renderItem}
+      contentContainerStyle={
+        tasks.length === 0 ? styles.emptyContainer : styles.listContent
+      }
+      refreshControl={
+        <RefreshControl
+          refreshing={isFetching && !isLoading}
+          onRefresh={refetch}
+          tintColor={COLORS.primary}
+        />
+      }
+      ListEmptyComponent={
+        <View style={styles.emptyInner}>
+          <Ionicons name="construct-outline" size={64} color={COLORS.muted} />
+          <Text style={styles.emptyTitle}>{t("maintenance.empty")}</Text>
+        </View>
+      }
+    />
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
-  machineCard: {
-    flexDirection: "row",
+  listContent: { padding: 16, gap: 12 },
+  center: {
+    flex: 1,
     alignItems: "center",
+    justifyContent: "center",
+    padding: 32,
+    gap: 12,
+  },
+  errorText: { fontSize: 16, color: COLORS.text, textAlign: "center" },
+  retryButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryText: { color: "#fff", fontWeight: "600" },
+  emptyContainer: { flex: 1 },
+  emptyInner: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 80,
+    gap: 12,
+  },
+  emptyTitle: { fontSize: 16, color: COLORS.muted, textAlign: "center" },
+  taskCard: {
     backgroundColor: COLORS.card,
-    margin: 16,
-    padding: 16,
     borderRadius: 12,
+    padding: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 2,
+    position: "relative",
   },
-  machineName: { fontSize: 16, fontWeight: "600", color: COLORS.text },
-  machineAddress: { fontSize: 13, color: COLORS.muted, marginTop: 2 },
-  progressCard: {
-    backgroundColor: COLORS.card,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    padding: 16,
-    borderRadius: 12,
-  },
-  progressText: { fontSize: 14, color: COLORS.text, marginBottom: 8 },
-  progressBar: {
-    height: 6,
-    backgroundColor: "#E5E7EB",
-    borderRadius: 3,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    backgroundColor: COLORS.green,
-    borderRadius: 3,
-  },
-  categorySection: { marginHorizontal: 16, marginBottom: 12 },
-  categoryHeader: {
+  taskHeader: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
     marginBottom: 8,
   },
-  categoryTitle: { fontSize: 14, fontWeight: "600", color: COLORS.text },
-  checkItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.card,
-    padding: 14,
-    marginBottom: 4,
-    borderRadius: 10,
-    gap: 10,
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 20,
   },
-  checkLabel: { flex: 1, fontSize: 14, color: COLORS.text },
-  checkLabelDone: { textDecorationLine: "line-through", color: COLORS.muted },
-  requiredBadge: { fontSize: 16, color: COLORS.red, fontWeight: "700" },
-  section: { marginHorizontal: 16, marginBottom: 16 },
-  sectionTitle: {
-    fontSize: 14,
+  statusText: { fontSize: 12, fontWeight: "600" },
+  priorityDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  taskTitle: {
+    fontSize: 15,
     fontWeight: "600",
     color: COLORS.text,
     marginBottom: 8,
   },
-  textArea: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 14,
-    minHeight: 80,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-  submitButton: {
+  taskMeta: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: COLORS.primary,
-    marginHorizontal: 16,
-    padding: 16,
-    borderRadius: 12,
+    gap: 4,
+    marginBottom: 2,
   },
-  submitDisabled: { opacity: 0.5 },
-  submitText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+  taskMetaText: { fontSize: 13, color: COLORS.muted, flex: 1 },
+  chevron: { position: "absolute", right: 16, top: "50%" },
 });
