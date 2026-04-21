@@ -11,3 +11,4 @@ export { Avatar } from "./Avatar";
 export { EmptyState } from "./EmptyState";
 export { ListItem } from "./ListItem";
 export { QueueBadge } from "./QueueBadge";
+export { RetryableAction } from "./RetryableAction";

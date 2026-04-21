@@ -25,7 +25,9 @@
     "noData": "No data",
     "noInternet": "No internet connection",
     "currency": "UZS",
-    "pcs": "pcs"
+    "pcs": "pcs",
+    "edit": "Edit",
+    "attemptsLeft": "attempts left"
   },
   "roles": {
     "owner": "Owner",
@@ -90,7 +92,9 @@
       "errorEmail": "Enter email address",
       "errorEmailInvalid": "Enter a valid email address",
       "errorSend": "Failed to send link. Try again later."
-    }
+    },
+    "logout": "Log out",
+    "welcome": "Welcome"
   },
   "tabs": {
     "home": "Home",
@@ -168,7 +172,10 @@
       "collection": "Collection",
       "inventory": "Inventory",
       "route": "Route"
-    }
+    },
+    "title": "Machines",
+    "inventory": "Inventory",
+    "transfer": "Transfer"
   },
   "tasks": {
     "types": {
@@ -240,7 +247,13 @@
       "taskCompleteFailed": "Failed to complete task",
       "notFound": "Task not found",
       "taskNotFound": "Task not found"
-    }
+    },
+    "title": "Tasks",
+    "accept": "Accept",
+    "start": "Start",
+    "complete": "Complete",
+    "photo": "Photo",
+    "uploadPhoto": "Upload photo"
   },
   "taskPhoto": {
     "photoUploaded": "Photo uploaded!",
@@ -320,7 +333,9 @@
     "empty": "No notifications",
     "emptySubtitle": "Your notifications will appear here",
     "unread": "unread",
-    "readAll": "Read all"
+    "readAll": "Read all",
+    "title": "Notifications",
+    "markAsRead": "Mark as read"
   },
   "settings": {
     "account": "Account",
@@ -410,7 +425,11 @@
     "issuesPlaceholder": "Describe any issues...",
     "notesTitle": "Notes",
     "notesPlaceholder": "Additional comments...",
-    "submitReport": "Submit Report"
+    "submitReport": "Submit Report",
+    "title": "Maintenance",
+    "type": "Type",
+    "startWork": "Start work",
+    "complete": "Complete"
   },
   "route": {
     "title": "Today's Route",
@@ -428,7 +447,11 @@
       "cleaning": "Cleaning",
       "repair": "Repair",
       "audit": "Audit"
-    }
+    },
+    "arriveAt": "Arrive at stop",
+    "start": "Start route",
+    "end": "End route",
+    "inProgress": "In progress"
   },
   "client": {
     "home": {
@@ -734,5 +757,25 @@
     "paymentMethods": {
       "cash": "Cash"
     }
+  },
+  "barcode": {
+    "title": "Scan",
+    "scanning": "Scanning...",
+    "notFound": "Not found",
+    "notFoundDesc": "No item found for this barcode.",
+    "permissionDenied": "Camera permission denied"
+  },
+  "product": {
+    "title": "Products",
+    "detail": "Product detail",
+    "price": "Price",
+    "cost": "Cost price"
+  },
+  "error": {
+    "failed": "Failed",
+    "network": "No connection",
+    "exhausted": "All attempts exhausted. Check your connection.",
+    "retry": "Retry",
+    "permissionDenied": "Permission denied"
   }
 }

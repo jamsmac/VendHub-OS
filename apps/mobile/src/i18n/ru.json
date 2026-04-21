@@ -25,7 +25,9 @@
     "noData": "Нет данных",
     "noInternet": "Нет подключения к интернету",
     "currency": "сум",
-    "pcs": "шт"
+    "pcs": "шт",
+    "edit": "Редактировать",
+    "attemptsLeft": "попыток"
   },
   "roles": {
     "owner": "Владелец",
@@ -90,7 +92,9 @@
       "errorEmail": "Введите email адрес",
       "errorEmailInvalid": "Введите корректный email адрес",
       "errorSend": "Не удалось отправить ссылку. Попробуйте позже."
-    }
+    },
+    "logout": "Выйти",
+    "welcome": "Добро пожаловать"
   },
   "tabs": {
     "home": "Главная",
@@ -169,7 +173,10 @@
       "collection": "Инкассация",
       "inventory": "Запасы",
       "route": "Маршрут"
-    }
+    },
+    "title": "Автоматы",
+    "inventory": "Запасы",
+    "transfer": "Перемещение"
   },
   "tasks": {
     "types": {
@@ -241,7 +248,13 @@
       "taskCompleteFailed": "Не удалось завершить задачу",
       "notFound": "Задача не найдена",
       "taskNotFound": "Задача не найдена"
-    }
+    },
+    "title": "Задачи",
+    "accept": "Принять",
+    "start": "Начать",
+    "complete": "Завершить",
+    "photo": "Фото",
+    "uploadPhoto": "Загрузить фото"
   },
   "taskPhoto": {
     "photoUploaded": "Фото загружено!",
@@ -321,7 +334,9 @@
     "empty": "Нет уведомлений",
     "emptySubtitle": "Здесь появятся ваши уведомления",
     "unread": "непрочитанных",
-    "readAll": "Прочитать все"
+    "readAll": "Прочитать все",
+    "title": "Уведомления",
+    "markAsRead": "Отметить как прочитанное"
   },
   "settings": {
     "account": "Аккаунт",
@@ -398,7 +413,11 @@
     "status": "Статус",
     "active": "Активен",
     "inactive": "Неактивен",
-    "description": "Описание"
+    "description": "Описание",
+    "title": "Товары",
+    "detail": "Детали товара",
+    "price": "Цена",
+    "cost": "Себестоимость"
   },
   "maintenance": {
     "checklist": {
@@ -431,7 +450,11 @@
     "issuesPlaceholder": "Опишите если есть проблемы...",
     "notesTitle": "Заметки",
     "notesPlaceholder": "Дополнительные комментарии...",
-    "submitReport": "Отправить отчёт"
+    "submitReport": "Отправить отчёт",
+    "title": "Обслуживание",
+    "type": "Тип",
+    "startWork": "Начать работу",
+    "complete": "Завершить"
   },
   "route": {
     "title": "Маршрут на сегодня",
@@ -464,7 +487,11 @@
     "assignRoutePrompt": "Свяжитесь с менеджером — маршрут должен быть назначен в веб-панели.",
     "startError": "Не удалось начать маршрут",
     "endError": "Не удалось завершить маршрут",
-    "invalidOdometer": "Введите корректное число"
+    "invalidOdometer": "Введите корректное число",
+    "arrivedTitle": "Вы прибыли",
+    "arrivedBody": "Вы прибыли: {{name}}",
+    "arrivedBanner": "Вы прибыли: {{name}}",
+    "arriveAt": "Прибытие в точку"
   },
   "client": {
     "home": {
@@ -770,5 +797,12 @@
     "paymentMethods": {
       "cash": "Наличные"
     }
+  },
+  "error": {
+    "failed": "Не удалось",
+    "network": "Нет связи",
+    "exhausted": "Исчерпаны попытки. Проверьте соединение.",
+    "retry": "Повторить",
+    "permissionDenied": "Нет доступа"
   }
 }

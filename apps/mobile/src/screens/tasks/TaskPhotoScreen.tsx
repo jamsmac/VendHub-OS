@@ -3,23 +3,17 @@
  * Camera for capturing before/after photos
  */
 
-import React, { useState, useRef } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  Image,
-} from "react-native";
+import React, { useState, useRef, useCallback } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { tasksApi } from "../../services/api";
 import { MainStackParamList } from "../../navigation/MainNavigator";
+import { RetryableAction } from "../../components";
 
 type RouteType = RouteProp<MainStackParamList, "TaskPhoto">;
 
@@ -40,36 +34,26 @@ export function TaskPhotoScreen() {
     }
   }, [permission, requestPermission]);
 
-  const uploadMutation = useMutation({
-    mutationFn: async (uri: string) => {
-      const formData = new FormData();
-      formData.append("photo", {
-        uri,
-        type: "image/jpeg",
-        name: `photo_${type}_${Date.now()}.jpg`,
-      } as unknown as Blob);
+  const uploadAction = useCallback(async () => {
+    if (!photo) return;
+    const formData = new FormData();
+    formData.append("photo", {
+      uri: photo,
+      type: "image/jpeg",
+      name: `photo_${type}_${Date.now()}.jpg`,
+    } as unknown as Blob);
 
-      if (type === "before") {
-        return tasksApi.uploadPhotoBefore(taskId, formData);
-      } else {
-        return tasksApi.uploadPhotoAfter(taskId, formData);
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["task", taskId] });
-      Alert.alert(t("common.success"), t("taskPhoto.photoUploaded"));
-      navigation.goBack();
-    },
-    onError: (error: unknown) => {
-      const axiosError = error as {
-        response?: { data?: { message?: string } };
-      };
-      Alert.alert(
-        t("common.error"),
-        axiosError.response?.data?.message || t("taskPhoto.uploadFailed"),
-      );
-    },
-  });
+    if (type === "before") {
+      await tasksApi.uploadPhotoBefore(taskId, formData);
+    } else {
+      await tasksApi.uploadPhotoAfter(taskId, formData);
+    }
+    queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+  }, [photo, type, taskId, queryClient]);
+
+  const handleUploadSuccess = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const takePhoto = async () => {
     if (cameraRef.current) {
@@ -90,12 +74,6 @@ export function TaskPhotoScreen() {
 
     if (!result.canceled) {
       setPhoto(result.assets[0].uri);
-    }
-  };
-
-  const confirmPhoto = () => {
-    if (photo) {
-      uploadMutation.mutate(photo);
     }
   };
 
@@ -135,10 +113,14 @@ export function TaskPhotoScreen() {
             <Ionicons name="refresh" size={24} color="#fff" />
             <Text style={styles.retakeText}>{t("taskPhoto.retake")}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.confirmButton} onPress={confirmPhoto}>
-            <Ionicons name="checkmark" size={24} color="#fff" />
-            <Text style={styles.confirmText}>{t("taskPhoto.confirm")}</Text>
-          </TouchableOpacity>
+          <View style={styles.uploadWrapper}>
+            <RetryableAction
+              label={t("tasks.uploadPhoto", "Загрузить фото")}
+              action={uploadAction}
+              maxAttempts={3}
+              onSuccess={handleUploadSuccess}
+            />
+          </View>
         </View>
       </View>
     );
@@ -254,19 +236,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 8,
   },
-  confirmButton: {
+  uploadWrapper: {
     flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#10B981",
-    padding: 16,
-    borderRadius: 12,
-  },
-  confirmText: {
-    color: "#fff",
-    fontSize: 16,
-    marginLeft: 8,
   },
   errorText: {
     fontSize: 16,

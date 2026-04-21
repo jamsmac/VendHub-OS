@@ -25,7 +25,9 @@
     "noData": "Ma'lumot yo'q",
     "noInternet": "Internet aloqasi yo'q",
     "currency": "so'm",
-    "pcs": "dona"
+    "pcs": "dona",
+    "edit": "Tahrirlash",
+    "attemptsLeft": "urinish qoldi"
   },
   "roles": {
     "owner": "Egasi",
@@ -90,7 +92,9 @@
       "errorEmail": "Email manzilni kiriting",
       "errorEmailInvalid": "To'g'ri email manzilni kiriting",
       "errorSend": "Havolani yuborib bo'lmadi. Keyinroq urinib ko'ring."
-    }
+    },
+    "logout": "Chiqish",
+    "welcome": "Xush kelibsiz"
   },
   "tabs": {
     "home": "Bosh sahifa",
@@ -168,7 +172,10 @@
       "collection": "Inkassatsiya",
       "inventory": "Zaxiralar",
       "route": "Yo'nalish"
-    }
+    },
+    "title": "Avtomatlar",
+    "inventory": "Zaxira",
+    "transfer": "Ko'chirish"
   },
   "tasks": {
     "types": {
@@ -240,7 +247,13 @@
       "taskCompleteFailed": "Vazifani tugatib bo'lmadi",
       "notFound": "Vazifa topilmadi",
       "taskNotFound": "Vazifa topilmadi"
-    }
+    },
+    "title": "Vazifalar",
+    "accept": "Qabul qilish",
+    "start": "Boshlash",
+    "complete": "Yakunlash",
+    "photo": "Foto",
+    "uploadPhoto": "Foto yuklash"
   },
   "taskPhoto": {
     "photoUploaded": "Surat yuklandi!",
@@ -320,7 +333,9 @@
     "empty": "Bildirishnomalar yo'q",
     "emptySubtitle": "Bildirishnomalaringiz bu yerda paydo bo'ladi",
     "unread": "o'qilmagan",
-    "readAll": "Barchasini o'qish"
+    "readAll": "Barchasini o'qish",
+    "title": "Bildirishnomalar",
+    "markAsRead": "O'qilgan deb belgilash"
   },
   "settings": {
     "account": "Hisob",
@@ -410,7 +425,11 @@
     "issuesPlaceholder": "Muammolarni tasvirlab bering...",
     "notesTitle": "Eslatmalar",
     "notesPlaceholder": "Qo'shimcha izohlar...",
-    "submitReport": "Hisobotni yuborish"
+    "submitReport": "Hisobotni yuborish",
+    "title": "Texnik xizmat",
+    "type": "Turi",
+    "startWork": "Ishni boshlash",
+    "complete": "Yakunlash"
   },
   "route": {
     "title": "Bugungi yo'nalish",
@@ -428,7 +447,11 @@
       "cleaning": "Yuvish",
       "repair": "Ta'mirlash",
       "audit": "Tekshirish"
-    }
+    },
+    "arriveAt": "Nuqtaga yetib kelish",
+    "start": "Marshrutni boshlash",
+    "end": "Marshrutni tugatish",
+    "inProgress": "Jarayonda"
   },
   "client": {
     "home": {
@@ -734,5 +757,25 @@
     "paymentMethods": {
       "cash": "Naqd pul"
     }
+  },
+  "barcode": {
+    "title": "Skanerlash",
+    "scanning": "Skanerlanmoqda...",
+    "notFound": "Topilmadi",
+    "notFoundDesc": "Bu shtrix-kod bo'yicha mahsulot topilmadi.",
+    "permissionDenied": "Kamera ruxsati yo'q"
+  },
+  "product": {
+    "title": "Mahsulotlar",
+    "detail": "Mahsulot tafsiloti",
+    "price": "Narx",
+    "cost": "Tannarx"
+  },
+  "error": {
+    "failed": "Muvaffaqiyatsiz",
+    "network": "Aloqa yo'q",
+    "exhausted": "Barcha urinishlar tugadi. Ulanishni tekshiring.",
+    "retry": "Qayta urinish",
+    "permissionDenied": "Ruxsat yo'q"
   }
 }
