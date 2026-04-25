@@ -4,7 +4,7 @@
 # ==================================================
 
 # Stage 1: Dependencies
-FROM node:20-alpine AS deps
+FROM node:25-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
@@ -21,7 +21,7 @@ RUN pnpm install --frozen-lockfile
 
 # ==================================================
 # Stage 2: Development (for docker-compose dev mode)
-FROM node:20-alpine AS development
+FROM node:25-alpine AS development
 WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
@@ -43,7 +43,7 @@ CMD ["pnpm", "--filter", "@vendhub/web", "dev"]
 
 # ==================================================
 # Stage 3: Builder
-FROM node:20-alpine AS builder
+FROM node:25-alpine AS builder
 WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
@@ -77,7 +77,7 @@ RUN pnpm --filter @vendhub/web build
 
 # ==================================================
 # Stage 4: Production Runner (MUST be last for Railway)
-FROM node:20-alpine AS production
+FROM node:25-alpine AS production
 WORKDIR /app
 
 # Security: run as non-root user
