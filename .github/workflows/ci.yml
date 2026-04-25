@@ -206,7 +206,7 @@ jobs:
           CI: true
 
       - name: Upload coverage reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage-reports
@@ -263,7 +263,7 @@ jobs:
         run: pnpm --filter mobile type-check
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-artifacts
           path: |
@@ -514,7 +514,7 @@ jobs:
           CLIENT_URL: http://localhost:5173
 
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: playwright-report
