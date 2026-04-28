@@ -3,10 +3,10 @@
  * Payment method selection and order confirmation
  */
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import {
   ArrowLeft,
@@ -14,6 +14,7 @@ import {
   Smartphone,
   Wallet,
   Star,
+  Sparkles,
   CheckCircle2,
   Loader2,
   MapPin,
@@ -24,7 +25,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
-import { api } from "@/lib/api";
+import { api, loyaltyApi } from "@/lib/api";
 import { useCartStore } from "@/lib/store";
 import { formatNumber } from "@/lib/utils";
 
@@ -87,7 +88,32 @@ export function CheckoutPage() {
 
   const subtotal = getSubtotal();
   const serviceFee = 0; // Free for now
-  const total = subtotal + serviceFee;
+  const grossTotal = subtotal + serviceFee;
+
+  // Loyalty balance — silent failure if not authenticated; the spend block
+  // simply won't render. Don't block checkout on a /loyalty/me hiccup.
+  const { data: loyalty } = useQuery({
+    queryKey: ["loyalty", "me"],
+    queryFn: async () => {
+      const res = await loyaltyApi.getMe();
+      return res.data;
+    },
+    retry: false,
+    staleTime: 30_000,
+  });
+  const pointsBalance = loyalty?.points ?? 0;
+
+  // Spend state. Backend caps at min(usePoints, subtotal-promoDiscount)
+  // server-side, but mirror the cap here so the UI total matches what the
+  // server will compute.
+  const [pointsInput, setPointsInput] = useState<string>("");
+  const pointsToSpend = useMemo(() => {
+    const parsed = Number.parseInt(pointsInput, 10);
+    if (!Number.isFinite(parsed) || parsed <= 0) return 0;
+    return Math.min(parsed, pointsBalance, grossTotal);
+  }, [pointsInput, pointsBalance, grossTotal]);
+  const maxSpendable = Math.min(pointsBalance, grossTotal);
+  const total = Math.max(0, grossTotal - pointsToSpend);
 
   // Calculate stars equivalent (1 star ≈ 1000 UZS)
   const starsAmount = Math.ceil(total / 1000);
@@ -102,6 +128,7 @@ export function CheckoutPage() {
           quantity: item.quantity,
         })),
         paymentMethod: selectedPayment,
+        ...(pointsToSpend > 0 && { usePoints: pointsToSpend }),
       });
       return res.data;
     },
@@ -319,6 +346,45 @@ export function CheckoutPage() {
         )}
       </div>
 
+      {/* Bonus Points Spend */}
+      {pointsBalance > 0 && (
+        <div className="card-coffee p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-amber-500" />
+            <h2 className="font-semibold flex-1">{t("useBonusPoints")}</h2>
+            <span className="text-sm text-muted-foreground">
+              {t("bonusBalance")}: {formatNumber(pointsBalance)}
+            </span>
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={maxSpendable}
+              value={pointsInput}
+              onChange={(e) => setPointsInput(e.target.value)}
+              placeholder={t("bonusInputPlaceholder")}
+              aria-label={t("useBonusPoints")}
+              className="flex-1 px-4 py-3 rounded-xl bg-muted/50 border-2 border-transparent focus:border-primary focus:outline-none transition-colors"
+            />
+            <button
+              type="button"
+              onClick={() => setPointsInput(String(maxSpendable))}
+              disabled={maxSpendable === 0}
+              className="px-4 py-3 rounded-xl bg-amber-500/10 text-amber-600 font-medium hover:bg-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {t("useMaxBonus")}
+            </button>
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            {t("bonusPointsHint")}
+          </p>
+        </div>
+      )}
+
       {/* Order Total */}
       <div className="card-coffee p-4 space-y-3">
         <div className="space-y-2 text-sm">
@@ -330,6 +396,17 @@ export function CheckoutPage() {
             <span className="text-muted-foreground">{t("serviceFee")}</span>
             <span className="text-green-500">{t("free")}</span>
           </div>
+          {pointsToSpend > 0 && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                {t("bonusApplied")}
+              </span>
+              <span className="text-amber-600">
+                −{formatNumber(pointsToSpend)} UZS
+              </span>
+            </div>
+          )}
           <div className="pt-3 border-t">
             <div className="flex justify-between text-lg font-semibold">
               <span>{t("total")}</span>
