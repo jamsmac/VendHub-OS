@@ -171,6 +171,8 @@ export const en = {
     friends: "Friends",
     invite: "Invite",
     redeem: "Redeem",
+    redeemSuccess: "Reward redeemed!",
+    redeemFailed: "Failed to redeem reward",
     unavailable: "Unavailable",
     noRewardsAvailable: "No rewards available yet",
     historyEmpty: "History is empty",

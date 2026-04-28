@@ -174,6 +174,8 @@ export const uz = {
     friends: "Do'stlar",
     invite: "Taklif qilish",
     redeem: "Olish",
+    redeemSuccess: "Mukofot olindi!",
+    redeemFailed: "Mukofotni olish bo'lmadi",
     unavailable: "Mavjud emas",
     noRewardsAvailable: "Hozircha mukofotlar yo'q",
     historyEmpty: "Tarix bo'sh",

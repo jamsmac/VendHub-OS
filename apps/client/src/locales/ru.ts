@@ -172,6 +172,8 @@ export const ru = {
     friends: "Друзья",
     invite: "Пригласить",
     redeem: "Получить",
+    redeemSuccess: "Награда получена!",
+    redeemFailed: "Не удалось получить награду",
     unavailable: "Недоступно",
     noRewardsAvailable: "Пока нет доступных наград",
     historyEmpty: "История пуста",

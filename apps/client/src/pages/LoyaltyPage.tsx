@@ -6,7 +6,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
 import {
   ArrowLeft,
   Star,
@@ -29,7 +31,7 @@ import {
   TicketPercent,
 } from "lucide-react";
 import i18n from "@/i18n";
-import { api, UserAchievement } from "@/lib/api";
+import { api, loyaltyApi, UserAchievement } from "@/lib/api";
 import { formatNumber } from "@/lib/utils";
 
 interface LeaderboardUser {
@@ -97,7 +99,26 @@ const tierColors: Record<number, string> = {
 
 export function LoyaltyPage() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"rewards" | "history">("rewards");
+
+  // Redeem reward mutation. Server-side validates points balance + reward
+  // availability; on success we invalidate loyalty + history so the
+  // updated balance and the new SPEND transaction render immediately.
+  const redeemMutation = useMutation({
+    mutationFn: async (rewardId: string) => {
+      const res = await loyaltyApi.redeemReward(rewardId);
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success(t("redeemSuccess"));
+      queryClient.invalidateQueries({ queryKey: ["loyalty"] });
+    },
+    onError: (error: Error) => {
+      const axiosErr = error as AxiosError<{ message?: string }>;
+      toast.error(axiosErr.response?.data?.message || t("redeemFailed"));
+    },
+  });
 
   // Fetch loyalty data
   const { data: loyalty, isLoading: loyaltyLoading } = useQuery<LoyaltyData>({
@@ -361,8 +382,14 @@ export function LoyaltyPage() {
                         {formatNumber(reward.pointsCost)}
                       </div>
                       {canRedeem ? (
-                        <button className="text-sm bg-primary text-white px-4 py-1.5 rounded-lg font-medium hover:bg-primary/90 transition-colors">
-                          {t("redeem")}
+                        <button
+                          onClick={() => redeemMutation.mutate(reward.id)}
+                          disabled={redeemMutation.isPending}
+                          className="text-sm bg-primary text-white px-4 py-1.5 rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {redeemMutation.isPending
+                            ? t("processing")
+                            : t("redeem")}
                         </button>
                       ) : (
                         <div className="flex items-center gap-1 text-muted-foreground text-sm">
