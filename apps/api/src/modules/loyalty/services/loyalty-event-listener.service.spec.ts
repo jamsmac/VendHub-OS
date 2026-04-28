@@ -3,6 +3,7 @@ import { getRepositoryToken } from "@nestjs/typeorm";
 
 import { LoyaltyEventListenerService } from "./loyalty-event-listener.service";
 import { BonusEngineService } from "./bonus-engine.service";
+import { AchievementService } from "./achievement.service";
 import { PointsTransaction } from "../entities/points-transaction.entity";
 import { PointsSource } from "../constants/loyalty.constants";
 
@@ -10,6 +11,9 @@ describe("LoyaltyEventListenerService", () => {
   let service: LoyaltyEventListenerService;
   let bonusEngine: jest.Mocked<
     Pick<BonusEngineService, "processOrderPoints" | "processFirstOrderBonus">
+  >;
+  let achievementService: jest.Mocked<
+    Pick<AchievementService, "checkAndUnlock">
   >;
   let pointsTransactionRepo: { findOne: jest.Mock };
 
@@ -27,6 +31,9 @@ describe("LoyaltyEventListenerService", () => {
       }),
       processFirstOrderBonus: jest.fn().mockResolvedValue(null),
     };
+    achievementService = {
+      checkAndUnlock: jest.fn().mockResolvedValue([]),
+    };
     pointsTransactionRepo = {
       findOne: jest.fn().mockResolvedValue(null),
     };
@@ -35,6 +42,7 @@ describe("LoyaltyEventListenerService", () => {
       providers: [
         LoyaltyEventListenerService,
         { provide: BonusEngineService, useValue: bonusEngine },
+        { provide: AchievementService, useValue: achievementService },
         {
           provide: getRepositoryToken(PointsTransaction),
           useValue: pointsTransactionRepo,
@@ -75,6 +83,12 @@ describe("LoyaltyEventListenerService", () => {
         orgId,
         orderId,
         50_000,
+      );
+      expect(achievementService.checkAndUnlock).toHaveBeenCalledWith(
+        userId,
+        orgId,
+        "order.completed",
+        { orderId, totalAmount: 50_000 },
       );
     });
 
@@ -136,6 +150,27 @@ describe("LoyaltyEventListenerService", () => {
           organizationId: orgId,
         }),
       ).resolves.toBeUndefined();
+
+      // achievement check is gated on points-grant success: if points failed,
+      // user.totalOrders may be in an inconsistent state, so skip the check
+      expect(achievementService.checkAndUnlock).not.toHaveBeenCalled();
+    });
+
+    it("does not throw when achievement check fails (logs and swallows)", async () => {
+      achievementService.checkAndUnlock.mockRejectedValueOnce(
+        new Error("achievement repo down"),
+      );
+
+      await expect(
+        service.handleOrderCompleted({
+          orderId,
+          userId,
+          totalAmount: 50_000,
+          organizationId: orgId,
+        }),
+      ).resolves.toBeUndefined();
+      // points were granted before the failure
+      expect(bonusEngine.processOrderPoints).toHaveBeenCalled();
     });
 
     it("does not throw when first-order bonus fails (only logs)", async () => {

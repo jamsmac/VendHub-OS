@@ -4,6 +4,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
 import { BonusEngineService } from "./bonus-engine.service";
+import { AchievementService } from "./achievement.service";
 import { PointsTransaction } from "../entities/points-transaction.entity";
 import { PointsSource } from "../constants/loyalty.constants";
 
@@ -27,6 +28,7 @@ export class LoyaltyEventListenerService {
 
   constructor(
     private readonly bonusEngineService: BonusEngineService,
+    private readonly achievementService: AchievementService,
     @InjectRepository(PointsTransaction)
     private readonly pointsTransactionRepo: Repository<PointsTransaction>,
   ) {}
@@ -90,6 +92,27 @@ export class LoyaltyEventListenerService {
     } catch (error: unknown) {
       this.logger.error(
         `Failed to grant points for order ${orderId}`,
+        error instanceof Error ? error.stack : error,
+      );
+      // Skip achievement check: user.totalOrders may be in an inconsistent
+      // state (processOrderPoints increments it before earnPoints), so
+      // condition evaluation could either miss or double-fire.
+      return;
+    }
+
+    // Achievement unlocking is best-effort — a failure here must not bubble
+    // up to the order pipeline. checkAndUnlock is idempotent (skips already
+    // unlocked achievements), so re-emitting the event is safe.
+    try {
+      await this.achievementService.checkAndUnlock(
+        userId,
+        organizationId,
+        "order.completed",
+        { orderId, totalAmount: amount },
+      );
+    } catch (error: unknown) {
+      this.logger.error(
+        `Failed achievement check for order ${orderId}`,
         error instanceof Error ? error.stack : error,
       );
     }
