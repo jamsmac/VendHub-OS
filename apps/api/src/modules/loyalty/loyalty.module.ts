@@ -6,6 +6,7 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
+import { WebPushModule } from "../web-push/web-push.module";
 import { LoyaltyController } from "./loyalty.controller";
 import { LoyaltyService } from "./loyalty.service";
 import { PointsTransaction } from "./entities/points-transaction.entity";
@@ -26,6 +27,7 @@ import { QuestController } from "./controllers/quest.controller";
 import { LoyaltyAnalyticsService } from "./services/loyalty-analytics.service";
 import { BonusEngineService } from "./services/bonus-engine.service";
 import { LoyaltyEventListenerService } from "./services/loyalty-event-listener.service";
+import { LoyaltyNotificationListenerService } from "./services/loyalty-notification-listener.service";
 
 @Module({
   imports: [
@@ -40,6 +42,7 @@ import { LoyaltyEventListenerService } from "./services/loyalty-event-listener.s
       LoyaltyPromoCodeUsage,
       User,
     ]),
+    WebPushModule,
     // ScheduleModule and EventEmitterModule are configured globally in AppModule
   ],
   controllers: [
@@ -53,6 +56,7 @@ import { LoyaltyEventListenerService } from "./services/loyalty-event-listener.s
     LoyaltyAnalyticsService,
     BonusEngineService,
     LoyaltyEventListenerService,
+    LoyaltyNotificationListenerService,
     ReferralService,
     AchievementService,
     QuestService,
