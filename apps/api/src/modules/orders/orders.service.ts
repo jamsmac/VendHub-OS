@@ -276,6 +276,10 @@ export class OrdersService {
         // listener that already consumes it.
         amount: order.totalAmount,
         machineId: order.machineId,
+        // Points spent at order creation are stored on the order but
+        // were never deducted from the user's balance — the loyalty
+        // listener performs the spend on completion (idempotent).
+        pointsUsed: order.pointsUsed,
         organizationId,
       });
     }

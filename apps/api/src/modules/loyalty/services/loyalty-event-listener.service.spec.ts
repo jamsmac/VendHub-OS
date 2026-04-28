@@ -4,8 +4,12 @@ import { getRepositoryToken } from "@nestjs/typeorm";
 import { LoyaltyEventListenerService } from "./loyalty-event-listener.service";
 import { BonusEngineService } from "./bonus-engine.service";
 import { AchievementService } from "./achievement.service";
+import { LoyaltyService } from "../loyalty.service";
 import { PointsTransaction } from "../entities/points-transaction.entity";
-import { PointsSource } from "../constants/loyalty.constants";
+import {
+  PointsSource,
+  PointsTransactionType,
+} from "../constants/loyalty.constants";
 
 describe("LoyaltyEventListenerService", () => {
   let service: LoyaltyEventListenerService;
@@ -15,6 +19,7 @@ describe("LoyaltyEventListenerService", () => {
   let achievementService: jest.Mocked<
     Pick<AchievementService, "checkAndUnlock">
   >;
+  let loyaltyService: jest.Mocked<Pick<LoyaltyService, "spendPoints">>;
   let pointsTransactionRepo: { findOne: jest.Mock };
 
   const orgId = "org-uuid-1";
@@ -34,6 +39,12 @@ describe("LoyaltyEventListenerService", () => {
     achievementService = {
       checkAndUnlock: jest.fn().mockResolvedValue([]),
     };
+    loyaltyService = {
+      spendPoints: jest.fn().mockResolvedValue({
+        spent: 0,
+        newBalance: 0,
+      }),
+    };
     pointsTransactionRepo = {
       findOne: jest.fn().mockResolvedValue(null),
     };
@@ -43,6 +54,7 @@ describe("LoyaltyEventListenerService", () => {
         LoyaltyEventListenerService,
         { provide: BonusEngineService, useValue: bonusEngine },
         { provide: AchievementService, useValue: achievementService },
+        { provide: LoyaltyService, useValue: loyaltyService },
         {
           provide: getRepositoryToken(PointsTransaction),
           useValue: pointsTransactionRepo,
@@ -170,6 +182,102 @@ describe("LoyaltyEventListenerService", () => {
         }),
       ).resolves.toBeUndefined();
       // points were granted before the failure
+      expect(bonusEngine.processOrderPoints).toHaveBeenCalled();
+    });
+
+    it("spends applied points when pointsUsed is set", async () => {
+      await service.handleOrderCompleted({
+        orderId,
+        userId,
+        totalAmount: 50_000,
+        pointsUsed: 1000,
+        organizationId: orgId,
+      });
+
+      // Idempotency probe for spend uses type=SPEND + source=PURCHASE,
+      // distinct from the earn-side probe (type omitted, source=ORDER).
+      expect(pointsTransactionRepo.findOne).toHaveBeenCalledWith({
+        where: {
+          organizationId: orgId,
+          userId,
+          type: PointsTransactionType.SPEND,
+          source: PointsSource.PURCHASE,
+          referenceId: orderId,
+          referenceType: "order",
+        },
+      });
+      expect(loyaltyService.spendPoints).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId,
+          organizationId: orgId,
+          amount: 1000,
+          referenceId: orderId,
+          referenceType: "order",
+        }),
+      );
+    });
+
+    it("does not call spendPoints when pointsUsed is 0 or absent", async () => {
+      await service.handleOrderCompleted({
+        orderId,
+        userId,
+        totalAmount: 50_000,
+        organizationId: orgId,
+      });
+      expect(loyaltyService.spendPoints).not.toHaveBeenCalled();
+
+      await service.handleOrderCompleted({
+        orderId: "order-uuid-2",
+        userId,
+        totalAmount: 50_000,
+        pointsUsed: 0,
+        organizationId: orgId,
+      });
+      expect(loyaltyService.spendPoints).not.toHaveBeenCalled();
+    });
+
+    it("does not double-spend when a SPEND transaction already exists", async () => {
+      // Discriminate by the WHERE clause rather than call order — the spec
+      // shouldn't break if we rearrange spend/earn probe order later.
+      pointsTransactionRepo.findOne.mockImplementation(
+        ({ where }: { where: { type?: string } }) => {
+          if (where.type === PointsTransactionType.SPEND) {
+            return Promise.resolve({ id: "existing-spend-tx" });
+          }
+          return Promise.resolve(null);
+        },
+      );
+
+      await service.handleOrderCompleted({
+        orderId,
+        userId,
+        totalAmount: 50_000,
+        pointsUsed: 1000,
+        organizationId: orgId,
+      });
+
+      expect(loyaltyService.spendPoints).not.toHaveBeenCalled();
+      // Earn flow still runs — re-emitting the event must not block earning
+      // for a customer who has already had their balance debited.
+      expect(bonusEngine.processOrderPoints).toHaveBeenCalled();
+    });
+
+    it("does not throw when spendPoints fails (logs and swallows)", async () => {
+      loyaltyService.spendPoints.mockRejectedValueOnce(
+        new Error("Insufficient points balance"),
+      );
+
+      await expect(
+        service.handleOrderCompleted({
+          orderId,
+          userId,
+          totalAmount: 50_000,
+          pointsUsed: 1000,
+          organizationId: orgId,
+        }),
+      ).resolves.toBeUndefined();
+      // Earn flow still runs after a spend failure — the customer paid for
+      // the cash portion of the order regardless.
       expect(bonusEngine.processOrderPoints).toHaveBeenCalled();
     });
 

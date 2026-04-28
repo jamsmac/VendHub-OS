@@ -567,6 +567,10 @@ describe("OrdersService", () => {
           totalAmount: readyOrder.totalAmount,
           amount: readyOrder.totalAmount,
           machineId: readyOrder.machineId,
+          // Points the customer applied at order creation. The loyalty
+          // listener uses this to deduct from the user's balance once
+          // the order is actually paid + delivered.
+          pointsUsed: readyOrder.pointsUsed,
         }),
       );
     });
