@@ -271,6 +271,11 @@ export class OrdersService {
         orderId: order.id,
         userId: order.userId,
         totalAmount: order.totalAmount,
+        // `amount` is the field name expected by quest-progress and
+        // referrals listeners; keep `totalAmount` for the loyalty
+        // listener that already consumes it.
+        amount: order.totalAmount,
+        machineId: order.machineId,
         organizationId,
       });
     }

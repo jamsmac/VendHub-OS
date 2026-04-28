@@ -560,6 +560,13 @@ describe("OrdersService", () => {
           orderId: "order-uuid-1",
           userId: "user-uuid-1",
           organizationId: orgId,
+          // Payload contract for downstream listeners:
+          //  totalAmount → loyalty-event-listener (canonical name)
+          //  amount → quest-progress + referrals (legacy alias)
+          //  machineId → quest-progress (VISIT, ORDER_MACHINE quest types)
+          totalAmount: readyOrder.totalAmount,
+          amount: readyOrder.totalAmount,
+          machineId: readyOrder.machineId,
         }),
       );
     });
