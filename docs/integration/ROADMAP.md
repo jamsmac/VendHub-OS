@@ -208,15 +208,43 @@
 
 ## 5. Текущий статус (live-обновляется)
 
+### Завершено
+
 - [x] Phase 0 — Discovery (4 файла в `discovery/`)
 - [x] Phase 1 — OVERLAP_MATRIX + DECISION_MATRIX
 - [x] Phase 1.5 — Audit existing OS modules (4 файла в `audit/`)
-- [x] Phase 1.6 — Roadmap correction (этот файл)
-- [ ] **Sprint 1, Task 1.1 — Wire points grant on order completion** ← ТЕКУЩАЯ
-- [ ] Sprint 1, Tasks 1.2–1.9
-- [ ] Sprint 2 — Cleaning + Telegram bot
-- [ ] Sprint 3 — Recipe + Coffee
-- [ ] Sprint 4 — Admin UI gaps
+- [x] Phase 1.6 — Roadmap correction
+- [x] **Sprint 1 — Loyalty for clients** (закрыт 2026-04-28; 9 коммитов)
+  - [x] 1.1 Wire points grant on order.completed (`2b3c0ef`)
+  - [x] 1.2 Wire achievement unlock (`358138a`)
+  - [x] 1.3 Wire quest auto-complete — already in place (`quest-progress.service.ts:277`)
+  - [x] 1.4 Wire referral on first order — already in place (`referrals.service.ts:213`)
+  - [x] 1.5 apps/client checkout Spend UI (`cca3112`)
+  - [x] 1.6 apps/client LoyaltyPage redeem wire (`dc62d59`)
+  - [x] 1.7 Tier-up web-push (`1f3a43f`)
+  - [x] 1.8 ⏸ E2E Playwright — DEFERRED (отдельная задача с DB seed)
+  - [x] 1.9 TMA haptic feedback (`f94bf59`)
+  - [x] BUG: `pointsUsed` не списывался — fixed (`0d155d3`)
+  - [x] BUG: `order.completed` payload mismatch (`amount` alias) — fixed (`66e7fc6`)
+- [x] **Sprint 2 — частично** (3/7 закрыто)
+  - [x] 2.1 MaintenanceSchedule.componentId migration (`cb02ee2`)
+  - [x] 2.2 Quick mark-completed endpoint (`347b8d4`)
+  - [x] 2.5 SLA breach web-push к manager + assigned tech (`a2052f2`)
+
+### В работе
+
+- [ ] **Sprint 2.3 — `BotCleaningTasksService`** ← СЛЕДУЮЩАЯ. Daily cron 9:00 Asia/Tashkent шлёт staff'у их сегодняшние задачи в Telegram (~8h).
+- [ ] **Sprint 2.4 — Bot photo + done flow.** Фото из бота → StorageService → MaintenanceRequest.photos → mark-completed (~8h). Связан с 2.3.
+- [ ] **Sprint 2.6 — Admin UI calendar** `/dashboard/maintenance/schedule-calendar` — кто что когда моет (~8h).
+- [ ] **Sprint 2.7 — E2E** cleaning flow.
+
+### Дальше
+
+- [ ] Sprint 3 — Recipe модель + кофе-машины (~60h)
+- [ ] Sprint 4 — Admin UI gaps: slot layout editor, alert rules CRUD, supplier management, cost calc (~30h)
+- [ ] Sprint 5 — VendCashBot integration (~40h)
+- [ ] Sprint 6 — Snack-Drinks (опц., DROP по умолчанию)
+- [ ] Sprint 7 — E2E + deprecation
 - [ ] Sprint 5 — VendCashBot
 - [ ] Sprint 6 — Snack-Drinks (если нужен)
 - [ ] Sprint 7 — E2E + Deprecation
