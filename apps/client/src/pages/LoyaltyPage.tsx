@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import i18n from "@/i18n";
 import { api, loyaltyApi, UserAchievement } from "@/lib/api";
+import { useTelegramHaptic } from "@/hooks/useTelegramHaptic";
 import { formatNumber } from "@/lib/utils";
 
 interface LeaderboardUser {
@@ -100,6 +101,7 @@ const tierColors: Record<number, string> = {
 export function LoyaltyPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const haptic = useTelegramHaptic();
   const [activeTab, setActiveTab] = useState<"rewards" | "history">("rewards");
 
   // Redeem reward mutation. Server-side validates points balance + reward
@@ -111,10 +113,12 @@ export function LoyaltyPage() {
       return res.data;
     },
     onSuccess: () => {
+      haptic.success();
       toast.success(t("redeemSuccess"));
       queryClient.invalidateQueries({ queryKey: ["loyalty"] });
     },
     onError: (error: Error) => {
+      haptic.error();
       const axiosErr = error as AxiosError<{ message?: string }>;
       toast.error(axiosErr.response?.data?.message || t("redeemFailed"));
     },
@@ -383,7 +387,10 @@ export function LoyaltyPage() {
                       </div>
                       {canRedeem ? (
                         <button
-                          onClick={() => redeemMutation.mutate(reward.id)}
+                          onClick={() => {
+                            haptic.impact("medium");
+                            redeemMutation.mutate(reward.id);
+                          }}
                           disabled={redeemMutation.isPending}
                           className="text-sm bg-primary text-white px-4 py-1.5 rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >

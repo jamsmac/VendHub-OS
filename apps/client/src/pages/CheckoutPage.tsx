@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { api, loyaltyApi } from "@/lib/api";
 import { useCartStore } from "@/lib/store";
+import { useTelegramHaptic } from "@/hooks/useTelegramHaptic";
 import { formatNumber } from "@/lib/utils";
 
 type PaymentMethod = "payme" | "click" | "uzum" | "telegram_stars" | "cash";
@@ -83,6 +84,7 @@ export function CheckoutPage() {
   const [showDetails, setShowDetails] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
 
+  const haptic = useTelegramHaptic();
   const { items, machine, getSubtotal, getTotalItems, clearCart } =
     useCartStore();
 
@@ -133,6 +135,7 @@ export function CheckoutPage() {
       return res.data;
     },
     onSuccess: (data) => {
+      haptic.success();
       if (selectedPayment === "telegram_stars") {
         // Cart cleared on success page after payment confirmation
         window.location.href = data.telegramPaymentUrl;
@@ -146,6 +149,7 @@ export function CheckoutPage() {
       }
     },
     onError: (error: Error) => {
+      haptic.error();
       const axiosErr = error as AxiosError<{ message?: string }>;
       toast.error(axiosErr.response?.data?.message || t("orderFailed"));
     },
@@ -179,6 +183,7 @@ export function CheckoutPage() {
     });
 
     if (!result.success) {
+      haptic.warning();
       const firstError = result.error.errors[0];
       if (firstError?.path.includes("agreeToTerms")) {
         toast.error(t("acceptTerms"));
@@ -190,6 +195,7 @@ export function CheckoutPage() {
       return;
     }
 
+    haptic.impact("heavy");
     createOrderMutation.mutate();
   };
 
@@ -371,7 +377,10 @@ export function CheckoutPage() {
             />
             <button
               type="button"
-              onClick={() => setPointsInput(String(maxSpendable))}
+              onClick={() => {
+                haptic.select();
+                setPointsInput(String(maxSpendable));
+              }}
               disabled={maxSpendable === 0}
               className="px-4 py-3 rounded-xl bg-amber-500/10 text-amber-600 font-medium hover:bg-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
