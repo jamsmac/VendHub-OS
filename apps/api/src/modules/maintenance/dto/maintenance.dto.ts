@@ -47,6 +47,11 @@ export class CreateMaintenanceRequestDto {
   @IsUUID()
   machineId: string;
 
+  @ApiPropertyOptional({ description: "Equipment component ID (optional)" })
+  @IsUUID()
+  @IsOptional()
+  componentId?: string;
+
   @ApiProperty({ description: "Issue title" })
   @IsString()
   @MaxLength(255)
@@ -438,6 +443,14 @@ export class CreateMaintenanceScheduleDto {
   @IsUUID()
   @IsOptional()
   machineId?: string;
+
+  @ApiPropertyOptional({
+    description:
+      "Specific equipment component ID — schedule applies to a single grinder/hopper/etc.",
+  })
+  @IsUUID()
+  @IsOptional()
+  componentId?: string;
 
   @ApiPropertyOptional({ description: "Machine model filter" })
   @IsString()

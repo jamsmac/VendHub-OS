@@ -163,6 +163,13 @@ export class MaintenanceRequest extends BaseEntity {
   @Column({ type: "uuid" })
   machineId: string;
 
+  // Optional link to the specific equipment component this request targets
+  // (e.g. a particular grinder or hopper inside the machine). Nullable so
+  // whole-machine requests stay valid.
+  @ApiPropertyOptional({ description: "Equipment component ID" })
+  @Column({ type: "uuid", nullable: true })
+  componentId?: string;
+
   // Request details
   @ApiProperty({ description: "Issue title" })
   @Column({ type: "varchar", length: 255 })
@@ -540,6 +547,13 @@ export class MaintenanceSchedule extends BaseEntity {
   })
   @Column({ type: "uuid", nullable: true })
   machineId?: string;
+
+  // Specific component this schedule targets — e.g. "wash grinder #5
+  // every 3 days". Null means the schedule applies at the machine
+  // level (whole-machine PM, etc.).
+  @ApiPropertyOptional({ description: "Equipment component ID" })
+  @Column({ type: "uuid", nullable: true })
+  componentId?: string;
 
   @ApiPropertyOptional({ description: "Machine model filter" })
   @Column({ type: "varchar", length: 100, nullable: true })

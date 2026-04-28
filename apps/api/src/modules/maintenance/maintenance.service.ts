@@ -860,6 +860,11 @@ export class MaintenanceService {
             maintenanceType: schedule.maintenanceType,
             priority: MaintenancePriority.NORMAL,
             machineId: schedule.machineId || "",
+            // Carry the component link through so the bot/UI can show
+            // "wash grinder #5" instead of "wash machine M-005".
+            ...(schedule.componentId !== undefined && {
+              componentId: schedule.componentId,
+            }),
             title: `Scheduled: ${schedule.name}`,
             ...(schedule.description !== undefined && {
               description: schedule.description,
