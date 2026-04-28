@@ -8,6 +8,7 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, LessThan, In } from "typeorm";
@@ -32,6 +33,7 @@ import {
   AssignTechnicianDto,
   StartMaintenanceDto,
   CompleteMaintenanceDto,
+  MarkCompletedDto,
   VerifyMaintenanceDto,
   MaintenanceQueryDto,
   CreateMaintenancePartDto,
@@ -442,6 +444,86 @@ export class MaintenanceService {
     const saved = await this.maintenanceRepository.save(request);
 
     this.eventEmitter.emit("maintenance.completed", { request: saved, userId });
+    return saved;
+  }
+
+  /**
+   * Quick "I cleaned this" path for the assigned operator. Skips
+   * SUBMITTED → APPROVED → IN_PROGRESS — those gates are designed for
+   * repair/replacement workflows; for routine cleaning the operator
+   * just opens the bot/UI, snaps a photo, and closes the task.
+   *
+   * Authorization: when a request has assignedTechnicianId, only that
+   * user can quick-complete it. Managers wanting to close someone
+   * else's task should use the full /complete endpoint.
+   */
+  async markCompleted(
+    organizationId: string,
+    id: string,
+    userId: string,
+    dto: MarkCompletedDto,
+  ): Promise<MaintenanceRequest> {
+    const request = await this.findOne(organizationId, id);
+
+    if (
+      request.status === MaintenanceStatus.COMPLETED ||
+      request.status === MaintenanceStatus.VERIFIED ||
+      request.status === MaintenanceStatus.CANCELLED
+    ) {
+      throw new BadRequestException(
+        `Maintenance request is already ${request.status}`,
+      );
+    }
+
+    if (
+      request.assignedTechnicianId &&
+      request.assignedTechnicianId !== userId
+    ) {
+      throw new ForbiddenException(
+        "Only the assigned technician can quick-complete this request",
+      );
+    }
+
+    if (!request.startedAt) {
+      request.startedAt = new Date();
+    }
+    request.completedAt = new Date();
+    request.status = MaintenanceStatus.COMPLETED;
+
+    if (dto.notes) request.completionNotes = dto.notes;
+
+    if (dto.photos?.length) {
+      const now = new Date();
+      const newEntries = dto.photos.map((url) => ({
+        type: "after" as const,
+        url,
+        uploadedAt: now,
+      }));
+      request.photos = [...(request.photos ?? []), ...newEntries];
+      request.hasPhotosAfter = true;
+    }
+
+    if (
+      request.slaDueDate &&
+      request.completedAt > new Date(request.slaDueDate)
+    ) {
+      request.slaBreached = true;
+    }
+
+    request.actualDuration = Math.round(
+      (request.completedAt.getTime() - request.startedAt.getTime()) / 60000,
+    );
+
+    const saved = await this.maintenanceRepository.save(request);
+
+    this.eventEmitter.emit("maintenance.completed", {
+      request: saved,
+      userId,
+      // Distinguishes quick-path completions from the full workflow so
+      // listeners (Telegram bot, manager push, dashboards) can treat
+      // them appropriately if they want to.
+      quick: true,
+    });
     return saved;
   }
 

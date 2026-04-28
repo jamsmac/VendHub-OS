@@ -198,6 +198,24 @@ export class CompleteMaintenanceDto {
   downtimeEnd?: Date;
 }
 
+export class MarkCompletedDto {
+  @ApiPropertyOptional({
+    description: "Free-form notes from the technician (what they did)",
+  })
+  @IsString()
+  @IsOptional()
+  notes?: string;
+
+  @ApiPropertyOptional({
+    description: "URLs of photos uploaded as evidence (after the job)",
+    type: [String],
+  })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  photos?: string[];
+}
+
 export class VerifyMaintenanceDto {
   @ApiProperty({ description: "Verification passed" })
   @IsBoolean()

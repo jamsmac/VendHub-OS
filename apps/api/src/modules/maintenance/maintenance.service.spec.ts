@@ -520,6 +520,90 @@ describe("MaintenanceService", () => {
   });
 
   // ==========================================================================
+  // markCompleted (quick-complete path)
+  // ==========================================================================
+
+  describe("markCompleted", () => {
+    it("transitions a SCHEDULED request directly to COMPLETED with photos + notes", async () => {
+      const scheduled = {
+        ...mockRequest,
+        id: "mnt-quick-1",
+        status: MaintenanceStatus.SCHEDULED,
+        assignedTechnicianId: USER_ID,
+      };
+      maintenanceRepo.findOne!.mockResolvedValue(scheduled);
+      maintenanceRepo.save!.mockImplementation((entity) =>
+        Promise.resolve(entity),
+      );
+
+      const result = await service.markCompleted(
+        ORG_ID,
+        "mnt-quick-1",
+        USER_ID,
+        {
+          notes: "Помыл гриндер #5",
+          photos: ["https://cdn/photo-1.jpg", "https://cdn/photo-2.jpg"],
+        },
+      );
+
+      expect(result.status).toBe(MaintenanceStatus.COMPLETED);
+      expect(result.completedAt).toBeInstanceOf(Date);
+      // startedAt was missing on the scheduled request — quick-complete
+      // backfills it so duration math has a baseline.
+      expect(result.startedAt).toBeInstanceOf(Date);
+      expect(result.completionNotes).toBe("Помыл гриндер #5");
+      expect(result.photos).toHaveLength(2);
+      expect(result.photos?.[0]?.type).toBe("after");
+      expect(result.hasPhotosAfter).toBe(true);
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        "maintenance.completed",
+        expect.objectContaining({ quick: true }),
+      );
+    });
+
+    it("rejects when the request is already terminal", async () => {
+      maintenanceRepo.findOne!.mockResolvedValue({ ...mockCompletedRequest });
+      await expect(
+        service.markCompleted(ORG_ID, "mnt-uuid-5", USER_ID, {}),
+      ).rejects.toThrow(/already/);
+    });
+
+    it("forbids non-assigned users from quick-completing", async () => {
+      maintenanceRepo.findOne!.mockResolvedValue({
+        ...mockRequest,
+        status: MaintenanceStatus.SCHEDULED,
+        assignedTechnicianId: "different-user-uuid",
+      });
+
+      await expect(
+        service.markCompleted(ORG_ID, "mnt-uuid-1", USER_ID, {}),
+      ).rejects.toThrow(/assigned/);
+    });
+
+    it("allows quick-complete when no technician is assigned", async () => {
+      const unassigned = {
+        ...mockRequest,
+        id: "mnt-quick-2",
+        status: MaintenanceStatus.SCHEDULED,
+        assignedTechnicianId: undefined,
+      };
+      maintenanceRepo.findOne!.mockResolvedValue(unassigned);
+      maintenanceRepo.save!.mockImplementation((entity) =>
+        Promise.resolve(entity),
+      );
+
+      const result = await service.markCompleted(
+        ORG_ID,
+        "mnt-quick-2",
+        USER_ID,
+        {},
+      );
+      expect(result.status).toBe(MaintenanceStatus.COMPLETED);
+    });
+  });
+
+  // ==========================================================================
   // verify
   // ==========================================================================
 

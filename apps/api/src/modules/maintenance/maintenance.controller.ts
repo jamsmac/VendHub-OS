@@ -34,6 +34,7 @@ import {
   AssignTechnicianDto,
   StartMaintenanceDto,
   CompleteMaintenanceDto,
+  MarkCompletedDto,
   VerifyMaintenanceDto,
   MaintenanceQueryDto,
   CreateMaintenancePartDto,
@@ -243,6 +244,27 @@ export class MaintenanceController {
     @Body() dto: CompleteMaintenanceDto,
   ): Promise<MaintenanceRequest> {
     return this.maintenanceService.complete(organizationId, id, user.id, dto);
+  }
+
+  @Post(":id/mark-completed")
+  @Roles("operator", "manager", "admin", "owner")
+  @ApiOperation({
+    summary:
+      "Quick-complete maintenance (operator path: photo + notes, skip submit/approve/in-progress)",
+  })
+  @ApiParam({ name: "id", type: "string" })
+  async markCompleted(
+    @CurrentOrganizationId() organizationId: string,
+    @CurrentUser() user: ICurrentUser,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: MarkCompletedDto,
+  ): Promise<MaintenanceRequest> {
+    return this.maintenanceService.markCompleted(
+      organizationId,
+      id,
+      user.id,
+      dto,
+    );
   }
 
   @Post(":id/verify")
