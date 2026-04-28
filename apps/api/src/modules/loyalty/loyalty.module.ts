@@ -25,6 +25,7 @@ import { QuestService } from "./services/quest.service";
 import { QuestController } from "./controllers/quest.controller";
 import { LoyaltyAnalyticsService } from "./services/loyalty-analytics.service";
 import { BonusEngineService } from "./services/bonus-engine.service";
+import { LoyaltyEventListenerService } from "./services/loyalty-event-listener.service";
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { BonusEngineService } from "./services/bonus-engine.service";
     LoyaltyService,
     LoyaltyAnalyticsService,
     BonusEngineService,
+    LoyaltyEventListenerService,
     ReferralService,
     AchievementService,
     QuestService,
