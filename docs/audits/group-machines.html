@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Аудит группы Machines & Telemetry</title>
+<link rel="stylesheet" href="_styles.css" />
+</head>
+<body>
+<div class="wrap">
+
+<header class="title">
+  <a href="MASTER.html" class="nav-back">← в мастер-документ</a>
+  <h1>Machines & Telemetry — ядро продукта</h1>
+  <p class="sub">10 модулей покрывают сами автоматы, телеметрию, оборудование, гео и события. Это технический фундамент бизнеса.</p>
+  <div class="stat-tiles">
+    <div class="stat-tile"><div class="lab">Модулей</div><div class="val">10</div></div>
+    <div class="stat-tile"><div class="lab">Файлов кода</div><div class="val">104</div></div>
+    <div class="stat-tile"><div class="lab">Эндпоинтов</div><div class="val">~110</div></div>
+    <div class="stat-tile"><div class="lab">WebSocket gateways</div><div class="val">4</div></div>
+    <div class="stat-tile"><div class="lab">Машин на пилоте</div><div class="val">23</div></div>
+    <div class="stat-tile"><div class="lab">Готовность</div><div class="val good">🟢 ready</div></div>
+  </div>
+</header>
+
+<section class="block">
+  <h2><span class="ico">M</span>Обзор группы</h2>
+  <p class="lead">Группа Machines & Telemetry — это «нервная система» продукта. Без этих модулей нет ни мониторинга автоматов, ни предсказаний, ни realtime-уведомлений.</p>
+  <table class="matrix">
+    <thead><tr><th>Модуль</th><th>Эндпоинтов</th><th>Тестов</th><th>Назначение</th><th>Готовность</th></tr></thead>
+    <tbody>
+      <tr><td><b>machines</b></td><td>44</td><td>2</td><td>Сами автоматы — паспорт, статус, слоты, шаблоны</td><td><span class="pill p-good">🟢 ready</span></td></tr>
+      <tr><td><b>equipment</b></td><td>26</td><td>8</td><td>Оборудование: hopper, spare parts, washing schedules</td><td><span class="pill p-good">🟢 ready</span></td></tr>
+      <tr><td><b>websocket</b></td><td>0 (4 gateway)</td><td>1</td><td>Realtime через 4 gateway: machine-events, order, notification, base</td><td><span class="pill p-good">🟢 ready</span></td></tr>
+      <tr><td><b>alerts</b></td><td>13</td><td>3</td><td>Правила алертов и срабатывания</td><td><span class="pill p-warn">🟡 seed</span></td></tr>
+      <tr><td><b>predictive-refill</b></td><td>4</td><td>4</td><td>Прогноз пополнения через EWMA + рекомендации</td><td><span class="pill p-warn">🟡 нужны миграции</span></td></tr>
+      <tr><td><b>monitoring</b></td><td>2</td><td>2</td><td>Системный мониторинг через MetricsKeyGuard</td><td><span class="pill p-good">🟢 ready</span></td></tr>
+      <tr><td><b>calculated-state</b></td><td>2</td><td>1</td><td>Вычисляемые поля состояния машины</td><td><span class="pill p-good">🟢 ready</span></td></tr>
+      <tr><td><b>slot-history</b></td><td>1</td><td>1</td><td>История изменений слотов автомата</td><td><span class="pill p-good">🟢 ready</span></td></tr>
+      <tr><td><b>geo</b></td><td>8</td><td>2</td><td>Гео-координаты, гео-зоны, поиск ближайших</td><td><span class="pill p-good">🟢 ready</span></td></tr>
+      <tr><td><b>locations</b></td><td>6</td><td>3</td><td>Локации (БЦ, ВУЗы, ТРЦ) — где стоят автоматы</td><td><span class="pill p-good">🟢 ready</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <h2><span class="ico">▣</span>Детали по модулям</h2>
+
+  <details class="acc" open>
+    <summary><span>machines · сами автоматы</span><span class="meta">23 файла · 44 эндпоинта · 2 теста</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> CRUD автоматов, паспорта, статусы, слоты с товаром, шаблоны, телеметрия, события.</p>
+      <h4>Entity главные</h4>
+      <ul>
+        <li><code>Machine</code> — id, серийник, type (COFFEE / SNACK / etc), status (ACTIVE / OFFLINE / MAINTENANCE), organizationId, locationId, координаты</li>
+        <li><code>MachineSlot</code> — позиция в автомате (slot 1, slot 2...), productId, currentQuantity, maxCapacity, sellingPrice</li>
+        <li><code>MachineTemplate</code> — типовые конфигурации автоматов</li>
+        <li><code>MachineEvent</code> — события: открыт корпус, ошибка, инкассация, пополнение</li>
+      </ul>
+      <h4>Топ-эндпоинты (из 44)</h4>
+      <ul>
+        <li>GET /machines — список с фильтрами по статусу / location / типу</li>
+        <li>GET /machines/:id — детальная карточка с слотами и событиями</li>
+        <li>PATCH /machines/:id/status — изменить статус (Operator может через machine-access)</li>
+        <li>GET /machines/:id/slots — позиции с остатками</li>
+        <li>POST /machines/:id/slots/:slotId/refill — пополнение оператором</li>
+        <li>GET /machines/:id/events — журнал событий</li>
+      </ul>
+      <p><b>RBAC:</b> 50 декораторов в матрице — Owner/Admin/Manager полный доступ, Operator 23/50 (свои машины через machine-access).</p>
+      <p><b>Связи:</b> products (что продаётся), inventory (склад товара), payments (транзакции), routes (маршруты пополнения), predictive-refill (прогноз), websocket (realtime).</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>equipment · оборудование автоматов</span><span class="meta">16 файлов · 26 эндпоинтов · 4 контроллера</span></summary>
+    <div class="body">
+      <p><b>Структура:</b> 4 sub-controller'а: equipment (общий), hopper-type, spare-part, washing-schedule.</p>
+      <p><b>Что хранит:</b> компоненты автоматов (hopper для зёрен, для молока, для воды), запчасти со складом, расписания мойки.</p>
+      <p><b>Связь с maintenance:</b> заявка на ремонт ссылается на конкретный component через FK.</p>
+      <p><b>Тестов:</b> 8 — самое плотное покрытие в группе.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>websocket · realtime через 4 gateway</span><span class="meta">8 файлов · нет HTTP endpoints</span></summary>
+    <div class="body">
+      <p>WebSocket Gateway'и работают по handshake-аутентификации через JWT. Не контроллеры в классическом смысле.</p>
+      <h4>4 gateway</h4>
+      <ul>
+        <li><code>base.gateway.ts</code> — общая логика (auth, organizationScope)</li>
+        <li><code>machine-events.gateway.ts</code> — статусы машин в realtime</li>
+        <li><code>order-events.gateway.ts</code> — заказы в realtime для дашборда</li>
+        <li><code>notification.gateway.ts</code> — push-уведомления операторам</li>
+      </ul>
+      <p><b>Tenant scoping:</b> при подключении клиент попадает в namespace `org:<organizationId>`. События не утекают между организациями.</p>
+      <p><b>Используется в web админке:</b> hook <code>use-realtime-updates.ts</code>, lazy-import socket.io-client.</p>
+      <p><b>Risk:</b> persistent connections — на Railway держится через TCP keepalive. Vercel-стиль serverless их не поддерживает (это одна из причин Решения 1 — всё на Railway).</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>alerts · правила и срабатывания</span><span class="meta">9 файлов · 13 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> alert_rules (когда срабатывать) и alert_events (когда сработало). Поддерживает SMS, email, push, webhook.</p>
+      <p><b>AlertMetric enum:</b> LOW_STOCK, MACHINE_OFFLINE, FAILED_PAYMENT, PREDICTED_STOCKOUT и др.</p>
+      <p><b>Suppression window:</b> ≥24h per (machine, product) — предотвращает alert fatigue.</p>
+      <p><b>Action item:</b> seed для PREDICTED_STOCKOUT alert rule per active org нужно сделать перед включением predictive-refill (см. LAUNCH_CHECKLIST шаг 5).</p>
+    </div>
+  </details>
+
+  <details class="acc" open>
+    <summary><span>predictive-refill · прогноз пополнения автоматов</span><span class="meta">11 файлов · 4 эндпоинта · 4 теста</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> главная «умная» фича. Каждые сутки EWMA (exponentially weighted moving average) считает скорость потребления каждого слота → forecasting daysOfSupply → recommendations какие машины пополнять первыми.</p>
+
+      <h4>3 REST эндпоинта</h4>
+      <ul>
+        <li><code>GET /predictive-refill/forecast/:machineId</code> — days-of-supply per slot</li>
+        <li><code>GET /predictive-refill/recommendations?action=...</code> — sorted recommendations</li>
+        <li><code>POST /predictive-refill/recommendations/:id/mark-acted</code> — audit trail когда оператор пополнил</li>
+      </ul>
+
+      <h4>Состояние</h4>
+      <ul>
+        <li>Backend engine API-complete (Sprint E Phase 2)</li>
+        <li>Cron не настроен — recommendations обновляются только при ручном HTTP запросе (Phase 3 ROADMAP)</li>
+        <li>Web UI на /dashboard/predictive-refill — данные подгружаются с этих эндпоинтов</li>
+        <li>PREDICTED_STOCKOUT alerts не fire даже если daysOfSupply &lt; 2 (Phase 3 ROADMAP)</li>
+      </ul>
+
+      <h4>Зависимость от данных</h4>
+      <p>Работает только если <code>MachineSlot.currentQuantity</code> декрементируется при каждой продаже. Это P2.1 в ROADMAP — нужно верифицировать на проде через тестовую покупку.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>monitoring · system metrics с защитой токеном</span><span class="meta">5 файлов · 2 эндпоинта</span></summary>
+    <div class="body">
+      <p><b>@Public + MetricsKeyGuard.</b> Эндпоинты публичны для bypass JWT, но проверяют <code>METRICS_API_KEY</code>.</p>
+      <p><b>Без токена в env</b> эти эндпоинты становятся открытыми. Action item — выставить в Railway (см. LAUNCH_CHECKLIST шаг 3).</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>calculated-state · вычисляемые поля</span><span class="meta">4 файла · 2 эндпоинта</span></summary>
+    <div class="body">
+      <p>Computed properties для машин: общая выручка за период, утилизация, средний чек. Кэшируется в Redis.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>slot-history · история изменений слотов</span><span class="meta">4 файла · 1 эндпоинт</span></summary>
+    <div class="body">
+      <p>Append-only log изменений конфигурации слотов автомата. Когда был добавлен товар, когда заменён, кем.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>geo · гео-координаты и зоны</span><span class="meta">7 файлов · 8 эндпоинтов</span></summary>
+    <div class="body">
+      <p>PostGIS extension для геопоиска. Все 7 ролей могут читать (geo — справочник).</p>
+      <p><b>Use case:</b> «найти ближайшие 5 автоматов к моей точке» — для Telegram Mini App клиента.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>locations · где стоят автоматы</span><span class="meta">17 файлов · 6 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Что:</b> бизнес-центры, ВУЗы, ТРЦ, метро. Иерархия: Location → Building → Floor → Spot.</p>
+      <p>Один Location может иметь много машин. Через Location можно сгруппировать выручку и аналитику.</p>
+    </div>
+  </details>
+</section>
+
+<section class="block">
+  <h2><span class="ico">!</span>Риски и action items</h2>
+  <table class="matrix">
+    <thead><tr><th>Уровень</th><th>Риск</th><th>Действие</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill p-warn">med</span></td><td>QuantitySyncService не сработает на проде</td><td>Smoke-тест Payme sandbox после деплоя — проверить что MachineSlot декрементируется</td></tr>
+      <tr><td><span class="pill p-warn">med</span></td><td>PREDICTED_STOCKOUT alerts не настроены</td><td>Seed alert_rules с metric=predicted_stockout per active org. Из LAUNCH_CHECKLIST шаг 5</td></tr>
+      <tr><td><span class="pill p-warn">med</span></td><td>Cron predictive-refill не настроен</td><td>Sprint E Phase 3 — добавить CronProcessor. После пилота</td></tr>
+      <tr><td><span class="pill p-good">low</span></td><td>WebSocket persistent connection footprint</td><td>Railway держит, но при росте до 1000+ онлайн клиентов нужно sticky sessions</td></tr>
+      <tr><td><span class="pill p-good">low</span></td><td>METRICS_API_KEY не выставлен</td><td>В env Railway (см. LAUNCH_CHECKLIST)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <h2><span class="ico">✓</span>Готовность группы</h2>
+  <p><b>🟢 Группа технически готова к запуску пилота.</b> Из 10 модулей только 2 требуют env-настройки или seed (alerts, monitoring), оба входят в Фазу 1 LAUNCH_CHECKLIST.</p>
+  <p><b>Что включить параллельно с запуском:</b></p>
+  <ul>
+    <li>Resource-level фильтрация в machines.controller через machine-access (ADR-004)</li>
+    <li>Seed PREDICTED_STOCKOUT alert rules</li>
+    <li>Smoke-тест предсказаний — открыть /dashboard/predictive-refill, увидеть данные</li>
+  </ul>
+  <p><b>Что после пилота:</b></p>
+  <ul>
+    <li>Cron processor для predictive-refill (Sprint E Phase 3)</li>
+    <li>Wire-up PREDICTED_STOCKOUT в alerts pipeline</li>
+    <li>Integration test суточного цикла «продажа → расход → прогноз → рекомендация»</li>
+  </ul>
+</section>
+
+<footer>
+  Аудит группы Machines & Telemetry. Сгенерирован 2026-04-29. Обновляется при изменениях в этих модулях. Обратная связь с мастер-документом — <a href="MASTER.html">MASTER.html</a>.
+</footer>
+
+</div>
+</body>
+</html>

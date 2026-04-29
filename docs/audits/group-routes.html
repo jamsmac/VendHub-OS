@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Аудит группы Routes & Field Ops</title>
+<link rel="stylesheet" href="_styles.css" />
+</head>
+<body>
+<div class="wrap">
+
+<header class="title">
+  <a href="MASTER.html" class="nav-back">← в мастер-документ</a>
+  <h1>Routes & Field Ops — работа на земле</h1>
+  <p class="sub">10 модулей описывают всё что операторы делают физически: маршруты, задачи, обслуживание, инкассация, инциденты.</p>
+  <div class="stat-tiles">
+    <div class="stat-tile"><div class="lab">Модулей</div><div class="val">10</div></div>
+    <div class="stat-tile"><div class="lab">Файлов кода</div><div class="val">83</div></div>
+    <div class="stat-tile"><div class="lab">Эндпоинтов</div><div class="val">165</div></div>
+    <div class="stat-tile"><div class="lab">Готовность</div><div class="val good">🟢 ready</div></div>
+  </div>
+</header>
+
+<section class="block">
+  <h2><span class="ico">R</span>Обзор группы</h2>
+  <p class="lead">Это «земная» сторона продукта. Operator проводит здесь весь день: смотрит маршрут, выполняет задачи, фиксирует ремонт, инкассирует деньги. Самая большая зона полномочий Operator-роли.</p>
+  <table class="matrix">
+    <thead><tr><th>Модуль</th><th>Эндпоинтов</th><th>Назначение</th><th>Готовность</th></tr></thead>
+    <tbody>
+      <tr><td><b>routes</b></td><td>33</td><td>Маршруты — оптимизатор, конструктор, drag-and-drop</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>tasks</b></td><td>27</td><td>Задачи операторам — kanban, чек-листы</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>maintenance</b></td><td>26</td><td>ТО и ремонт автоматов</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>work-logs</b></td><td>23</td><td>Журнал работ оператора с QR-фиксацией</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>material-requests</b></td><td>16</td><td>Запросы материалов со склада оператором</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>collections</b></td><td>13</td><td>Инкассация — выемка наличных из автоматов</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>incidents</b></td><td>10</td><td>Инциденты с автоматами — диагностика, SLA</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>reconciliation</b></td><td>8</td><td>Сверка инкассации с финансовыми отчётами</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>vehicles</b></td><td>6</td><td>Автотранспорт операторов</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>recommendations</b></td><td>3</td><td>Рекомендации действий (откуда — predictive-refill)</td><td><span class="pill p-good">🟢</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <h2><span class="ico">▣</span>Детали по ключевым модулям</h2>
+
+  <details class="acc" open>
+    <summary><span>routes · маршруты с автогенерацией</span><span class="meta">19 файлов · 33 эндпоинта</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> построение маршрутов оператора на день. Каждое утро в 5:00 авто-генерация маршрутов на основе recommendations от predictive-refill.</p>
+      <h4>Sprint H — MergeTripsIntoRoutes</h4>
+      <p>Раньше были отдельные сущности Trip и Route. В миграции <code>1775700000000</code> они объединены в Route — упрощение модели.</p>
+      <h4>Структура</h4>
+      <ul>
+        <li><code>Route</code> — id, operatorId, date, status, machines[], plannedDuration</li>
+        <li><code>RouteStop</code> — точка маршрута, конкретный machineId, action (REFILL / COLLECT / MAINTAIN), expectedArrival, actualArrival</li>
+      </ul>
+      <h4>Auto-route logic</h4>
+      <p>Из predictive-refill берутся машины с REFILL_NOW recommendation, группируются по геолокации, строится оптимальный маршрут (TSP-приближение).</p>
+      <p><b>Кнопка «Авто-маршрут» в web</b> — Manager одной кнопкой создаёт маршруты на следующий день для всех операторов.</p>
+      <p><b>RBAC:</b> Operator 15/33 (свои маршруты + действия). Manager 32/33. Admin 33/33.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>tasks · задачи в kanban-стиле</span><span class="meta">12 файлов · 27 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Структура:</b> Task с статусами TODO / IN_PROGRESS / DONE / CANCELLED. Привязан к assignee (operatorId), может быть привязан к machineId.</p>
+      <p><b>UI:</b> KanbanBoard в web для Manager + список «Мои задачи» в mobile staff app.</p>
+      <p><b>RBAC:</b> Operator 18/27 — может видеть свои, обновлять статус, добавлять комментарии. Manager 26/27 — управление и назначение.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>maintenance · ТО и ремонт</span><span class="meta">8 файлов · 26 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Sprint H недавно:</b> добавлена связь maintenance request с конкретным component (через FK на equipment.spare_part и equipment.hopper).</p>
+      <p><b>Web-push на manager + assigned tech при SLA breach</b> — недавняя фича.</p>
+      <p><b>Quick mark-completed</b> — оператор одной кнопкой закрывает работу без полного workflow.</p>
+      <p><b>Связь:</b> equipment (что чинить), incidents (откуда возникла потребность), tasks (как работа).</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>work-logs · журнал работ оператора</span><span class="meta">7 файлов · 23 эндпоинта</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> каждое физическое действие оператора у автомата фиксируется WorkLog с timestamp, типом действия, machineId, locationId.</p>
+      <p><b>QR-фиксация обязательна:</b> оператор сканирует QR на автомате чтобы система зафиксировала «он действительно был на месте».</p>
+      <p><b>Use case:</b> KPI оператора, сверка с маршрутом, доказательство выполнения.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>collections · инкассация</span><span class="meta">6 файлов · 13 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> выемка наличных из автоматов. Оператор фиксирует факт инкассации, сумму, делает фото купюр.</p>
+      <p><b>Связь с machine-access:</b> только пользователи с типом доступа COLLECTION или FULL могут проводить инкассацию.</p>
+      <p><b>Связь с reconciliation:</b> сверка факта инкассации (что взяли из машины) с финансовыми отчётами (что должно быть).</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>incidents · инциденты с автоматами</span><span class="meta">8 файлов · 10 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> «автомат не работает», «застрял стакан», «нет молока». Workflow: диагностика, назначение оператора, SLA, разрешение.</p>
+      <p><b>Связь:</b> может породить maintenance запрос. Связан с complaints (если жалоба клиента стала причиной инцидента).</p>
+      <p><b>SLA timer</b> в UI — Manager видит просрочки.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>reconciliation · сверка</span><span class="meta">6 файлов · 8 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> ежедневная сверка cash-инкассации с банковскими выписками и платёжными отчётами.</p>
+      <p><b>Расхождения:</b> создаётся issue для Accountant — разобраться почему касса не сходится с отчётами.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>material-requests · запросы материалов</span><span class="meta">7 файлов · 16 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Use case:</b> оператор обнаружил что в его авто закончились запасные стаканчики — создаёт material-request → Manager одобряет → Warehouse выдаёт со склада.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>vehicles · транспорт</span><span class="meta">5 файлов · 6 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> учёт автомобилей операторов, связь оператор → vehicle, пробег, расход топлива.</p>
+      <p><b>Use case:</b> компенсация бензина, планирование ТО.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>recommendations · рекомендации действий</span><span class="meta">5 файлов · 3 эндпоинта</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> агрегатор рекомендаций для операторов из разных источников (predictive-refill, alerts, scheduled maintenance, low-stock).</p>
+      <p><b>RBAC:</b> 1/3 для всех ролей — каждый видит свои рекомендации.</p>
+    </div>
+  </details>
+</section>
+
+<section class="block">
+  <h2><span class="ico">!</span>Риски и action items</h2>
+  <table class="matrix">
+    <thead><tr><th>Уровень</th><th>Риск</th><th>Действие</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill p-warn">med</span></td><td>Auto-route в 5:00 утра не сработает (cron timezone)</td><td>tzdata в Dockerfile (Фаза 1 LAUNCH_CHECKLIST). Без него cron в 5 UTC = 10 утра по Ташкенту</td></tr>
+      <tr><td><span class="pill p-warn">med</span></td><td>QR-фиксация может не работать при плохой связи</td><td>Offline-mode в mobile staff app — буферизировать и отправить при возвращении связи</td></tr>
+      <tr><td><span class="pill p-good">low</span></td><td>SLA breach push-уведомления могут спамить</td><td>Suppression — не более 1 push в час на одну задачу</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <h2><span class="ico">✓</span>Готовность группы</h2>
+  <p><b>🟢 Готова к запуску.</b> Самая зрелая группа после Identity. Sprint H недавно добавил последние недостающие связи (maintenance ↔ equipment).</p>
+</section>
+
+<footer>
+  Аудит группы Routes & Field Ops. <a href="MASTER.html">← MASTER</a>.
+</footer>
+
+</div>
+</body>
+</html>

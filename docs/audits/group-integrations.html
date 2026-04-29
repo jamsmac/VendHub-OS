@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Аудит группы Integrations</title>
+<link rel="stylesheet" href="_styles.css" />
+</head>
+<body>
+<div class="wrap">
+
+<header class="title">
+  <a href="MASTER.html" class="nav-back">← в мастер-документ</a>
+  <h1>Integrations — внешние интерфейсы</h1>
+  <p class="sub">13 модулей — все внешние интерфейсы системы: Telegram, push, SMS, email, webhooks, импорт данных. Самая большая группа.</p>
+  <div class="stat-tiles">
+    <div class="stat-tile"><div class="lab">Модулей</div><div class="val">13</div></div>
+    <div class="stat-tile"><div class="lab">Файлов кода</div><div class="val">152</div></div>
+    <div class="stat-tile"><div class="lab">Эндпоинтов</div><div class="val">150</div></div>
+    <div class="stat-tile"><div class="lab">External services</div><div class="val">8+</div></div>
+    <div class="stat-tile"><div class="lab">Готовность</div><div class="val good">🟢 ready</div></div>
+  </div>
+</header>
+
+<section class="block">
+  <h2><span class="ico">I</span>Обзор группы</h2>
+  <p class="lead">Каждый модуль — мост между VendHub и внешним сервисом. Все мосты должны корректно обрабатывать недоступность внешнего API (через BullMQ retry, fallback, alerts).</p>
+  <table class="matrix">
+    <thead><tr><th>Модуль</th><th>Эндпоинтов</th><th>Назначение</th><th>Готовность</th></tr></thead>
+    <tbody>
+      <tr><td><b>integrations</b></td><td>22</td><td>Главный hub интеграций — keys management, status</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>vhm24-integration</b></td><td>6</td><td>Связь с легаси VHM24-repo</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>telegram-bot</b></td><td>13 (2 controllers)</td><td>Telegram-бот с webhook'ом и customer-bot service</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>fcm</b></td><td>7</td><td>Firebase Cloud Messaging для mobile push</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>web-push</b></td><td>6</td><td>Browser push для web админки</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>sms</b></td><td>0 (internal)</td><td>SMS через Eskiz.uz, listener для events</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>email</b></td><td>0 (internal)</td><td>Email-listener для transactional</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>webhooks</b></td><td>9</td><td>Webhook subscriptions для внешних систем</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>agent-bridge</b></td><td>12</td><td>API для autonomous agents (Claude и др.)</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>data-parser</b></td><td>7</td><td>Парсинг файлов разных форматов</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>import</b></td><td>23</td><td>Импорт сущностей из CSV/XLSX/PDF</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>notifications</b></td><td>29</td><td>Главный hub уведомлений всех каналов</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>client</b></td><td>16 (2 controllers)</td><td>Эндпоинты для клиентского кабинета</td><td><span class="pill p-good">🟢</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <h2><span class="ico">▣</span>Детали ключевых модулей</h2>
+
+  <details class="acc" open>
+    <summary><span>telegram-bot · самый сложный модуль</span><span class="meta">34 файла · 2 controllers · 13 эндпоинтов · много services</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> весь Telegram-функционал — клиентский бот, мини-приложение, webhook от Telegram.</p>
+      <h4>Ключевые сервисы (из 34 файлов)</h4>
+      <ul>
+        <li><code>telegram-bot.service.ts</code> — главный сервис</li>
+        <li><code>telegram-customer-bot.service.ts</code> — логика для клиентов</li>
+        <li><code>bot-order.service.ts</code> — обработка заказов внутри бота</li>
+        <li><code>access-request.entity.ts</code> — запросы доступа из бота</li>
+      </ul>
+      <h4>2 controller'а</h4>
+      <ul>
+        <li><code>telegram-bot.controller.ts</code> (11) — admin endpoints для управления ботом</li>
+        <li><code>telegram-webhook.controller.ts</code> (2) — webhook от Telegram (Public, защищён secret)</li>
+      </ul>
+      <p><b>Webhook secret:</b> <code>TELEGRAM_WEBHOOK_SECRET</code> — генерится при setup, проверяется на каждом запросе</p>
+      <p><b>Связь:</b> auth (Telegram login), orders (заказы из бота), notifications (push клиентам через бот).</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>notifications · hub всех уведомлений</span><span class="meta">18 файлов · 29 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> единая точка входа для отправки уведомлений по любому каналу (email, SMS, push, in-app, Telegram).</p>
+      <p><b>Каналы:</b> email (через email модуль), SMS (через sms модуль / Eskiz.uz), web-push, FCM, Telegram bot message, in-app banner.</p>
+      <p><b>Шаблоны:</b> хранятся отдельной сущностью NotificationTemplate с placeholders.</p>
+      <p><b>RBAC:</b> 12/29 для всех ролей — настраивают кому что приходит.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>integrations · общий hub</span><span class="meta">15 файлов · 22 эндпоинта</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> управление API-ключами и статусами всех внешних интеграций. Admin может включить/выключить интеграцию через UI.</p>
+      <p><b>Code smell:</b> 0 в колонке OWNER — Owner проходит через bypass, но в декораторах не указан.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>client · клиентский API</span><span class="meta">17 файлов · 2 controller · 16 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>2 controller'а:</b></p>
+      <ul>
+        <li><code>client.controller.ts</code> (12) — авторизованные эндпоинты для клиента (профиль, история, бонусы)</li>
+        <li><code>client-public.controller.ts</code> (4) — публичные (список доступных автоматов рядом, общая инфа)</li>
+      </ul>
+      <p><b>После Фазы 3.6:</b> этот модуль станет основой клиентского API после разделения users/clients таблиц.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>import · импорт данных</span><span class="meta">15 файлов · 23 эндпоинта</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> массовый импорт сущностей из CSV/XLSX/PDF — машин, продуктов, контрагентов, начальных остатков.</p>
+      <p><b>Sprint G3 — HICON import</b> с 3-уровневым дедупом и fuzzy matcher.</p>
+      <p><b>RBAC:</b> только Owner/Admin/Manager — 23/23. Operator/Warehouse/Accountant — 0.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>fcm · Firebase для mobile</span><span class="meta">5 файлов · 7 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> push-уведомления в mobile staff app через FCM.</p>
+      <p><b>Device tokens:</b> хранятся в таблице <code>device_tokens</code> (миграция 1776300000000), привязаны к userId.</p>
+      <p><b>RBAC:</b> симметрично — все 7 ролей могут регистрировать своё устройство (по 4-7 эндпоинтов).</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>web-push · браузерные push</span><span class="meta">4 файла · 6 эндпоинтов</span></summary>
+    <div class="body">
+      <p>Browser push subscriptions через Service Worker. Использован для уведомлений Manager в админке (новые задачи, SLA breach, низкие остатки).</p>
+      <p><b>Recent change:</b> push на manager + assigned tech при SLA breach в maintenance.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>email и sms · listeners без HTTP</span><span class="meta">4+4 файла · 0 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Internal services.</b> Подписаны на события <code>email.send</code> и <code>sms.send</code>, отправляют через провайдеров.</p>
+      <p><b>SMS:</b> Eskiz.uz интеграция (стандарт для Узбекистана).</p>
+      <p><b>Email:</b> SendGrid / Mailgun / SMTP — конфигурируется через env.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>webhooks · subscriptions для внешних систем</span><span class="meta">9 файлов · 9 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> внешние системы (партнёры, BI-системы) могут подписаться на события VendHub. При срабатывании — POST на их URL с payload и подписью.</p>
+      <p><b>Reliability:</b> BullMQ retry с exponential backoff если внешний URL не отвечает.</p>
+      <p><b>RBAC:</b> только Owner/Admin — управляют webhook'ами. Manager не имеет доступа.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>agent-bridge · API для autonomous agents</span><span class="meta">7 файлов · 12 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> специальный API для автоматизированных агентов (Claude, скрипты). Позволяет им работать с системой без полного UI.</p>
+      <p><b>AGENT_MODE:</b> bypass JWT-проверки если в env <code>AGENT_MODE=true</code> и <code>NODE_ENV !== production</code>. Решение R2 в auth-аудите — нужно жёстко контролировать env.</p>
+      <p><b>Use case:</b> Claude помогает оператору через CLI, AI-импорт данных.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>data-parser · парсинг разных форматов</span><span class="meta">10 файлов · 7 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> универсальный парсер для CSV, XLSX, PDF выписок банка, реестров продаж. Используется import и payment-reports.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>vhm24-integration · легаси-мост</span><span class="meta">10 файлов · 6 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> интеграция с легаси VHM24-repo (предыдущая система до VendHub OS). Используется во время переходного периода.</p>
+      <p><b>Не для пилота.</b> Можно отключить или оставить как историческую поддержку.</p>
+    </div>
+  </details>
+</section>
+
+<section class="block">
+  <h2><span class="ico">!</span>Риски и action items</h2>
+  <table class="matrix">
+    <thead><tr><th>Уровень</th><th>Риск</th><th>Действие</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill p-bad">high</span></td><td>AGENT_MODE bypass в проде если NODE_ENV пустой</td><td>NODE_ENV=production обязательно (R2 из auth-аудита)</td></tr>
+      <tr><td><span class="pill p-warn">med</span></td><td>Telegram webhook secret не выставлен → fake updates</td><td>TELEGRAM_WEBHOOK_SECRET в env (LAUNCH_CHECKLIST)</td></tr>
+      <tr><td><span class="pill p-warn">med</span></td><td>SMS Eskiz.uz упадёт — push клиентам не дойдёт</td><td>BullMQ retry, fallback на email</td></tr>
+      <tr><td><span class="pill p-warn">med</span></td><td>Webhook'и от партнёров — атака повторами</td><td>Проверка подписи каждого webhook</td></tr>
+      <tr><td><span class="pill p-good">low</span></td><td>FCM device_tokens неактуальны (старые телефоны)</td><td>Чистка раз в месяц, после 3 неудачных pushes</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <h2><span class="ico">✓</span>Готовность группы</h2>
+  <p><b>🟢 Готова при правильной настройке env.</b> Каждая интеграция критически зависит от секретов в Railway. Без полного списка из LAUNCH_CHECKLIST половина работать не будет.</p>
+  <p><b>Стратегия пилота:</b> начать с Telegram + email + web-push. SMS и FCM добавить через 1-2 недели если будут нужны.</p>
+</section>
+
+<footer>
+  Аудит группы Integrations. <a href="MASTER.html">← MASTER</a>.
+</footer>
+
+</div>
+</body>
+</html>

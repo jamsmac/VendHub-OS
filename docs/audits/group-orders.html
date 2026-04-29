@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Аудит группы Orders & Sales</title>
+<link rel="stylesheet" href="_styles.css" />
+</head>
+<body>
+<div class="wrap">
+
+<header class="title">
+  <a href="MASTER.html" class="nav-back">← в мастер-документ</a>
+  <h1>Orders & Sales — заказы, транзакции, жалобы</h1>
+  <p class="sub">6 модулей покрывают весь цикл от заказа клиентом до зафиксированной транзакции и обработки жалобы.</p>
+  <div class="stat-tiles">
+    <div class="stat-tile"><div class="lab">Модулей</div><div class="val">6</div></div>
+    <div class="stat-tile"><div class="lab">Файлов кода</div><div class="val">67</div></div>
+    <div class="stat-tile"><div class="lab">Эндпоинтов</div><div class="val">85</div></div>
+    <div class="stat-tile"><div class="lab">Готовность</div><div class="val good">🟢 ready</div></div>
+  </div>
+</header>
+
+<section class="block">
+  <h2><span class="ico">O</span>Обзор группы</h2>
+  <table class="matrix">
+    <thead><tr><th>Модуль</th><th>Эндпоинтов</th><th>Назначение</th><th>Готовность</th></tr></thead>
+    <tbody>
+      <tr><td><b>orders</b></td><td>15</td><td>Заказы клиента в Telegram Mini App: добавил в корзину, оплатил, получил</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>transactions</b></td><td>17</td><td>Финансовые транзакции — единая запись каждого платежа в БД</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>sales-import</b></td><td>9</td><td>Импорт продаж из старых систем (HICON, BC и др.)</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>complaints</b></td><td>28</td><td>Жалобы клиентов — workflow с возвратами и компенсациями</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>purchase-history</b></td><td>10</td><td>История покупок клиента — для кабинета и аналитики</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>purchases</b></td><td>6</td><td>Закупки у поставщиков (сырьё, не клиентские продажи)</td><td><span class="pill p-good">🟢</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <h2><span class="ico">▣</span>Детали по модулям</h2>
+
+  <details class="acc" open>
+    <summary><span>orders · клиентские заказы</span><span class="meta">7 файлов · 15 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> жизненный цикл заказа от создания до завершения. Используется в Telegram Mini App.</p>
+      <h4>Order entity</h4>
+      <ul>
+        <li><code>id</code>, <code>clientId</code> (после Фазы 3.6 будет в clients table), <code>machineId</code></li>
+        <li><code>status</code> — DRAFT / PENDING_PAYMENT / PAID / DISPENSED / FAILED / REFUNDED</li>
+        <li><code>items[]</code> — массив OrderItem с productId, quantity, price</li>
+        <li><code>amount</code>, <code>currency</code>, <code>discountAmount</code></li>
+        <li><code>paymentId</code> — связь с Payment</li>
+      </ul>
+      <h4>Lifecycle events</h4>
+      <p><code>order.created</code> → <code>order.paid</code> → <code>order.dispensed</code> или <code>order.failed</code> → <code>order.completed</code>. На <code>order.completed</code> подписаны loyalty (баллы) и achievements (ачивки).</p>
+      <p><b>RBAC:</b> Operator 9/15 — для machines операторам. Manager 13/15. Viewer 3/15 — основные read.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>transactions · единый журнал транзакций</span><span class="meta">14 файлов · 17 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> единая запись каждой финансовой операции, агрегация платежей разных провайдеров.</p>
+      <p><b>Связь с payments:</b> Payment — это «попытка оплаты», Transaction — «успешный финансовый факт». Не каждый Payment становится Transaction (если оплата провалилась, Transaction не создаётся).</p>
+      <p><b>RBAC:</b> Owner/Admin/Manager — read+write, Accountant — read-only (10/17), Operator — 4/17 для своих машин.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>sales-import · импорт из легаси-систем</span><span class="meta">16 файлов · 9 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> миграция данных из старых систем — HICON, BC, других CSV-форматов.</p>
+      <h4>3-уровневый дедуп</h4>
+      <p>Sprint G3 ввёл fuzzy-matcher для парсинга разных форматов с автоматическим mapping в внутренние сущности.</p>
+      <p><b>Use case:</b> у клиента-франчайзи была старая система — импортируем 6 месяцев истории, дальше работаем с нуля.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>complaints · жалобы и возвраты</span><span class="meta">15 файлов · 28 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Самый нагруженный эндпоинтами модуль группы.</b> Покрывает workflow:</p>
+      <ol>
+        <li>Клиент создаёт жалобу через Mini App или кнопку «Возврат»</li>
+        <li>Триаж — кто будет разбираться (Manager / Admin)</li>
+        <li>Расследование — что случилось с автоматом, был ли товар выдан</li>
+        <li>Решение — refund / replacement / decline</li>
+        <li>Если refund — отдельный сервис <code>complaints-refund.service.ts</code> делает возврат через Payme/Click/Uzum</li>
+        <li>Аудит-лог + уведомление клиента</li>
+      </ol>
+      <p><b>Code smell:</b> Operator 9/28 — может разбираться с жалобами на свои машины. Это правильный пользовательский опыт.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>purchase-history · история клиента</span><span class="meta">7 файлов · 10 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> read-API для клиентского кабинета. Все покупки одного клиента с группировкой, фильтрацией, экспортом.</p>
+      <p><b>Используется в:</b> Telegram Mini App «Мои покупки», web-кабинет клиента (после Фазы 3.6 будет в отдельном app).</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>purchases · закупки у поставщиков</span><span class="meta">8 файлов · 6 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Не путать с purchase-history.</b> Purchases — это закупки сырья (зёрна, молоко, стаканчики) у contractors.</p>
+      <p><b>Sprint G2:</b> создан с extension price_history — храним историю изменения закупочных цен.</p>
+      <p><b>Связь:</b> contractors (поставщики), warehouse (приёмка на склад), inventory (увеличение остатка).</p>
+    </div>
+  </details>
+</section>
+
+<section class="block">
+  <h2><span class="ico">!</span>Риски и action items</h2>
+  <table class="matrix">
+    <thead><tr><th>Уровень</th><th>Риск</th><th>Действие</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill p-warn">med</span></td><td>order.completed event не fire правильно → loyalty не начисляет баллы</td><td>Integration test полного цикла</td></tr>
+      <tr><td><span class="pill p-warn">med</span></td><td>complaints-refund может зациклиться при ошибке провайдера</td><td>BullMQ retry с max attempts + DLQ</td></tr>
+      <tr><td><span class="pill p-good">low</span></td><td>sales-import duplicate detection</td><td>Уже есть 3-уровневый дедуп</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <h2><span class="ico">✓</span>Готовность группы</h2>
+  <p><b>🟢 Готова к запуску пилота.</b> Все модули работают, RBAC настроен, архитектура event-driven правильная.</p>
+</section>
+
+<footer>
+  Аудит группы Orders & Sales. <a href="MASTER.html">← MASTER</a>.
+</footer>
+
+</div>
+</body>
+</html>

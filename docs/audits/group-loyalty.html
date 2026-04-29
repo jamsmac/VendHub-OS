@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Аудит группы Loyalty & Engagement</title>
+<link rel="stylesheet" href="_styles.css" />
+</head>
+<body>
+<div class="wrap">
+
+<header class="title">
+  <a href="MASTER.html" class="nav-back">← в мастер-документ</a>
+  <h1>Loyalty & Engagement — программа лояльности</h1>
+  <p class="sub">6 модулей делают клиента более вовлечённым: бонусы, ачивки, квесты, рефералы, промо. Свежий код — самый высокий риск регрессий.</p>
+  <div class="stat-tiles">
+    <div class="stat-tile"><div class="lab">Модулей</div><div class="val">6</div></div>
+    <div class="stat-tile"><div class="lab">Файлов кода</div><div class="val">69</div></div>
+    <div class="stat-tile"><div class="lab">Эндпоинтов</div><div class="val">77</div></div>
+    <div class="stat-tile"><div class="lab">Свежесть</div><div class="val warn">высокая</div></div>
+    <div class="stat-tile"><div class="lab">Готовность</div><div class="val warn">🟡 нужны тесты</div></div>
+  </div>
+</header>
+
+<section class="block">
+  <h2><span class="ico">L</span>Обзор группы</h2>
+  <p class="lead">Это самая свежая группа в проекте — последние коммиты в этой области были в апреле 2026 (web-push на tier level-up, achievement unlock check, points grant). Поэтому риск регрессий выше, чем в стабильных модулях.</p>
+  <table class="matrix">
+    <thead><tr><th>Модуль</th><th>Эндпоинтов</th><th>Назначение</th><th>Готовность</th></tr></thead>
+    <tbody>
+      <tr><td><b>loyalty</b></td><td>35 (5 контроллеров)</td><td>Главный — баллы, тиры, профиль клиента</td><td><span class="pill p-warn">🟡 свежий</span></td></tr>
+      <tr><td><b>achievements</b></td><td>10</td><td>Ачивки за действия — «100 покупок», «5 разных автоматов»</td><td><span class="pill p-warn">🟡 свежий</span></td></tr>
+      <tr><td><b>quests</b></td><td>9</td><td>Квесты — выполни N задач за неделю → бонус</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>referrals</b></td><td>6</td><td>Реферальная программа — пригласил друга → +баллы</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>promo-codes</b></td><td>9</td><td>Промо-коды и скидки</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>operator-ratings</b></td><td>8</td><td>Рейтинги операторов от клиентов</td><td><span class="pill p-good">🟢</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <h2><span class="ico">▣</span>Детали по модулям</h2>
+
+  <details class="acc" open>
+    <summary><span>loyalty · ядро программы лояльности</span><span class="meta">30 файлов · 5 контроллеров · 35 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> главный модуль с многими саб-контроллерами. Управляет баллами, тирами, расходом баллов на скидки.</p>
+      <h4>5 контроллеров</h4>
+      <ul>
+        <li><code>loyalty.controller.ts</code> (9 эндпоинтов) — общий: баланс, тир, расход, история</li>
+        <li><code>achievement.controller.ts</code> (7) — ачивки (используется loyalty/achievements)</li>
+        <li><code>quest.controller.ts</code> (8) — квесты</li>
+        <li><code>promo-code.controller.ts</code> (7) — промо-коды</li>
+        <li><code>referral.controller.ts</code> (4) — рефералы</li>
+      </ul>
+      <h4>Tier system</h4>
+      <p>Bronze / Silver / Gold / Platinum в зависимости от количества покупок. На каждом тире свой кэшбек (например, Gold = 10 чашек кешбэк за каждые 100).</p>
+      <h4>Listeners</h4>
+      <p>Подписан на <code>order.completed</code>: начисляет баллы, проверяет ачивки, проверяет переход на новый тир. На переход тира — <code>web-push</code> уведомление клиенту.</p>
+      <h4>Code smell — MIXED стиль @Roles</h4>
+      <p>Один модуль использует и UserRole.X (енам), и "owner" (строки). Опечатка в строке пройдёт компилятор.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>achievements · ачивки за действия</span><span class="meta">8 файлов · 10 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> система достижений. «100 покупок», «5 разных автоматов», «Утренний кофе 10 раз подряд».</p>
+      <p><b>Триггеры:</b> listener на <code>order.completed</code> проверяет соответствует ли история критериям новой ачивки.</p>
+      <p><b>UI:</b> экран «Мои ачивки» в Telegram Mini App с прогрессом и галочками.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>quests · временные челленджи</span><span class="meta">9 файлов · 9 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Отличие от achievements:</b> квесты ограничены по времени (неделя) и имеют конкретное вознаграждение (бонус).</p>
+      <p><b>Use case:</b> «Купи 5 латте за неделю → 50 бонусов». Активный квест в Mini App с прогрессом.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>referrals · реферальная программа</span><span class="meta">6 файлов · 6 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Flow:</b> у каждого клиента есть <code>referralCode</code>. Поделился ссылкой <code>?ref=ABC</code>, друг зарегался — реферрер записан в <code>users.referredById</code>. После первой покупки друга — реферрер получает бонус.</p>
+      <p><b>Code smell:</b> MIXED стиль @Roles (как в loyalty).</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>promo-codes · скидки и промо</span><span class="meta">9 файлов · 9 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> CRUD промо-кодов с условиями (минимальная сумма, дата, лимит использований, для новых клиентов).</p>
+      <p><b>Применение:</b> в чекауте orders.controller валидирует код и применяет скидку.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>operator-ratings · отзывы клиентов об операторах</span><span class="meta">7 файлов · 8 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> клиент после жалобы или просто из Mini App может оставить рейтинг 1-5 + комментарий конкретному оператору, который обслуживал его автомат.</p>
+      <p><b>Использование:</b> KPI оператора, премии. Manager видит средний рейтинг своих операторов.</p>
+    </div>
+  </details>
+</section>
+
+<section class="block">
+  <h2><span class="ico">!</span>Риски и action items</h2>
+  <table class="matrix">
+    <thead><tr><th>Уровень</th><th>Риск</th><th>Действие</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill p-warn">med</span></td><td>order.completed listener не сработает → баллы не начисляются</td><td>Integration test полного цикла после каждого деплоя</td></tr>
+      <tr><td><span class="pill p-warn">med</span></td><td>MIXED стиль @Roles в loyalty / referrals</td><td>Унифицировать на enum в Фазе 2 LAUNCH_CHECKLIST</td></tr>
+      <tr><td><span class="pill p-warn">med</span></td><td>Tier transition может пропустить уведомление</td><td>Web-push с retry. Логи переходов в audit</td></tr>
+      <tr><td><span class="pill p-good">low</span></td><td>Реферальный код — теоретическая возможность угадать</td><td>Длинный hex (нет атаки brute force в реальности)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <h2><span class="ico">✓</span>Готовность группы</h2>
+  <p><b>🟡 Условно готова.</b> Все 6 модулей работают, но как самая свежая группа — нужно особое внимание на интеграционные тесты после деплоя.</p>
+  <p><b>Action items на пилоте:</b></p>
+  <ul>
+    <li>Smoke-тест: тестовая покупка → начислились баллы → тир обновился → push пришёл</li>
+    <li>Reagrade один MIXED-модуль на унифицированный стиль @Roles в первый месяц после запуска</li>
+  </ul>
+  <p><b>После пилота (если будет рост базы):</b></p>
+  <ul>
+    <li>Геймификация — лидерборды, сезонные акции</li>
+    <li>A/B тесты тирной системы — «Bronze 100 покупок» vs «Bronze 50 покупок»</li>
+  </ul>
+</section>
+
+<footer>
+  Аудит группы Loyalty & Engagement. <a href="MASTER.html">← MASTER</a>.
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,1250 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Роли и права — текущее, идеал, разрыв, план</title>
+<style>
+  :root {
+    --bg: #FAF8F4;
+    --surface: #FFFFFF;
+    --surface-2: #F1EFE8;
+    --surface-3: #EAE7DD;
+    --text: #2C2C2A;
+    --text-2: #5F5E5A;
+    --text-3: #888780;
+    --border: rgba(0, 0, 0, 0.08);
+    --border-strong: rgba(0, 0, 0, 0.18);
+    --accent: #534AB7;
+    --accent-bg: #EEEDFE;
+    --warn: #854F0B;
+    --warn-bg: #FAEEDA;
+    --good: #27500A;
+    --good-bg: #EAF3DE;
+    --bad: #791F1F;
+    --bad-bg: #FCEBEB;
+    --info: #185FA5;
+    --info-bg: #E6F1FB;
+    --teal: #0F6E56;
+    --teal-bg: #E1F5EE;
+    --pink: #993556;
+    --pink-bg: #FBEAF0;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.6;
+    font-size: 15.5px;
+  }
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 40px 28px 80px;
+  }
+  header.title {
+    margin-bottom: 28px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--border);
+  }
+  header.title h1 {
+    margin: 0 0 6px;
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  header.title p {
+    margin: 0;
+    color: var(--text-2);
+    font-size: 15px;
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .summary-grid .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .summary-grid .label {
+    font-size: 12px;
+    color: var(--text-3);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .summary-grid .val {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .tab {
+    background: none;
+    border: none;
+    color: var(--text-2);
+    padding: 12px 18px;
+    font-size: 14.5px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab[aria-selected="true"] {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tab .badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--text-2);
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  h2 {
+    margin: 0 0 8px;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .lead {
+    color: var(--text-2);
+    margin: 0 0 22px;
+  }
+  h3 {
+    margin: 28px 0 10px;
+    font-size: 17px;
+    font-weight: 500;
+  }
+  p { margin: 0 0 12px; }
+  code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    background: var(--surface-2);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  ul, ol { padding-left: 22px; margin: 6px 0 12px; }
+  li { margin: 4px 0; }
+  .group {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .group-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    cursor: pointer;
+    user-select: none;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .group-head:hover { background: var(--surface-2); }
+  .group-head .meta {
+    color: var(--text-3);
+    font-size: 13px;
+    font-weight: 400;
+  }
+  .group-head .arrow {
+    transition: transform 0.2s;
+    color: var(--text-3);
+    margin-left: 12px;
+  }
+  .group[open] .arrow { transform: rotate(90deg); }
+  .group-body {
+    display: none;
+    padding: 0 18px 16px;
+    border-top: 1px solid var(--border);
+  }
+  .group[open] .group-body { display: block; padding-top: 14px; }
+  table.matrix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    margin: 8px 0 4px;
+  }
+  table.matrix th {
+    text-align: center;
+    color: var(--text-3);
+    font-weight: 500;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 8px 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  table.matrix th:first-child {
+    text-align: left;
+    width: 30%;
+  }
+  table.matrix td {
+    padding: 8px 6px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  table.matrix td:first-child {
+    text-align: left;
+    font-weight: 500;
+  }
+  .ep-count {
+    color: var(--text-3);
+    font-size: 12px;
+    margin-left: 4px;
+  }
+  .cell-zero { color: var(--text-3); }
+  .cell-most { background: var(--good-bg); color: var(--good); border-radius: 4px; }
+  .cell-some { background: var(--info-bg); color: var(--info); border-radius: 4px; }
+  .style-pill {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .style-enum { background: var(--good-bg); color: var(--good); }
+  .style-string { background: var(--info-bg); color: var(--info); }
+  .style-mixed { background: var(--warn-bg); color: var(--warn); }
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .feature {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .feature h4 {
+    margin: 0 0 8px;
+    font-size: 15.5px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .feature .stat-pill {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    margin-left: auto;
+  }
+  .stat-have { background: var(--good-bg); color: var(--good); }
+  .stat-partial { background: var(--warn-bg); color: var(--warn); }
+  .stat-missing { background: var(--bad-bg); color: var(--bad); }
+  .feature p {
+    color: var(--text-2);
+    font-size: 14px;
+    line-height: 1.55;
+    margin: 0 0 8px;
+  }
+  .feature .example {
+    background: var(--surface-2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--text-2);
+    margin-top: 10px;
+    line-height: 1.55;
+  }
+  .feature .example b {
+    color: var(--text);
+    font-weight: 500;
+  }
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 720px) {
+    .compare { grid-template-columns: 1fr; }
+  }
+  .compare .col {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .compare .col h4 {
+    margin: 0 0 12px;
+    font-size: 15.5px;
+    font-weight: 500;
+  }
+  .compare .col ul { margin: 0; padding-left: 20px; }
+  .compare .col li { font-size: 14px; color: var(--text-2); margin: 6px 0; }
+  .col-have { border-left: 3px solid var(--good); }
+  .col-need { border-left: 3px solid var(--warn); }
+  .phase {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin: 12px 0;
+  }
+  .phase h3 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .phase .when {
+    color: var(--text-3);
+    font-size: 13px;
+    font-weight: 400;
+  }
+  .phase .why {
+    color: var(--text-2);
+    font-size: 13.5px;
+    margin: 4px 0 14px;
+  }
+  .item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+  }
+  .item:first-of-type { border-top: none; padding-top: 4px; }
+  .item .check {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    border: 1.5px solid var(--text-3);
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .item.done .check {
+    background: var(--good-bg);
+    border-color: var(--good);
+    color: var(--good);
+  }
+  .item.todo .check { /* default */ }
+  .item.now .check {
+    background: var(--warn-bg);
+    border-color: var(--warn);
+    color: var(--warn);
+  }
+  .item .body { flex: 1; min-width: 0; }
+  .item .body b {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+  .item .body span {
+    font-size: 13.5px;
+    color: var(--text-2);
+  }
+  .item .effort {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--text-3);
+    background: var(--surface-2);
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-top: 2px;
+    white-space: nowrap;
+  }
+  footer {
+    margin-top: 56px;
+    padding-top: 22px;
+    border-top: 1px solid var(--border);
+    color: var(--text-3);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="title">
+  <h1>Роли и права в VendHub OS</h1>
+  <p>Текущее состояние, принятая целевая модель, разрыв и план миграции</p>
+  <div class="summary-grid">
+    <div class="stat"><div class="label">Ролей сейчас</div><div class="val">7</div></div>
+    <div class="stat"><div class="label">Ролей в цели</div><div class="val">5</div></div>
+    <div class="stat"><div class="label">Модулей с правами</div><div class="val">84</div></div>
+    <div class="stat"><div class="label">Защищённых функций</div><div class="val">1067</div></div>
+    <div class="stat"><div class="label">До запуска</div><div class="val">4 шага</div></div>
+    <div class="stat"><div class="label">Миграция модели</div><div class="val">4-6 нед</div></div>
+  </div>
+  <div style="background: var(--accent-bg); border-radius: 10px; padding: 12px 18px; margin-top: 16px; color: #26215C; font-size: 14px;">
+    <b>Принято решение 2026-04-29:</b> переход на 4 staff-роли (Owner / Admin / Manager / Employee) + отдельную роль Client. «Наблюдатель» становится пресетом внутри Employee. Реализация — после стабилизации пилота. Детали во вкладке «Целевая модель» и в файле <code>role-redesign-decision.md</code>.
+  </div>
+</header>
+
+<div class="tabs" role="tablist">
+  <button class="tab" role="tab" aria-selected="true" data-target="t-current">Текущее состояние<span class="badge">7 ролей</span></button>
+  <button class="tab" role="tab" aria-selected="false" data-target="t-ideal">Целевая модель<span class="badge">5 ролей</span></button>
+  <button class="tab" role="tab" aria-selected="false" data-target="t-gap">Разрыв<span class="badge">было → станет</span></button>
+  <button class="tab" role="tab" aria-selected="false" data-target="t-plan">План<span class="badge">5 фаз</span></button>
+</div>
+
+<!-- =================== TAB 1: ТЕКУЩЕЕ =================== -->
+<section id="t-current" class="panel active" role="tabpanel">
+  <h2>Текущее состояние — карта 84 модулей</h2>
+  <p class="lead">Кликай на любую группу, чтобы развернуть её содержимое. Цифры в ячейках — на скольких эндпоинтах роль явно разрешена.</p>
+
+  <h3>Семь ролей системы</h3>
+  <table class="matrix">
+    <thead>
+      <tr><th>Роль</th><th>Вес</th><th>Назначение</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Owner — Владелец</td><td>100</td><td>Ты. Полный доступ ко всем организациям. Проходит через любой фильтр прав.</td></tr>
+      <tr><td>Admin — Администратор</td><td>90</td><td>Глава одной организации. Полные права внутри неё.</td></tr>
+      <tr><td>Manager — Менеджер</td><td>70</td><td>Руководитель команды. Задачи, маршруты, отчёты по своему участку.</td></tr>
+      <tr><td>Accountant — Бухгалтер</td><td>50</td><td>Платежи, отчёты, фискализация.</td></tr>
+      <tr><td>Warehouse — Кладовщик</td><td>40</td><td>Склад, остатки, приёмка товара.</td></tr>
+      <tr><td>Operator — Оператор</td><td>30</td><td>Полевой работник. Маршруты, задачи, визиты к автоматам.</td></tr>
+      <tr><td>Viewer — Наблюдатель</td><td>10</td><td>Только просмотр. Для аудиторов, инвесторов, новичков.</td></tr>
+    </tbody>
+  </table>
+
+  <p style="background: var(--accent-bg); border-radius: 8px; padding: 12px 16px; color: #26215C; margin-top: 16px;">
+    <b>Важно:</b> Owner проходит через любой фильтр прав благодаря явному bypass'у в коде. Поэтому в матрице ниже колонка <code>Own</code> может показывать 0 — это просто стиль написания, не блокировка.
+  </p>
+
+  <h3>Матрица по группам</h3>
+
+  <details class="group" open>
+    <summary class="group-head">
+      <span>Identity & Access<span class="meta"> — кто заходит и под каким бейджиком</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <table class="matrix">
+        <thead>
+          <tr><th>Модуль</th><th>EP</th><th>Own</th><th>Adm</th><th>Mgr</th><th>Acc</th><th>Wrh</th><th>Opr</th><th>Vwr</th><th>Стиль</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>auth</td><td>7</td><td class="cell-most">7</td><td class="cell-most">7</td><td class="cell-most">7</td><td class="cell-most">7</td><td class="cell-most">7</td><td class="cell-most">7</td><td class="cell-most">7</td><td><span class="style-pill style-string">string</span></td></tr>
+          <tr><td>users</td><td>5</td><td class="cell-most">5</td><td class="cell-most">5</td><td class="cell-some">2</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td><span class="style-pill style-enum">enum</span></td></tr>
+          <tr><td>rbac</td><td>12</td><td class="cell-most">12</td><td class="cell-most">11</td><td class="cell-some">5</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td><span class="style-pill style-enum">enum</span></td></tr>
+          <tr><td>security</td><td>4</td><td class="cell-most">4</td><td class="cell-most">4</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td><span class="style-pill style-enum">enum</span></td></tr>
+          <tr><td>invites</td><td>4</td><td class="cell-most">4</td><td class="cell-most">4</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td><span class="style-pill style-enum">enum</span></td></tr>
+          <tr><td>access-requests</td><td>5</td><td class="cell-most">5</td><td class="cell-most">5</td><td class="cell-some">2</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td><span class="style-pill style-enum">enum</span></td></tr>
+          <tr><td>machine-access</td><td>13</td><td class="cell-most">13</td><td class="cell-most">13</td><td class="cell-most">11</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-some">1</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+          <tr><td>employees</td><td>40</td><td class="cell-most">40</td><td class="cell-most">40</td><td class="cell-most">33</td><td class="cell-some">3</td><td class="cell-some">1</td><td class="cell-some">5</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>Payments & Fiscal<span class="meta"> — деньги</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <table class="matrix">
+        <thead><tr><th>Модуль</th><th>EP</th><th>Own</th><th>Adm</th><th>Mgr</th><th>Acc</th><th>Wrh</th><th>Opr</th><th>Vwr</th><th>Стиль</th></tr></thead>
+        <tbody>
+          <tr><td>payments</td><td>8</td><td class="cell-most">8</td><td class="cell-most">8</td><td class="cell-most">8</td><td class="cell-most">7</td><td class="cell-some">4</td><td class="cell-some">4</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+          <tr><td>telegram-payments</td><td>8</td><td class="cell-most">8</td><td class="cell-most">8</td><td class="cell-some">4</td><td class="cell-some">3</td><td class="cell-zero">0</td><td class="cell-some">4</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+          <tr><td>fiscal</td><td>17</td><td class="cell-zero">0</td><td class="cell-most">17</td><td class="cell-most">11</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+          <tr><td>billing</td><td>10</td><td class="cell-most">10</td><td class="cell-most">10</td><td class="cell-most">8</td><td class="cell-most">8</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+          <tr><td>payment-reports</td><td>20</td><td class="cell-most">20</td><td class="cell-most">20</td><td class="cell-most">13</td><td class="cell-most">18</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+          <tr><td>cash-finance</td><td>1</td><td class="cell-some">1</td><td class="cell-some">1</td><td class="cell-some">1</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+          <tr><td>payout-requests</td><td>7</td><td class="cell-most">7</td><td class="cell-most">7</td><td class="cell-some">5</td><td class="cell-some">3</td><td class="cell-zero">0</td><td class="cell-some">3</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>Machines & Telemetry<span class="meta"> — автоматы и их состояние</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <table class="matrix">
+        <thead><tr><th>Модуль</th><th>EP</th><th>Own</th><th>Adm</th><th>Mgr</th><th>Acc</th><th>Wrh</th><th>Opr</th><th>Vwr</th><th>Стиль</th></tr></thead>
+        <tbody>
+          <tr><td>machines</td><td>50</td><td class="cell-most">50</td><td class="cell-most">50</td><td class="cell-most">44</td><td class="cell-most">19</td><td class="cell-some">12</td><td class="cell-most">23</td><td class="cell-some">13</td><td><span class="style-pill style-enum">enum</span></td></tr>
+          <tr><td>equipment</td><td>26</td><td class="cell-most">26</td><td class="cell-most">26</td><td class="cell-most">24</td><td class="cell-zero">0</td><td class="cell-some">5</td><td class="cell-most">15</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+          <tr><td>alerts</td><td>13</td><td class="cell-most">13</td><td class="cell-most">13</td><td class="cell-most">12</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-some">4</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+          <tr><td>predictive-refill</td><td>4</td><td class="cell-some">4</td><td class="cell-some">4</td><td class="cell-some">3</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-some">3</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+          <tr><td>recommendations</td><td>1</td><td class="cell-some">1</td><td class="cell-some">1</td><td class="cell-some">1</td><td class="cell-some">1</td><td class="cell-some">1</td><td class="cell-some">1</td><td class="cell-some">1</td><td><span class="style-pill style-enum">enum</span></td></tr>
+          <tr><td>geo</td><td>5</td><td class="cell-some">5</td><td class="cell-some">5</td><td class="cell-some">5</td><td class="cell-some">5</td><td class="cell-some">5</td><td class="cell-some">5</td><td class="cell-some">5</td><td><span class="style-pill style-enum">enum</span></td></tr>
+          <tr><td>locations</td><td>6</td><td class="cell-some">3</td><td class="cell-some">6</td><td class="cell-some">5</td><td class="cell-some">2</td><td class="cell-some">3</td><td class="cell-some">3</td><td class="cell-some">3</td><td><span class="style-pill style-enum">enum</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>Inventory & Stock<span class="meta"> — склад и остатки</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <table class="matrix">
+        <thead><tr><th>Модуль</th><th>EP</th><th>Own</th><th>Adm</th><th>Mgr</th><th>Acc</th><th>Wrh</th><th>Opr</th><th>Vwr</th><th>Стиль</th></tr></thead>
+        <tbody>
+          <tr><td>inventory</td><td>14</td><td class="cell-most">14</td><td class="cell-most">14</td><td class="cell-most">14</td><td class="cell-zero">0</td><td class="cell-most">14</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td><span class="style-pill style-enum">enum</span></td></tr>
+          <tr><td>warehouse</td><td>25</td><td class="cell-most">25</td><td class="cell-most">25</td><td class="cell-most">25</td><td class="cell-zero">0</td><td class="cell-some">9</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td><span class="style-pill style-enum">enum</span></td></tr>
+          <tr><td>storage</td><td>14</td><td class="cell-most">14</td><td class="cell-most">14</td><td class="cell-most">14</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-some">9</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+          <tr><td>containers</td><td>11</td><td class="cell-most">11</td><td class="cell-most">11</td><td class="cell-most">10</td><td class="cell-zero">0</td><td class="cell-some">8</td><td class="cell-some">7</td><td class="cell-zero">0</td><td><span class="style-pill style-enum">enum</span></td></tr>
+          <tr><td>opening-balances</td><td>9</td><td class="cell-some">9</td><td class="cell-some">9</td><td class="cell-some">9</td><td class="cell-some">8</td><td class="cell-some">5</td><td class="cell-zero">0</td><td class="cell-some">2</td><td><span class="style-pill style-enum">enum</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>Routes & Field Ops<span class="meta"> — маршруты и работа на земле</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <table class="matrix">
+        <thead><tr><th>Модуль</th><th>EP</th><th>Own</th><th>Adm</th><th>Mgr</th><th>Acc</th><th>Wrh</th><th>Opr</th><th>Vwr</th><th>Стиль</th></tr></thead>
+        <tbody>
+          <tr><td>routes</td><td>33</td><td class="cell-most">29</td><td class="cell-most">33</td><td class="cell-most">32</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-most">15</td><td class="cell-some">4</td><td><span class="style-pill style-enum">enum</span></td></tr>
+          <tr><td>tasks</td><td>27</td><td class="cell-most">27</td><td class="cell-most">27</td><td class="cell-most">26</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-most">18</td><td class="cell-zero">0</td><td><span class="style-pill style-enum">enum</span></td></tr>
+          <tr><td>maintenance</td><td>26</td><td class="cell-most">26</td><td class="cell-most">26</td><td class="cell-most">26</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-most">15</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+          <tr><td>work-logs</td><td>23</td><td class="cell-most">23</td><td class="cell-most">23</td><td class="cell-most">22</td><td class="cell-some">2</td><td class="cell-zero">0</td><td class="cell-most">11</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+          <tr><td>incidents</td><td>10</td><td class="cell-most">10</td><td class="cell-most">10</td><td class="cell-most">9</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-some">6</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+          <tr><td>collections</td><td>13</td><td class="cell-most">13</td><td class="cell-most">13</td><td class="cell-most">12</td><td class="cell-some">2</td><td class="cell-zero">0</td><td class="cell-some">4</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>Loyalty & Engagement<span class="meta"> — лояльность клиентов</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <table class="matrix">
+        <thead><tr><th>Модуль</th><th>EP</th><th>Own</th><th>Adm</th><th>Mgr</th><th>Acc</th><th>Wrh</th><th>Opr</th><th>Vwr</th><th>Стиль</th></tr></thead>
+        <tbody>
+          <tr><td>loyalty</td><td>34</td><td class="cell-most">34</td><td class="cell-most">34</td><td class="cell-most">25</td><td class="cell-most">15</td><td class="cell-most">15</td><td class="cell-most">15</td><td class="cell-most">15</td><td><span class="style-pill style-mixed">mixed</span></td></tr>
+          <tr><td>achievements</td><td>10</td><td class="cell-most">10</td><td class="cell-most">10</td><td class="cell-some">6</td><td class="cell-some">4</td><td class="cell-some">4</td><td class="cell-some">4</td><td class="cell-some">4</td><td><span class="style-pill style-enum">enum</span></td></tr>
+          <tr><td>quests</td><td>9</td><td class="cell-some">9</td><td class="cell-some">9</td><td class="cell-some">6</td><td class="cell-some">4</td><td class="cell-some">4</td><td class="cell-some">4</td><td class="cell-some">4</td><td><span class="style-pill style-enum">enum</span></td></tr>
+          <tr><td>referrals</td><td>6</td><td class="cell-some">6</td><td class="cell-some">6</td><td class="cell-some">6</td><td class="cell-some">5</td><td class="cell-some">5</td><td class="cell-some">5</td><td class="cell-some">5</td><td><span class="style-pill style-mixed">mixed</span></td></tr>
+          <tr><td>promo-codes</td><td>8</td><td class="cell-some">8</td><td class="cell-some">8</td><td class="cell-some">7</td><td class="cell-some">1</td><td class="cell-some">1</td><td class="cell-some">1</td><td class="cell-some">1</td><td><span class="style-pill style-string">string</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>Reports & Analytics<span class="meta"> — отчёты и аналитика</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <table class="matrix">
+        <thead><tr><th>Модуль</th><th>EP</th><th>Own</th><th>Adm</th><th>Mgr</th><th>Acc</th><th>Wrh</th><th>Opr</th><th>Vwr</th><th>Стиль</th></tr></thead>
+        <tbody>
+          <tr><td>reports</td><td>44</td><td class="cell-most">44</td><td class="cell-most">44</td><td class="cell-most">36</td><td class="cell-most">23</td><td class="cell-some">2</td><td class="cell-some">1</td><td class="cell-some">4</td><td><span class="style-pill style-mixed">mixed</span></td></tr>
+          <tr><td>analytics</td><td>11</td><td class="cell-zero">0</td><td class="cell-most">11</td><td class="cell-most">10</td><td class="cell-most">9</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+          <tr><td>ai</td><td>11</td><td class="cell-most">11</td><td class="cell-most">11</td><td class="cell-most">10</td><td class="cell-some">1</td><td class="cell-some">5</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+          <tr><td>audit</td><td>16</td><td class="cell-most">16</td><td class="cell-most">14</td><td class="cell-some">5</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+          <tr><td>investor</td><td>7</td><td class="cell-some">7</td><td class="cell-some">7</td><td class="cell-some">2</td><td class="cell-some">2</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td><span class="style-pill style-string">string</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>Остальные группы<span class="meta"> — Products, Orders, Tenancy, Integrations, Plumbing</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <p style="color: var(--text-2); font-size: 14px;">Полная таблица в текстовом отчёте <code>01-role-matrix.md</code>. Здесь самые «нагруженные»:</p>
+      <table class="matrix">
+        <thead><tr><th>Модуль</th><th>EP</th><th>Own</th><th>Adm</th><th>Mgr</th><th>Acc</th><th>Wrh</th><th>Opr</th><th>Vwr</th></tr></thead>
+        <tbody>
+          <tr><td>products</td><td>33</td><td class="cell-most">33</td><td class="cell-most">33</td><td class="cell-most">33</td><td class="cell-most">13</td><td class="cell-most">13</td><td class="cell-most">10</td><td class="cell-most">13</td></tr>
+          <tr><td>directories</td><td>27</td><td class="cell-most">20</td><td class="cell-most">27</td><td class="cell-most">21</td><td class="cell-some">7</td><td class="cell-some">7</td><td class="cell-some">8</td><td class="cell-some">7</td></tr>
+          <tr><td>contractors</td><td>25</td><td class="cell-most">25</td><td class="cell-most">25</td><td class="cell-most">20</td><td class="cell-most">14</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td></tr>
+          <tr><td>complaints</td><td>25</td><td class="cell-most">25</td><td class="cell-most">25</td><td class="cell-most">21</td><td class="cell-some">1</td><td class="cell-zero">0</td><td class="cell-some">9</td><td class="cell-zero">0</td></tr>
+          <tr><td>references</td><td>23</td><td class="cell-most">23</td><td class="cell-most">23</td><td class="cell-most">13</td><td class="cell-most">13</td><td class="cell-most">13</td><td class="cell-zero">0</td><td class="cell-zero">0</td></tr>
+          <tr><td>import</td><td>23</td><td class="cell-most">23</td><td class="cell-most">23</td><td class="cell-most">23</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td></tr>
+          <tr><td>integrations</td><td>22</td><td class="cell-zero">0</td><td class="cell-most">22</td><td class="cell-some">6</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td><td class="cell-zero">0</td></tr>
+          <tr><td>notifications</td><td>29</td><td class="cell-most">29</td><td class="cell-most">29</td><td class="cell-most">20</td><td class="cell-most">12</td><td class="cell-most">12</td><td class="cell-most">12</td><td class="cell-most">12</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>9 модулей без @Roles<span class="meta"> — все объяснимы</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <table class="matrix">
+        <thead><tr><th>Модуль</th><th colspan="2">Тип</th><th colspan="6">Объяснение</th></tr></thead>
+        <tbody>
+          <tr><td>email</td><td colspan="2">internal</td><td colspan="6" style="text-align: left;">Слушает события, шлёт письма. Контроллера нет.</td></tr>
+          <tr><td>sms</td><td colspan="2">internal</td><td colspan="6" style="text-align: left;">То же что email, но SMS.</td></tr>
+          <tr><td>stock-movements</td><td colspan="2">internal</td><td colspan="6" style="text-align: left;">Listener для событий движения товара.</td></tr>
+          <tr><td>trips</td><td colspan="2">internal</td><td colspan="6" style="text-align: left;">Внутренний сервис маршрутов.</td></tr>
+          <tr><td>websocket</td><td colspan="2">gateway</td><td colspan="6" style="text-align: left;">Защита через JWT при handshake, а не через @Roles.</td></tr>
+          <tr><td>health</td><td colspan="2">@Public</td><td colspan="6" style="text-align: left;">/health — для liveness probe Railway. Должен быть открыт.</td></tr>
+          <tr><td>metrics</td><td colspan="2">token</td><td colspan="6" style="text-align: left;">@Public + проверка METRICS_TOKEN. Без токена в env — открыт.</td></tr>
+          <tr><td>monitoring</td><td colspan="2">token</td><td colspan="6" style="text-align: left;">@Public + MetricsKeyGuard (METRICS_API_KEY).</td></tr>
+          <tr><td>public-tenant</td><td colspan="2">@Public</td><td colspan="6" style="text-align: left;">Публичная информация о тенанте, для лендинга.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <h3>Найденные проблемы</h3>
+  <details class="group">
+    <summary class="group-head">
+      <span>Code smell #1: смешанные стили @Roles (3 модуля)<span class="meta"> — низкий риск</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <p><b>Кто:</b> <code>loyalty</code>, <code>referrals</code>, <code>reports</code>.</p>
+      <p>В одном модуле часть декораторов использует <code>UserRole.ADMIN</code> (енам, защищённый TypeScript), часть — <code>"admin"</code> (строку, без проверки).</p>
+      <p><b>Чем рискует:</b> опечатка в строке (<code>"adimn"</code> или <code>"administr"</code>) пройдёт компилятор и превратит эндпоинт в недоступный никому. С енамом такой опечатки физически не может быть.</p>
+      <p><b>Стоимость фикса:</b> 2-3 часа на всё API, делается одним PR.</p>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>Code smell #2: нет явного OWNER в 3 модулях<span class="meta"> — средний риск</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <p><b>Кто:</b> <code>fiscal</code>, <code>analytics</code>, <code>integrations</code>.</p>
+      <p>В декораторах не указана роль <code>owner</code>. Owner всё равно проходит благодаря глобальному bypass'у в RolesGuard, но это создаёт «невидимую дверь» — в коде написано «только admin», в реальности и owner ходит.</p>
+      <p><b>Чем рискует:</b> при аудите compliance трудно объяснить, почему в логах видно действие Owner на эндпоинте, который декоратор не разрешает. Также сложнее ответить на вопрос «кто может работать с фискалом».</p>
+      <p><b>Стоимость фикса:</b> 30 минут — добавить <code>"owner"</code> в каждый @Roles этих модулей.</p>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>Code smell #3: бухгалтер закрыт от inventory<span class="meta"> — средний риск</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <p><b>Кто:</b> модуль <code>inventory</code>, 14 эндпоинтов, у бухгалтера 0 доступа.</p>
+      <p>Это может быть правильно (склад — не дело бухгалтера), а может быть пропуском — например, при списании просрочки бухгалтеру нужно увидеть остатки.</p>
+      <p><b>Что делать:</b> спросить вашего реального бухгалтера. Если ходит — добавить <code>accountant</code> хотя бы на read-методы.</p>
+    </div>
+  </details>
+</section>
+
+<!-- =================== TAB 2: ИДЕАЛЬНАЯ =================== -->
+<section id="t-ideal" class="panel" role="tabpanel">
+  <h2>Целевая модель — что мы решили</h2>
+  <p class="lead">Финальный дизайн ролей, принятый 29 апреля 2026. Реализуется не перед пилотом, а через 4-6 недель после стабилизации.</p>
+
+  <h3>Пять ролей в системе</h3>
+  <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px;">
+    <p style="margin-top: 0; color: var(--text-2);">Четыре staff-роли образуют иерархию делегирования. Client стоит отдельно — это покупатели с собственным кабинетом.</p>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-top: 14px;">
+
+      <div>
+        <p style="font-size: 13px; color: var(--text-3); margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.05em;">Staff — внутренняя команда</p>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="background: #501313; color: #FCEBEB; border-radius: 8px; padding: 10px 14px;">
+            <div style="font-size: 14px; font-weight: 500;">Owner — Jamshid</div>
+            <div style="font-size: 12px; opacity: 0.85;">1 пользователь · все организации · создаёт Admin</div>
+          </div>
+          <div style="text-align: center; color: var(--text-3); font-size: 13px;">↓</div>
+          <div style="background: #993556; color: #FBEAF0; border-radius: 8px; padding: 10px 14px;">
+            <div style="font-size: 14px; font-weight: 500;">Admin — глава одной организации</div>
+            <div style="font-size: 12px; opacity: 0.85;">создаёт Manager и Employee · обе мета-галочки</div>
+          </div>
+          <div style="text-align: center; color: var(--text-3); font-size: 13px;">↓</div>
+          <div style="background: #3C3489; color: #EEEDFE; border-radius: 8px; padding: 10px 14px;">
+            <div style="font-size: 14px; font-weight: 500;">Manager — руководитель команды</div>
+            <div style="font-size: 12px; opacity: 0.85;">создаёт Employee только если Admin включил мета-галочку</div>
+          </div>
+          <div style="text-align: center; color: var(--text-3); font-size: 13px;">↓</div>
+          <div style="background: #854F0B; color: #FAEEDA; border-radius: 8px; padding: 10px 14px;">
+            <div style="font-size: 14px; font-weight: 500;">Employee — сотрудник</div>
+            <div style="font-size: 12px; opacity: 0.85;">не создаёт никого · работает по галочкам</div>
+          </div>
+          <div style="background: var(--surface-2); border-left: 2px solid var(--border-strong); border-radius: 6px; padding: 8px 12px; margin-left: 28px;">
+            <div style="font-size: 13px; font-weight: 500;">Шаблон «Наблюдатель»</div>
+            <div style="font-size: 12px; color: var(--text-2);">Это Employee со всеми галочками только на чтение. Не отдельная роль — пресет в UI.</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p style="font-size: 13px; color: var(--text-3); margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.05em;">Client — покупатели</p>
+        <div style="background: #185FA5; color: #E6F1FB; border-radius: 8px; padding: 10px 14px; margin-bottom: 10px;">
+          <div style="font-size: 14px; font-weight: 500;">Client — клиент</div>
+          <div style="font-size: 12px; opacity: 0.85;">сам регистрируется · свой кабинет</div>
+        </div>
+        <div style="background: var(--surface-2); border-radius: 6px; padding: 10px 14px; font-size: 12px; color: var(--text-2); line-height: 1.5;">
+          Параллельная ветка пользователей. Не часть staff-иерархии. Логин — через Telegram Mini App или phone+OTP. Видят только свой профиль, покупки, бонусы, ачивки, рефералов. Один клиент может покупать у нескольких франчайзи.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Жёсткие правила</h3>
+  <div class="feature-grid">
+    <div class="feature">
+      <h4>Один Owner, всегда <span class="stat-pill stat-missing">в плане</span></h4>
+      <p>Owner — это Jamshid, единственный. В коде должна быть либо проверка по конкретному user_id, либо явное правило «owner — единственный». Никаких других owner'ов никогда.</p>
+    </div>
+    <div class="feature">
+      <h4>Admin привязан к одной орг <span class="stat-pill stat-missing">в плане</span></h4>
+      <p>Не «доступ ко всем организациям» как сейчас. Один админ = одна организация. Для франчайзи-структуры с несколькими организациями — несколько разных админов.</p>
+    </div>
+    <div class="feature">
+      <h4>Раздавать только своё <span class="stat-pill stat-partial">частично есть</span></h4>
+      <p>Каждый уровень может выдавать подчинённым только те права, которые есть у него самого. Попытка дать больше — отбивается на API уровне.</p>
+    </div>
+    <div class="feature">
+      <h4>Мета-галочки создания <span class="stat-pill stat-missing">в плане</span></h4>
+      <p>Можно создавать менеджеров — отдельная галочка. Можно создавать сотрудников — отдельная. Admin имеет обе по дефолту, Manager получает «создавать сотрудников» только если Admin явно включил.</p>
+    </div>
+    <div class="feature">
+      <h4>Изоляция Staff и Client <span class="stat-pill stat-partial">в коде есть начало</span></h4>
+      <p>Разные таблицы (users vs clients), разные эндпоинты логина (/auth/login vs /auth/client/telegram), разный audience в JWT (vendhub-users vs vendhub-clients). Клиентский токен физически не пройдёт на staff-эндпоинт.</p>
+    </div>
+    <div class="feature">
+      <h4>Единая панель управления <span class="stat-pill stat-missing">в плане</span></h4>
+      <p>Всё управление пользователями — в одной странице, не разрозненными экранами «Менеджеры», «Операторы», «Бухгалтеры». Кнопка «Добавить» с выбором уровня и шаблона.</p>
+    </div>
+  </div>
+
+  <h3>8 категорий прав — это галочки конструктора</h3>
+  <p style="color: var(--text-2); margin-bottom: 14px;">Группировка модулей по типу работы. Каждая категория — это пакет галочек read / write / delete внутри.</p>
+  <div class="feature-grid">
+    <div class="feature">
+      <h4>Поле</h4>
+      <p>routes, tasks, maintenance, work-logs, incidents</p>
+      <div class="example">Для работы операторов: маршруты, задания, ремонты, журнал работ, инциденты.</div>
+    </div>
+    <div class="feature">
+      <h4>Склад</h4>
+      <p>inventory, warehouse, storage, containers, stock-movements, batch-movements, opening-balances</p>
+      <div class="example">Для кладовщиков: остатки, приёмка, перемещения, ёмкости, начальные балансы.</div>
+    </div>
+    <div class="feature">
+      <h4>Деньги</h4>
+      <p>payments, telegram-payments, fiscal, billing, payment-reports, cash-finance, payout-requests</p>
+      <div class="example">Для бухгалтеров: платежи, фискальные чеки, биллинг, отчёты, выплаты.</div>
+    </div>
+    <div class="feature">
+      <h4>Каталог</h4>
+      <p>products, categories, directories, references, custom-fields</p>
+      <div class="example">Товары, категории, справочники, кастомные поля. Базовые данные.</div>
+    </div>
+    <div class="feature">
+      <h4>Лояльность</h4>
+      <p>loyalty, achievements, quests, complaints, promo-codes, referrals</p>
+      <div class="example">Программа лояльности, ачивки, квесты, жалобы, промо-коды, рефералы.</div>
+    </div>
+    <div class="feature">
+      <h4>Машины</h4>
+      <p>machines, equipment, alerts, predictive-refill, geo, locations</p>
+      <div class="example">Автоматы, оборудование, алерты, прогноз пополнения, гео, локации.</div>
+    </div>
+    <div class="feature">
+      <h4>Отчёты</h4>
+      <p>reports, analytics, ai, audit (read), investor</p>
+      <div class="example">Отчётность и аналитика. Audit на чтение тоже здесь.</div>
+    </div>
+    <div class="feature">
+      <h4>Админка <span class="stat-pill stat-have">только Admin</span></h4>
+      <p>users, rbac, security, settings, organizations</p>
+      <div class="example">Управление пользователями, безопасность, настройки. Manager не получает эту категорию никогда.</div>
+    </div>
+  </div>
+
+  <h3>Современные фишки на потом — overkill для пилота</h3>
+  <p style="color: var(--text-2); margin-bottom: 14px;">Эти возможности есть у крупных систем. Большинство overkill для 23 машин и команды до 20 человек. Помечено: <span class="stat-pill stat-have">есть/будет</span> <span class="stat-pill stat-partial">частично</span> <span class="stat-pill stat-missing">в очень далёкой очереди</span></p>
+  <div class="feature-grid">
+    <div class="feature">
+      <h4>Resource-level права <span class="stat-pill stat-partial">решено по-другому</span></h4>
+      <p>«Этот менеджер видит только эти 10 машин из 100». В целевой модели частично решается через привязку Admin к одной организации и через личные галочки прав.</p>
+      <div class="example">Если нужна тонкая фильтрация по машинам внутри одной орг — добавится в Фазу 4.</div>
+    </div>
+    <div class="feature">
+      <h4>Custom roles <span class="stat-pill stat-have">решено конструктором</span></h4>
+      <p>Не нужны отдельные «кастомные роли» — конструктор галочек делает то же самое. Можно создать любую комбинацию прав без новой роли.</p>
+    </div>
+    <div class="feature">
+      <h4>ABAC — контекст-зависимые правила <span class="stat-pill stat-missing">далёкое будущее</span></h4>
+      <p>Право зависит не только от галочки, но и от контекста: время суток, IP, устройство.</p>
+      <div class="example"><b>Пример:</b> Operator может закрыть инкассацию только в рабочее время и только из мобильного приложения.</div>
+    </div>
+    <div class="feature">
+      <h4>Risk-based 2FA <span class="stat-pill stat-missing">далёкое будущее</span></h4>
+      <p>2FA включается автоматом при подозрительном поведении: новый IP, новое устройство.</p>
+    </div>
+    <div class="feature">
+      <h4>Approval workflows <span class="stat-pill stat-missing">после первых месяцев</span></h4>
+      <p>Чувствительные действия требуют второго подтверждения. Удаление пользователя, крупный перевод.</p>
+      <div class="example"><b>Зачем:</b> когда команда подрастёт, важные действия не должны выполняться одним человеком.</div>
+    </div>
+    <div class="feature">
+      <h4>Permission discovery UI <span class="stat-pill stat-missing">после первых месяцев</span></h4>
+      <p>Готовые отчёты «кто имеет доступ к X», «у кого права изменились за неделю».</p>
+    </div>
+    <div class="feature">
+      <h4>Immutable audit storage <span class="stat-pill stat-missing">после первых месяцев</span></h4>
+      <p>Audit-логи в неизменяемом хранилище — даже Admin не может «подправить историю».</p>
+    </div>
+    <div class="feature">
+      <h4>SCIM / автопровиженинг <span class="stat-pill stat-missing">далёкое будущее</span></h4>
+      <p>Синхронизация с HR-системой. Уволили в HR → отключили в VendHub.</p>
+      <div class="example"><b>Зачем:</b> когда команда вырастет до 50+, ручная раздача станет узким местом.</div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== TAB 3: РАЗРЫВ =================== -->
+<section id="t-gap" class="panel" role="tabpanel">
+  <h2>Разрыв: было → станет</h2>
+  <p class="lead">Что меняется в коде при переходе на целевую модель. Что остаётся, что переделывается, что добавляется.</p>
+
+  <h3>Сравнение моделей бок о бок</h3>
+  <table class="matrix">
+    <thead>
+      <tr><th>Аспект</th><th>Сейчас (7 ролей)</th><th>Цель (4 staff + Client)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td style="text-align: left;">Базовых ролей</td><td>7 (Owner/Admin/Manager/Operator/Warehouse/Accountant/Viewer)</td><td>5 (Owner/Admin/Manager/Employee/Client)</td></tr>
+      <tr><td style="text-align: left;">Owner — сколько</td><td>любой с ролью OWNER</td><td>один пользователь, Jamshid</td></tr>
+      <tr><td style="text-align: left;">Admin — область</td><td>все организации</td><td>только своя организация</td></tr>
+      <tr><td style="text-align: left;">Operator/Warehouse/Accountant</td><td>отдельные роли</td><td>пресеты галочек внутри Employee</td></tr>
+      <tr><td style="text-align: left;">Viewer (Наблюдатель)</td><td>отдельная роль</td><td>пресет «всё read-only» внутри Employee</td></tr>
+      <tr><td style="text-align: left;">Клиенты</td><td>в общей таблице users</td><td>отдельная таблица clients, отдельный логин</td></tr>
+      <tr><td style="text-align: left;">Права на эндпоинт</td><td>через @Roles по жёсткой роли</td><td>через @Permissions по конкретному ключу</td></tr>
+      <tr><td style="text-align: left;">Per-user override</td><td>нет</td><td>таблица user_permissions</td></tr>
+      <tr><td style="text-align: left;">Делегирование «своих»</td><td>нет — дать можно любую роль</td><td>есть — нельзя выдать чего нет</td></tr>
+      <tr><td style="text-align: left;">Создание подчинённых</td><td>привязано к роли</td><td>отдельная мета-галочка can_create_*</td></tr>
+      <tr><td style="text-align: left;">UI управления</td><td>разрозненные экраны по ролям</td><td>единая панель со списком + конструктором</td></tr>
+      <tr><td style="text-align: left;">JWT audience</td><td>один — vendhub-users</td><td>два — vendhub-users и vendhub-clients</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Что остаётся без изменений</h3>
+  <div class="compare">
+    <div class="col col-have">
+      <h4>Сохраняется как есть</h4>
+      <ul>
+        <li>JWT-механизм с подписью, blacklist, refresh-rotation</li>
+        <li>Bcrypt для паролей, factor 12</li>
+        <li>2FA с TOTP и backup-кодами</li>
+        <li>Lockout после 5 неудач на 30 минут</li>
+        <li>Throttle-лимиты на публичных эндпоинтах</li>
+        <li>Audit log на критические действия</li>
+        <li>RBAC canary тест в CI</li>
+        <li>Cookie с HttpOnly + Secure + SameSite</li>
+        <li>Telegram-вход с HMAC-проверкой</li>
+        <li>Локализация ролей в UI на ru/uz</li>
+      </ul>
+    </div>
+    <div class="col col-need">
+      <h4>Что переделывается</h4>
+      <ul>
+        <li>Енам UserRole сокращается с 7 до 4 значений</li>
+        <li>RolesGuard превращается в PermissionsGuard (или работают оба)</li>
+        <li>1067 декораторов @Roles постепенно мигрируют на @Permissions</li>
+        <li>Создание пользователя — новая логика с проверкой «можешь дать?»</li>
+        <li>Добавляется таблица user_permissions</li>
+        <li>Добавляется таблица clients (миграция из users)</li>
+        <li>Admin теряет «доступ ко всем орг», получает «доступ к одной»</li>
+        <li>UI создания пользователей — новая страница-панель</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Что не нужно делать в новой модели</h3>
+  <p style="background: var(--surface-2); border-radius: 10px; padding: 14px 18px; color: var(--text-2); font-size: 14px; line-height: 1.6;">
+    Идея «custom roles» отпадает — конструктор галочек делает то же самое более гибко. «Resource-level права на машины» частично решается через привязку Admin к одной организации (если франчайзи = одна организация). «Field-level права» (бухгалтер видит зарплату, но не дату рождения) тоже отпадает на ближайшие годы — это enterprise-история.
+  </p>
+
+  <h3>Сравнение с индустрией после миграции</h3>
+  <table class="matrix">
+    <thead>
+      <tr><th>Критерий</th><th>VendHub до</th><th>VendHub после</th><th>Enterprise</th></tr>
+    </thead>
+    <tbody>
+      <tr><td style="text-align: left;">Базовых ролей</td><td>7</td><td>5</td><td>десятки + custom</td></tr>
+      <tr><td style="text-align: left;">Гранулярные права</td><td>частично</td><td>да, через @Permissions</td><td>тысячи permissions</td></tr>
+      <tr><td style="text-align: left;">Per-user конструктор</td><td>нет</td><td>есть</td><td>есть</td></tr>
+      <tr><td style="text-align: left;">Делегирование «своих»</td><td>нет</td><td>есть</td><td>есть</td></tr>
+      <tr><td style="text-align: left;">Изоляция Staff/Client</td><td>в одной таблице</td><td>раздельно</td><td>раздельно</td></tr>
+      <tr><td style="text-align: left;">Audit log</td><td>mutable</td><td>mutable</td><td>immutable</td></tr>
+      <tr><td style="text-align: left;">SSO / SCIM</td><td>нет</td><td>нет</td><td>есть</td></tr>
+      <tr><td style="text-align: left;">Approval workflows</td><td>нет</td><td>нет (Фаза 4)</td><td>есть</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top: 12px;">После миграции VendHub становится ровно тем, что нужно для франчайзи-структуры: гибкий конструктор, изоляция клиентов от staff, чёткая привязка админа к организации. До enterprise (SCIM, immutable audit, approvals) — ещё несколько шагов, но они становятся опциональными расширениями, а не базовой потребностью.</p>
+</section>
+
+<!-- =================== TAB 4: ПЛАН =================== -->
+<section id="t-plan" class="panel" role="tabpanel">
+  <h2>План — что сделано, что надо сделать</h2>
+  <p class="lead">Цветами помечен статус: <span class="stat-pill stat-have">сделано</span> <span class="stat-pill stat-partial">в процессе / надо сейчас</span> <span class="stat-pill stat-missing">в очереди</span></p>
+
+  <div class="phase">
+    <h3>Фаза 0 — фундамент уже в коде</h3>
+    <p class="why">При проверке кода обнаружилось, что готовность гораздо выше базовых ожиданий. Многое из того, что обычно нужно строить под целевую модель — уже сделано. Перечисляю, чтобы было видно — миграция в Фазе 3 это не «с нуля», а «доинтеграция и замыкание».</p>
+    <div class="item done">
+      <div class="check">✓</div>
+      <div class="body">
+        <b>7 ролей с весовой иерархией</b>
+        <span>UserRole enum, ROLE_HIERARCHY, ROLE_LABELS на ru/uz. Файл: packages/shared/src/types/user.types.ts</span>
+      </div>
+    </div>
+    <div class="item done">
+      <div class="check">✓</div>
+      <div class="body">
+        <b>RBAC guard с Owner bypass</b>
+        <span>Один декоратор @Roles(...) защищает любой эндпоинт. Owner проходит без явного перечисления.</span>
+      </div>
+    </div>
+    <div class="item done">
+      <div class="check">✓</div>
+      <div class="body">
+        <b>1067 защищённых эндпоинтов в 84 модулях</b>
+        <span>Все защищённые HTTP-функции явно помечены ролями.</span>
+      </div>
+    </div>
+    <div class="item done">
+      <div class="check">✓</div>
+      <div class="body">
+        <b>RBAC canary тест в CI</b>
+        <span>Падает при появлении неподписанного эндпоинта. Сейчас 0 непокрытых.</span>
+      </div>
+    </div>
+    <div class="item done">
+      <div class="check">✓</div>
+      <div class="body">
+        <b>JWT с подписью + blacklist + 2FA</b>
+        <span>Полная защита токенов, lockout, throttle на публичных эндпоинтах, bcrypt 12.</span>
+      </div>
+    </div>
+    <div class="item done">
+      <div class="check">✓</div>
+      <div class="body">
+        <b>Audit log на критические действия</b>
+        <span>Модуль audit пишет 25+ типов событий: create/update/delete, login, permission_change, payment_processed, fiscal_operation и другие.</span>
+      </div>
+    </div>
+    <div class="item done">
+      <div class="check">✓</div>
+      <div class="body">
+        <b>Динамический RBAC модуль уже есть в коде</b>
+        <span>Таблицы roles + permissions + user_roles + role_permissions. Можно создавать роли в runtime, не меняя enum. Не используется массово, но фундамент сделан.</span>
+      </div>
+    </div>
+    <div class="item done">
+      <div class="check">✓</div>
+      <div class="body">
+        <b>Resource-level доступ к машинам уже работает</b>
+        <span>Модуль machine-access с таблицей machine_access(machine_id, user_id) и 5 типами доступа: FULL / REFILL / COLLECTION / MAINTENANCE / VIEW. Используется в machines.controller. То есть «менеджер видит только свои 10 машин» технически уже возможно — нужно докрутить UI и default-логику.</span>
+      </div>
+    </div>
+    <div class="item done">
+      <div class="check">✓</div>
+      <div class="body">
+        <b>Access-requests workflow для запросов доступа</b>
+        <span>Модуль access-requests с 5 защищёнными эндпоинтами. Работа с запросами «дайте мне доступ к X» уже встроена.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <h3>Фаза 1 — перед запуском пилота</h3>
+    <p class="why">Действия, которые надо сделать до того как 23 машины пойдут в реальную работу через систему. Это не про разработку — это про настройку, плюс несколько мелких правок и включение того, что уже частично есть в коде.</p>
+    <div class="item now">
+      <div class="check">!</div>
+      <div class="body">
+        <b>Прописать env-переменные в Railway</b>
+        <span>JWT_SECRET, NODE_ENV=production, COOKIE_SAME_SITE=none, TELEGRAM_BOT_TOKEN, METRICS_TOKEN, METRICS_API_KEY. Без них либо безопасность отключена, либо мониторинг открыт.</span>
+      </div>
+    </div>
+    <div class="item now">
+      <div class="check">!</div>
+      <div class="body">
+        <b>Добавить tzdata в Dockerfile API</b>
+        <span>RUN apk add --no-cache tzdata в production stage. Иначе 3 ночные cleanup-задачи по Asia/Tashkent выполняются по UTC, в рабочее время.</span>
+      </div>
+    </div>
+    <div class="item now">
+      <div class="check">!</div>
+      <div class="body">
+        <b>Подтвердить с бухгалтером доступ к inventory</b>
+        <span>Спросить реального бухгалтера, ходит ли он в склад. Если да — добавить accountant в @Roles inventory модуля.</span>
+      </div>
+    </div>
+    <div class="item now">
+      <div class="check">!</div>
+      <div class="body">
+        <b>Включить resource-level права на машины</b>
+        <span>Модуль machine-access уже в коде (таблица machine_access + 13 эндпоинтов + 5 типов доступа). Нужно: 1) подключить логику фильтрации в основные машинные эндпоинты — чтобы Manager видел только закреплённые за ним автоматы; 2) добавить в UI назначения «закрепить менеджера за машиной». Это даёт «менеджер видит только свои 10 машин из 100» уже на пилоте.</span>
+      </div>
+    </div>
+    <div class="item now">
+      <div class="check">!</div>
+      <div class="body">
+        <b>Smoke-тест после деплоя</b>
+        <span>1) login → cookie. 2) /me → 200 + профиль. 3) logout → 204. 4) /metrics с правильным токеном → 200, без токена → 401. 5) machine-access: создать manager, привязать к 2 машинам, проверить что видит только их.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <h3>Фаза 2 — первый месяц после запуска</h3>
+    <p class="why">Технический долг и улучшения, которые не блокируют пилот, но стоит закрыть в первые недели — пока система маленькая и менять её безболезненно.</p>
+    <div class="item todo">
+      <div class="check"></div>
+      <div class="body">
+        <b>Унифицировать стиль @Roles на енам</b>
+        <span>3 модуля сейчас MIXED, ~47 чисто string. Перевести всё на UserRole.X для типобезопасности — опечатка вроде "adimn" не пройдёт компилятор.</span>
+      </div>
+    </div>
+    <div class="item todo">
+      <div class="check"></div>
+      <div class="body">
+        <b>Явный owner в декораторах</b>
+        <span>Добавить UserRole.OWNER в @Roles fiscal, analytics, integrations. Это для compliance и читаемости логов, не для безопасности (Owner и так проходит через bypass).</span>
+      </div>
+    </div>
+    <div class="item todo">
+      <div class="check"></div>
+      <div class="body">
+        <b>Typo guard для строковых ролей</b>
+        <span>Тест, который проверяет: каждая строка в @Roles входит в UserRole-енам. Опечатка ловится в CI до деплоя.</span>
+      </div>
+    </div>
+    <div class="item todo">
+      <div class="check"></div>
+      <div class="body">
+        <b>Permission discovery — простой UI</b>
+        <span>Страница в админке «список всех эндпоинтов и кто к ним имеет доступ». Парсится автоматически из @Roles при сборке. Полезно для compliance и для тебя как Owner.</span>
+      </div>
+    </div>
+    <div class="item todo">
+      <div class="check"></div>
+      <div class="body">
+        <b>Скрытие resource-level доступа в machine-access UI</b>
+        <span>Если в Фазе 1 включили только сам механизм фильтрации, в Фазе 2 — добавить в UI визуальную индикацию «эта машина закреплена за этими X менеджерами», и быстрые кнопки массового назначения.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <h3>Фаза 3 — миграция модели ролей</h3>
+    <p class="why">Переход с 7 ролей на 4 staff + Client + конструктор галочек. Делается на стабилизированном пилоте, по мере появления потребности (второй админ, рост команды). С учётом готовности: фундамент уже в коде (RBAC модуль с динамическими ролями + permissions), остаётся доинтегрировать.</p>
+    <div class="item todo">
+      <div class="check"></div>
+      <div class="body">
+        <b>3.1 PermissionsGuard и интеграция с существующим RBAC</b>
+        <span>Сделать новый PermissionsGuard, который читает permissions через RbacService (уже есть). Параллельно с @Roles ввести массовое использование @Permissions. Оба гарда работают одновременно — миграция постепенная.</span>
+      </div>
+    </div>
+    <div class="item todo">
+      <div class="check"></div>
+      <div class="body">
+        <b>3.2 Правило «нельзя выдать чего нет»</b>
+        <span>В RbacService добавить assertCanGrant(grantorId, permission). Попытка дать роль/permission, которых нет у granter'а — отбивается. Это техническое усиление, которого сейчас нет.</span>
+      </div>
+    </div>
+    <div class="item todo">
+      <div class="check"></div>
+      <div class="body">
+        <b>3.3 Мета-галочки can_create_managers / can_create_employees</b>
+        <span>Добавить две системные permissions в существующую таблицу permissions: users:create_manager и users:create_employee. Включаются индивидуально при создании Admin / Manager.</span>
+      </div>
+    </div>
+    <div class="item todo">
+      <div class="check"></div>
+      <div class="body">
+        <b>3.4 Сокращение enum UserRole с 7 до 4</b>
+        <span>Удаление OPERATOR, WAREHOUSE, ACCOUNTANT, VIEWER из основного enum. Они становятся пресетами галочек, не ролями. Скрипт миграции пересчитывает каждого существующего пользователя в нужный шаблон Employee. Owner — добавить уникальный constraint «единственный».</span>
+      </div>
+    </div>
+    <div class="item todo">
+      <div class="check"></div>
+      <div class="body">
+        <b>3.5 Admin привязан к одной организации</b>
+        <span>Сейчас Admin может видеть все орг через Owner-bypass или прямо. Переделать так, чтобы Admin был жёстко связан с одной организацией через его user.organizationId. Только Owner видит все.</span>
+      </div>
+    </div>
+    <div class="item todo">
+      <div class="check"></div>
+      <div class="body">
+        <b>3.6 Разделение users и clients</b>
+        <span>Новая таблица clients. Миграция всех клиентов из users. Отдельные эндпоинты /auth/client/telegram и /auth/client/phone-otp. Разный audience в JWT (vendhub-clients vs vendhub-users). Гарды отбивают чужой токен.</span>
+      </div>
+    </div>
+    <div class="item todo">
+      <div class="check"></div>
+      <div class="body">
+        <b>3.7 UI единой панели управления людьми</b>
+        <span>Список всех пользователей орг с фильтрами. Кнопка «Добавить» (Manager / Employee, видна по мета-галочкам). Карточка пользователя с галочками 8 категорий + мета-галочки создания + закреплённые машины. История изменений прав. Шаблоны «Оператор», «Кладовщик», «Бухгалтер», «Наблюдатель» как кнопки-пресеты.</span>
+      </div>
+    </div>
+    <div class="item todo">
+      <div class="check"></div>
+      <div class="body">
+        <b>3.8 Миграция декораторов с @Roles на @Permissions</b>
+        <span>1067 декораторов перевести поэтапно. Можно по одному модулю за PR, оба декоратора параллельно работают. После полной миграции старые @Roles удаляются.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <h3>Фаза 4 — улучшения после миграции</h3>
+    <p class="why">Когда новая модель стабилизировалась — точечные улучшения, которые остались актуальны.</p>
+    <div class="item todo">
+      <div class="check"></div>
+      <div class="body">
+        <b>Approval workflows для крупных операций</b>
+        <span>Удаление пользователя, перевод денег &gt; 10М сум — требуют подтверждения второго пользователя.</span>
+      </div>
+    </div>
+    <div class="item todo">
+      <div class="check"></div>
+      <div class="body">
+        <b>Immutable audit log</b>
+        <span>Перенести audit_log в append-only хранилище. Защита от того, что Admin подправит историю. Реализация через S3 с object lock или отдельную БД с DENY DELETE.</span>
+      </div>
+    </div>
+    <div class="item todo">
+      <div class="check"></div>
+      <div class="body">
+        <b>Risk-based 2FA</b>
+        <span>2FA автоматом включается при логине с нового IP/устройства. Снижает трение в обычной работе, поднимает защиту в риске.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <h3>Фаза 5 — enterprise-фичи на потом</h3>
+    <p class="why">Делать, только если попросит крупный клиент или команда вырастет до 50+ человек. Большинство — overkill для текущего масштаба.</p>
+    <div class="item todo">
+      <div class="check"></div>
+      <div class="body">
+        <b>SCIM провиженинг</b>
+        <span>Автосинхронизация с HR-системами (1C, Bitrix24, Workday). Уволили в HR → отключили в VendHub.</span>
+      </div>
+    </div>
+    <div class="item todo">
+      <div class="check"></div>
+      <div class="body">
+        <b>JIT elevation + break-glass</b>
+        <span>Временное повышение прав на задачу с автовозвратом. Экстренный доступ с автологом Owner'у.</span>
+      </div>
+    </div>
+    <div class="item todo">
+      <div class="check"></div>
+      <div class="body">
+        <b>ABAC с контекстом</b>
+        <span>Правила «только в рабочее время + только из мобильного приложения». Реализация через Cedar / Casbin.</span>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-top: 28px;">Сводный счётчик</h3>
+  <div class="summary-grid">
+    <div class="stat"><div class="label">Фаза 0 — фундамент</div><div class="val" style="color: var(--good);">9 / 9</div></div>
+    <div class="stat"><div class="label">Фаза 1 — до запуска</div><div class="val" style="color: var(--warn);">0 / 5</div></div>
+    <div class="stat"><div class="label">Фаза 2 — первый месяц</div><div class="val" style="color: var(--text-3);">0 / 5</div></div>
+    <div class="stat"><div class="label">Фаза 3 — миграция модели</div><div class="val" style="color: var(--text-3);">0 / 8</div></div>
+    <div class="stat"><div class="label">Фаза 4 — улучшения</div><div class="val" style="color: var(--text-3);">0 / 3</div></div>
+    <div class="stat"><div class="label">Фаза 5 — enterprise</div><div class="val" style="color: var(--text-3);">0 / 3</div></div>
+    <div class="stat"><div class="label">Всего</div><div class="val">9 / 33</div></div>
+  </div>
+
+  <p style="margin-top: 24px; color: var(--text-2); font-size: 14px;">
+    Из 33 пунктов 9 уже в коде — фундамент сделан гораздо больше, чем казалось. Resource-level доступ к машинам, динамический RBAC с permissions, access-requests workflow, audit-log на 25+ событий — всё это уже есть, нужно только довести до использования. Перед запуском пилота — 5 пунктов Фазы 1 (env-настройка + включение machine-access). Главная архитектурная история — Фаза 3, делается постепенно по мере появления потребности.
+  </p>
+</section>
+
+<footer>
+  Документ сгенерирован 2026-04-29 на основе автоматического парсинга кода apps/api/src/modules. При изменении кода нужно перегенерировать. Кнопки вкладок переключают разделы, заголовки секций со стрелкой раскрываются по клику.
+</footer>
+
+</div>
+
+<script>
+  (function() {
+    var tabs = document.querySelectorAll('.tab');
+    tabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        tabs.forEach(function(t) {
+          t.setAttribute('aria-selected', 'false');
+        });
+        document.querySelectorAll('.panel').forEach(function(p) {
+          p.classList.remove('active');
+        });
+        tab.setAttribute('aria-selected', 'true');
+        var target = document.getElementById(tab.dataset.target);
+        if (target) target.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+
+    document.querySelectorAll('.group-head').forEach(function(head) {
+      head.addEventListener('click', function(e) {
+        e.preventDefault();
+        var group = head.parentElement;
+        if (group.hasAttribute('open')) {
+          group.removeAttribute('open');
+        } else {
+          group.setAttribute('open', '');
+        }
+      });
+    });
+  })();
+</script>
+</body>
+</html>

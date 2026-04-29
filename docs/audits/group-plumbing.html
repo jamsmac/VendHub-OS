@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Аудит группы Plumbing</title>
+<link rel="stylesheet" href="_styles.css" />
+</head>
+<body>
+<div class="wrap">
+
+<header class="title">
+  <a href="MASTER.html" class="nav-back">← в мастер-документ</a>
+  <h1>Plumbing — невидимая инфраструктура</h1>
+  <p class="sub">5 модулей, которые не видит конечный пользователь, но без которых ничего не работает: health-checks, метрики, очереди событий.</p>
+  <div class="stat-tiles">
+    <div class="stat-tile"><div class="lab">Модулей</div><div class="val">5</div></div>
+    <div class="stat-tile"><div class="lab">Файлов кода</div><div class="val">26</div></div>
+    <div class="stat-tile"><div class="lab">Эндпоинтов</div><div class="val">13</div></div>
+    <div class="stat-tile"><div class="lab">Готовность</div><div class="val good">🟢 ready</div></div>
+  </div>
+</header>
+
+<section class="block">
+  <h2><span class="ico">P</span>Обзор группы</h2>
+  <p class="lead">Сантехника проекта. Если все эти модули работают — пользователь даже не знает об их существовании. Если что-то ломается — это catastrophic failure.</p>
+  <table class="matrix">
+    <thead><tr><th>Модуль</th><th>Эндпоинтов</th><th>Назначение</th><th>Готовность</th></tr></thead>
+    <tbody>
+      <tr><td><b>health</b></td><td>5</td><td>Health checks для liveness/readiness probes</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>monitoring</b></td><td>2</td><td>Системный мониторинг с MetricsKeyGuard</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>metrics</b></td><td>1</td><td>Prometheus metrics endpoint с token</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>entity-events</b></td><td>4</td><td>Журнал событий entities (для debug и audit)</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>bull-board</b></td><td>1</td><td>UI для BullMQ очередей (admin-only)</td><td><span class="pill p-good">🟢</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <h2><span class="ico">▣</span>Детали по модулям</h2>
+
+  <details class="acc" open>
+    <summary><span>health · health checks</span><span class="meta">9 файлов · 5 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> liveness/readiness probes для Railway, Kubernetes, мониторинга.</p>
+      <h4>Эндпоинты (все @Public)</h4>
+      <ul>
+        <li><code>GET /health</code> — basic «жив ли сервис», возвращает <code>{status: ok}</code></li>
+        <li><code>GET /health/live</code> — liveness probe для k8s, проверка memory heap</li>
+        <li><code>GET /health/ready</code> — readiness probe, проверка БД и Redis (вернёт 503 если что-то не работает)</li>
+        <li><code>GET /health/detailed</code> — полная диагностика всех компонентов</li>
+        <li><code>GET /health/version</code> — версия билда</li>
+      </ul>
+      <p><b>Это то что <code>railway.toml</code> использует для healthcheck.</b> Если /health/ready возвращает 503 — Railway не маршрутизирует трафик на этот инстанс.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>monitoring · с защитой токеном</span><span class="meta">5 файлов · 2 эндпоинта</span></summary>
+    <div class="body">
+      <p><b>@Public + MetricsKeyGuard.</b> Защита через <code>METRICS_API_KEY</code> в env.</p>
+      <p><b>Назначение:</b> для внешних мониторинг-систем (Grafana, custom dashboards) которые опрашивают метрики.</p>
+      <p><b>Risk:</b> если <code>METRICS_API_KEY</code> не выставлен — эндпоинт становится открытым. Action item — обязательно прописать в Railway env.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>metrics · Prometheus endpoint</span><span class="meta">3 файла · 1 эндпоинт</span></summary>
+    <div class="body">
+      <p><b>@Public + проверка METRICS_TOKEN.</b> Если токен задан — обязателен в query <code>?token=...</code> или header <code>x-metrics-token</code>.</p>
+      <p><b>Назначение:</b> для Prometheus / Grafana Agent — scraping метрик в формате Prometheus text/plain.</p>
+      <p><b>Что метрики покрывают:</b> http_requests_total, request_duration, payment_success_rate, login_success_rate, db_pool_active, redis_connections и др.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>entity-events · журнал событий entities</span><span class="meta">6 файлов · 4 эндпоинта</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> append-only лог изменений entity (отдельно от audit log). Используется для дебага и replay.</p>
+      <p><b>Отличие от audit:</b></p>
+      <ul>
+        <li><code>audit_log</code> — high-level действия пользователя (logged in, exported report)</li>
+        <li><code>entity_events</code> — low-level изменения сущностей (Machine#X статус изменился с ACTIVE на MAINTENANCE)</li>
+      </ul>
+      <p><b>RBAC:</b> Owner 4/4, Admin 4/4, Manager 4/4. Operator/Warehouse — 0 (это для дебага).</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>bull-board · UI BullMQ очередей</span><span class="meta">3 файла · 1 эндпоинт</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> графический интерфейс для просмотра BullMQ-очередей (`fiscal`, `machine-writeoff`, web-push, email).</p>
+      <p><b>URL:</b> <code>/admin/queues</code> — только Owner.</p>
+      <p><b>Use case:</b> мониторинг очередей в проде — сколько в backlog, сколько failed, retry.</p>
+      <p><b>Когда полезно:</b> Soliq.uz упал — failed fiscal jobs накапливаются в bull-board, видно сразу.</p>
+    </div>
+  </details>
+</section>
+
+<section class="block">
+  <h2><span class="ico">!</span>Риски и action items</h2>
+  <table class="matrix">
+    <thead><tr><th>Уровень</th><th>Риск</th><th>Действие</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill p-warn">med</span></td><td>METRICS_API_KEY не выставлен → /monitoring открыт</td><td>Прописать в Railway env (LAUNCH_CHECKLIST)</td></tr>
+      <tr><td><span class="pill p-warn">med</span></td><td>METRICS_TOKEN не выставлен → /metrics открыт</td><td>Прописать в Railway env</td></tr>
+      <tr><td><span class="pill p-good">low</span></td><td>entity_events растёт без cleanup</td><td>Cleanup retention policy — оставлять 90 дней</td></tr>
+      <tr><td><span class="pill p-good">low</span></td><td>bull-board без auth-эндпоинта</td><td>Защищён через @Roles(OWNER) — нормально</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <h2><span class="ico">✓</span>Готовность группы</h2>
+  <p><b>🟢 Готова к запуску при правильной настройке env.</b> Группа маленькая, но критичная — без неё мониторинг и observability не работают.</p>
+  <p><b>Что обязательно перед запуском:</b></p>
+  <ul>
+    <li>METRICS_API_KEY и METRICS_TOKEN в Railway env</li>
+    <li>Настроить Prometheus / Grafana Agent на скрапинг /metrics с токеном</li>
+    <li>Регулярно проверять /admin/queues — особенно после первой пары дней</li>
+    <li>Настроить алерт «healthcheck /health/ready возвращает 503 более 5 минут»</li>
+  </ul>
+</section>
+
+<footer>
+  Аудит группы Plumbing. <a href="MASTER.html">← MASTER</a>.
+</footer>
+
+</div>
+</body>
+</html>

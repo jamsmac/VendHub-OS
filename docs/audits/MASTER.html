@@ -1,0 +1,2358 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VendHub OS — мастер-документ аудита</title>
+<style>
+  :root {
+    --bg: #FAF8F4;
+    --surface: #FFFFFF;
+    --surface-2: #F4F2EC;
+    --surface-3: #EAE7DD;
+    --text: #1F1E1C;
+    --text-2: #5F5E5A;
+    --text-3: #8E8C85;
+    --border: rgba(0,0,0,0.07);
+    --border-strong: rgba(0,0,0,0.16);
+    --accent: #534AB7;
+    --accent-2: #7F77DD;
+    --accent-bg: #EEEDFE;
+    --warn: #854F0B;
+    --warn-bg: #FAEEDA;
+    --good: #1F6B0E;
+    --good-bg: #EAF3DE;
+    --bad: #791F1F;
+    --bad-bg: #FCEBEB;
+    --info: #185FA5;
+    --info-bg: #E6F1FB;
+    --teal: #0F6E56;
+    --teal-bg: #E1F5EE;
+    --pink-bg: #FBEAF0;
+    --pink-text: #993556;
+    --shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.6;
+    font-size: 15.5px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+  @media (max-width: 960px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.sidebar {
+      position: static !important;
+      height: auto !important;
+      border-right: none !important;
+      border-bottom: 1px solid var(--border);
+      padding: 14px 18px !important;
+    }
+    nav.sidebar .sb-section { display: inline-block; margin-right: 18px; }
+  }
+
+  /* SIDEBAR */
+  nav.sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 28px 18px 28px 28px;
+    border-right: 1px solid var(--border);
+    background: var(--bg);
+    font-size: 13.5px;
+  }
+  nav.sidebar::-webkit-scrollbar { width: 6px; }
+  nav.sidebar::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .brand .logo {
+    width: 22px; height: 22px;
+    background: var(--accent);
+    border-radius: 5px;
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .brand-sub {
+    font-size: 11px;
+    color: var(--text-3);
+    margin-bottom: 22px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .progress-mini {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 22px;
+  }
+  .progress-mini .lab { font-size: 11px; color: var(--text-3); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .progress-mini .val { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+  .progress-mini .bar { height: 4px; background: var(--surface-2); border-radius: 2px; overflow: hidden; }
+  .progress-mini .bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
+
+  .sb-section { margin-bottom: 18px; }
+  .sb-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 6px;
+    padding: 0 8px;
+  }
+  nav.sidebar a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px;
+    color: var(--text-2);
+    text-decoration: none;
+    border-radius: 5px;
+    margin: 1px 0;
+    font-size: 13px;
+    line-height: 1.4;
+    transition: background 0.15s;
+  }
+  nav.sidebar a:hover { background: var(--surface-2); color: var(--text); }
+  nav.sidebar a.active {
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .sb-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 0 6px;
+    font-size: 10px;
+    border-radius: 3px;
+    font-weight: 500;
+    height: 16px;
+    flex-shrink: 0;
+  }
+  .sb-badge.b-done { background: var(--good-bg); color: var(--good); }
+  .sb-badge.b-todo { background: var(--surface-2); color: var(--text-3); }
+  .sb-badge.b-now { background: var(--warn-bg); color: var(--warn); }
+
+  /* MAIN */
+  main {
+    padding: 32px 40px 100px;
+    max-width: 1080px;
+  }
+
+  /* HERO DASHBOARD */
+  .hero {
+    background: linear-gradient(135deg, #FFFFFF 0%, #F4F2EC 100%);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 32px;
+  }
+  .hero h1 {
+    margin: 0 0 4px;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .hero p.sub { margin: 0 0 22px; color: var(--text-2); font-size: 15px; }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+  @media (max-width: 720px) { .hero-grid { grid-template-columns: 1fr; } }
+
+  .progress-big {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .progress-big .row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .progress-big .title-line { font-size: 13px; color: var(--text-2); font-weight: 500; }
+  .progress-big .pct { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; }
+  .progress-big .bar { height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; margin-bottom: 14px; }
+  .progress-big .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 4px; }
+  .progress-big .meta-row { display: flex; gap: 18px; font-size: 12px; color: var(--text-2); }
+  .progress-big .meta-row span b { color: var(--text); font-weight: 600; }
+
+  .blockers {
+    background: var(--bad-bg);
+    border: 1px solid rgba(121,31,31,0.15);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .blockers .lab {
+    font-size: 11px;
+    color: var(--bad);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .blockers .lab::before {
+    content: "";
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: var(--bad);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .blockers ul { margin: 0; padding-left: 16px; font-size: 13px; color: var(--text); }
+  .blockers li { margin: 3px 0; }
+
+  /* PHASE TRACKER */
+  .phase-track {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+    margin-top: 22px;
+  }
+  .phase-step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    position: relative;
+    text-align: center;
+  }
+  .phase-step.done { background: var(--good-bg); border-color: rgba(31,107,14,0.2); }
+  .phase-step.now { background: var(--warn-bg); border-color: rgba(133,79,11,0.25); }
+  .phase-step .num {
+    font-size: 11px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .phase-step.done .num { color: var(--good); }
+  .phase-step.now .num { color: var(--warn); }
+  .phase-step .title { font-size: 12px; font-weight: 500; line-height: 1.3; }
+  .phase-step .count {
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--text-3);
+  }
+  .phase-step.done .count { color: var(--good); }
+  .phase-step.now .count { color: var(--warn); font-weight: 500; }
+
+  /* SECTIONS */
+  section.block {
+    margin-bottom: 56px;
+    scroll-margin-top: 24px;
+  }
+  section.block > h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 4px;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  section.block > h2 .ico {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  section.block .lead {
+    color: var(--text-2);
+    margin: 0 0 22px;
+    font-size: 15px;
+  }
+  section.block.todo > h2 .ico { background: var(--surface-2); color: var(--text-2); }
+
+  h3 { margin: 24px 0 12px; font-size: 17px; font-weight: 600; letter-spacing: -0.005em; }
+  h4 { margin: 14px 0 8px; font-size: 14.5px; font-weight: 600; }
+  p { margin: 0 0 12px; }
+  code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    background: var(--surface-2);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  ul, ol { padding-left: 22px; margin: 6px 0 12px; }
+  li { margin: 4px 0; }
+
+  /* DECISION CARDS */
+  .deck {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .dcard {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 12px;
+    padding: 16px 20px;
+  }
+  .dcard.host { border-left-color: var(--info); }
+  .dcard.roles { border-left-color: var(--accent); }
+  .dcard.org { border-left-color: var(--teal); }
+  .dcard.machines { border-left-color: var(--warn); }
+  .dcard h4 {
+    margin: 0 0 6px;
+    font-size: 15px;
+    font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .dcard h4 .num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--accent-bg);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .dcard.host h4 .num { background: var(--info-bg); color: var(--info); }
+  .dcard.org h4 .num { background: var(--teal-bg); color: var(--teal); }
+  .dcard.machines h4 .num { background: var(--warn-bg); color: var(--warn); }
+  .dcard p { font-size: 13.5px; color: var(--text-2); margin: 0 0 8px; line-height: 1.55; }
+  .dcard .when {
+    font-size: 11px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 18px;
+    overflow-x: auto;
+  }
+  .tabs button {
+    background: none;
+    border: none;
+    padding: 10px 16px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text-2);
+    cursor: pointer;
+    font-family: inherit;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .tabs button:hover { color: var(--text); }
+  .tabs button[aria-selected="true"] {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tabpanel { display: none; }
+  .tabpanel.active { display: block; }
+
+  /* TABLE */
+  table.matrix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  table.matrix th {
+    text-align: left;
+    padding: 11px 14px;
+    background: var(--surface-2);
+    color: var(--text-2);
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+  }
+  table.matrix td {
+    padding: 11px 14px;
+    border-top: 1px solid var(--border);
+    vertical-align: top;
+  }
+  table.matrix tr:first-child td { border-top: none; }
+
+  /* PILLS */
+  .pill {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  .p-good { background: var(--good-bg); color: var(--good); }
+  .p-info { background: var(--info-bg); color: var(--info); }
+  .p-warn { background: var(--warn-bg); color: var(--warn); }
+  .p-bad { background: var(--bad-bg); color: var(--bad); }
+  .p-mute { background: var(--surface-2); color: var(--text-2); }
+  .p-accent { background: var(--accent-bg); color: var(--accent); }
+  .p-teal { background: var(--teal-bg); color: var(--teal); }
+  .p-pink { background: var(--pink-bg); color: var(--pink-text); }
+
+  /* HIERARCHY ROLES */
+  .role-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 16px;
+    border-radius: 8px;
+    color: white;
+    margin: 4px 0;
+    transition: transform 0.15s;
+  }
+  .role-bar:hover { transform: translateX(4px); }
+  .role-bar b { font-weight: 600; }
+  .role-bar .meta { opacity: 0.85; font-size: 12px; }
+
+  /* QUOTES */
+  .quote {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-bg);
+    color: #2A246A;
+    padding: 12px 18px;
+    border-radius: 0 10px 10px 0;
+    margin: 14px 0;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .quote.warn { border-color: var(--warn); background: var(--warn-bg); color: #4A2A06; }
+  .quote.info { border-color: var(--info); background: var(--info-bg); color: #0A2C4D; }
+
+  /* CHECKLIST ITEMS */
+  .checklist { display: flex; flex-direction: column; gap: 6px; }
+  .item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: transform 0.15s;
+  }
+  .item:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+  .item .checkbox {
+    flex-shrink: 0;
+    width: 22px; height: 22px;
+    border-radius: 5px;
+    border: 1.5px solid var(--text-3);
+    margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+  .item.done .checkbox { background: var(--good-bg); border-color: var(--good); color: var(--good); }
+  .item.now .checkbox { background: var(--warn-bg); border-color: var(--warn); color: var(--warn); }
+  .item .body { flex: 1; min-width: 0; }
+  .item .body b { display: block; font-weight: 600; margin-bottom: 2px; font-size: 14px; }
+  .item .body span { font-size: 13px; color: var(--text-2); line-height: 1.5; }
+
+  /* MODULE CARD GRID for B-H */
+  .modgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .mcard {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 22px;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .mcard:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .mcard.todo { border-style: dashed; background: var(--surface-2); }
+  .mcard .head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .mcard .letter {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .mcard.todo .letter { background: var(--surface-3); color: var(--text-2); }
+  .mcard .head h4 { margin: 0; font-size: 15px; font-weight: 600; flex: 1; }
+  .mcard .desc { font-size: 13.5px; color: var(--text-2); margin: 0 0 12px; line-height: 1.5; }
+  .mcard ul.coverage {
+    margin: 8px 0 0;
+    padding-left: 18px;
+    font-size: 12.5px;
+    color: var(--text-2);
+  }
+  .mcard ul.coverage li { margin: 2px 0; }
+
+  /* ACCORDIONS */
+  details.acc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  details.acc summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 600;
+    user-select: none;
+    font-size: 14.5px;
+  }
+  details.acc summary::-webkit-details-marker { display: none; }
+  details.acc summary:hover { background: var(--surface-2); }
+  details.acc[open] summary { border-bottom: 1px solid var(--border); background: var(--surface-2); }
+  details.acc summary .meta { color: var(--text-3); font-weight: 400; font-size: 12.5px; }
+  details.acc summary::after {
+    content: "›";
+    margin-left: 12px;
+    color: var(--text-3);
+    transition: transform 0.2s;
+    font-size: 18px;
+    line-height: 0.5;
+  }
+  details.acc[open] summary::after { transform: rotate(90deg); }
+  details.acc .body { padding: 16px 18px; }
+
+  /* ICONS */
+  .icon-svg { width: 16px; height: 16px; flex-shrink: 0; vertical-align: middle; }
+
+  /* FOOTER */
+  footer {
+    margin-top: 56px;
+    padding-top: 22px;
+    border-top: 1px solid var(--border);
+    color: var(--text-3);
+    font-size: 13px;
+  }
+
+  /* TOP STAT TILES INSIDE SECTIONS */
+  .stat-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  .stat-tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .stat-tile .lab {
+    font-size: 11px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .stat-tile .val { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+  .stat-tile .val.good { color: var(--good); }
+  .stat-tile .val.warn { color: var(--warn); }
+
+  /* SCROLL-TO-TOP */
+  .top-fab {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 100;
+    font-size: 16px;
+    color: var(--text-2);
+  }
+  .top-fab.visible { opacity: 1; pointer-events: auto; }
+  .top-fab:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="sidebar">
+  <div class="brand">
+    <div class="logo">VH</div>
+    <span>VendHub Audit</span>
+  </div>
+  <div class="brand-sub">Мастер-документ · обновлено 29.04.2026</div>
+
+  <div class="progress-mini">
+    <div class="lab">Прогресс аудита</div>
+    <div class="val">12 / 12 групп ✓</div>
+    <div class="bar"><div class="bar-fill" style="width: 100%; background: var(--good);"></div></div>
+  </div>
+
+  <div class="sb-section">
+    <div class="sb-title">Все 12 групп</div>
+    <a href="group-machines.html"><span>Machines & Telemetry</span><span class="sb-badge b-done">✓</span></a>
+    <a href="group-inventory.html"><span>Inventory & Stock</span><span class="sb-badge b-done">✓</span></a>
+    <a href="group-orders.html"><span>Orders & Sales</span><span class="sb-badge b-done">✓</span></a>
+    <a href="group-products.html"><span>Products & Catalog</span><span class="sb-badge b-done">✓</span></a>
+    <a href="group-loyalty.html"><span>Loyalty & Engagement</span><span class="sb-badge b-done">✓</span></a>
+    <a href="group-routes.html"><span>Routes & Field Ops</span><span class="sb-badge b-done">✓</span></a>
+    <a href="group-integrations.html"><span>Integrations</span><span class="sb-badge b-done">✓</span></a>
+    <a href="group-reports.html"><span>Reports & Analytics</span><span class="sb-badge b-done">✓</span></a>
+    <a href="group-tenancy.html"><span>Tenancy & Admin</span><span class="sb-badge b-done">✓</span></a>
+    <a href="group-plumbing.html"><span>Plumbing</span><span class="sb-badge b-done">✓</span></a>
+  </div>
+
+  <div class="sb-section">
+    <div class="sb-title">Контекст</div>
+    <a href="#overview"><span>Обзор</span></a>
+    <a href="#decisions"><span>Принятые решения</span></a>
+    <a href="#plan"><span>План развития</span></a>
+  </div>
+
+  <div class="sb-section">
+    <div class="sb-title">Identity & Access</div>
+    <a href="#sec-a"><span>A · Роли</span><span class="sb-badge b-done">✓</span></a>
+    <a href="#sec-b"><span>B · Telegram flow</span><span class="sb-badge b-done">✓</span></a>
+    <a href="#sec-c"><span>C · Invite flow</span><span class="sb-badge b-done">✓</span></a>
+    <a href="#sec-d"><span>D · RBAC модуль</span><span class="sb-badge b-done">✓</span></a>
+    <a href="#sec-f"><span>F · users модуль</span><span class="sb-badge b-done">✓</span></a>
+    <a href="#sec-g"><span>G · остальные</span><span class="sb-badge b-done">✓</span></a>
+  </div>
+
+  <div class="sb-section">
+    <div class="sb-title">Другие группы</div>
+    <a href="#sec-e"><span>E · План выкатки</span><span class="sb-badge b-done">✓</span></a>
+    <a href="#sec-h"><span>H · Payments</span><span class="sb-badge b-done">✓</span></a>
+  </div>
+
+  <div class="sb-section">
+    <div class="sb-title">Глубже</div>
+    <a href="#auth-audit"><span>Аудит auth</span></a>
+    <a href="#target-model"><span>Целевая модель</span></a>
+    <a href="#screens"><span>Экраны</span></a>
+    <a href="#team"><span>Команда</span></a>
+    <a href="#workflow"><span>Workflow</span></a>
+  </div>
+</nav>
+
+<main>
+
+<!-- ============ HERO DASHBOARD ============ -->
+<section id="overview" class="block">
+  <div class="hero">
+    <h1>VendHub OS — мастер-документ аудита</h1>
+    <p class="sub">Один файл, в который сводятся все решения, аудиты модулей и планы. Дополняется по мере прохождения каждого пункта.</p>
+
+    <div class="hero-grid">
+      <div class="progress-big">
+        <div class="row">
+          <div class="title-line">Готовность к запуску пилота</div>
+          <div class="pct">64%</div>
+        </div>
+        <div class="bar"><div class="bar-fill" style="width: 64%;"></div></div>
+        <div class="meta-row">
+          <span><b>9</b> сделано</span>
+          <span><b>5</b> до запуска</span>
+          <span><b>19</b> на потом</span>
+        </div>
+      </div>
+
+      <div class="blockers">
+        <div class="lab">Активные блокеры</div>
+        <ul>
+          <li>Railway web build пустой с 06.04 — биллинг или пауза</li>
+          <li>Миграции Sprint E/F не накатились на прод DB</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase-track">
+      <div class="phase-step done">
+        <div class="num">Фаза 0</div>
+        <div class="title">Фундамент</div>
+        <div class="count">9 / 9 ✓</div>
+      </div>
+      <div class="phase-step now">
+        <div class="num">Фаза 1</div>
+        <div class="title">До запуска</div>
+        <div class="count">0 / 5 сейчас</div>
+      </div>
+      <div class="phase-step">
+        <div class="num">Фаза 2</div>
+        <div class="title">Первый месяц</div>
+        <div class="count">0 / 5</div>
+      </div>
+      <div class="phase-step">
+        <div class="num">Фаза 3</div>
+        <div class="title">Миграция модели</div>
+        <div class="count">0 / 8</div>
+      </div>
+      <div class="phase-step">
+        <div class="num">Фаза 4</div>
+        <div class="title">Улучшения</div>
+        <div class="count">0 / 3</div>
+      </div>
+      <div class="phase-step">
+        <div class="num">Фаза 5</div>
+        <div class="title">Enterprise</div>
+        <div class="count">0 / 3</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Ключевые цифры проекта</h3>
+  <div class="stat-tiles">
+    <div class="stat-tile"><div class="lab">Модулей API</div><div class="val">95</div></div>
+    <div class="stat-tile"><div class="lab">Защищённых функций</div><div class="val">1067</div></div>
+    <div class="stat-tile"><div class="lab">Тестов в auth</div><div class="val">121</div></div>
+    <div class="stat-tile"><div class="lab">Готовых агентов</div><div class="val">6</div></div>
+    <div class="stat-tile"><div class="lab">VHM24-скиллов</div><div class="val">15</div></div>
+    <div class="stat-tile"><div class="lab">Машин на пилоте</div><div class="val">23</div></div>
+  </div>
+</section>
+
+<!-- ============ DECISIONS ============ -->
+<section id="decisions" class="block">
+  <h2><span class="ico">✓</span>Принятые продуктовые решения</h2>
+  <p class="lead">4 решения, которые задают курс развития. Любая будущая сессия должна их учитывать.</p>
+
+  <div class="deck">
+    <div class="dcard host">
+      <h4><span class="num">1</span>Хостинг — всё на Railway</h4>
+      <p>Vercel не используется. API + bot + БД должны жить там же где web и client. Один счёт, никакой миграции NestJS+BullMQ+WebSocket.</p>
+      <div class="when">принято 29.04.2026</div>
+    </div>
+
+    <div class="dcard roles">
+      <h4><span class="num">2</span>4 staff + Client + конструктор</h4>
+      <p>Сократить 7 жёстких ролей до 4 (Owner / Admin / Manager / Employee) + отдельная Client. Owner = Jamshid. Admin на одну орг. «Наблюдатель» — пресет внутри Employee.</p>
+      <div class="when">принято 29.04.2026</div>
+    </div>
+
+    <div class="dcard org">
+      <h4><span class="num">3</span>Организации остаются</h4>
+      <p>114 entities ссылаются на organizationId. Это позвоночник multi-tenancy. Убрать невозможно без переписывания всего API. На пилоте — одна.</p>
+      <div class="when">принято 29.04.2026</div>
+    </div>
+
+    <div class="dcard machines">
+      <h4><span class="num">4</span>Machine-access — на пилоте</h4>
+      <p>Модуль уже в коде (5 типов: FULL / REFILL / COLLECTION / MAINTENANCE / VIEW). Включение — Фаза 1, не откладывается.</p>
+      <div class="when">принято 29.04.2026</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PLAN ============ -->
+<section id="plan" class="block">
+  <h2><span class="ico">⌘</span>План развития</h2>
+  <p class="lead">6 фаз без сроков. Реализация постепенная по мере появления потребности и доступности команды.</p>
+
+  <details class="acc">
+    <summary><span>Фаза 0 — фундамент уже в коде</span><span class="meta">9 / 9 ✓</span></summary>
+    <div class="body">
+      <div class="checklist">
+        <div class="item done"><div class="checkbox">✓</div><div class="body"><b>7 ролей с весовой иерархией</b><span>UserRole enum + ROLE_HIERARCHY + ROLE_LABELS на ru/uz</span></div></div>
+        <div class="item done"><div class="checkbox">✓</div><div class="body"><b>RBAC guard с Owner bypass</b><span>Один декоратор @Roles защищает любой эндпоинт</span></div></div>
+        <div class="item done"><div class="checkbox">✓</div><div class="body"><b>1067 защищённых эндпоинтов в 84 модулях</b></div></div>
+        <div class="item done"><div class="checkbox">✓</div><div class="body"><b>RBAC canary тест в CI</b><span>Падает при появлении неподписанного эндпоинта</span></div></div>
+        <div class="item done"><div class="checkbox">✓</div><div class="body"><b>JWT с подписью + blacklist + 2FA + bcrypt 12</b></div></div>
+        <div class="item done"><div class="checkbox">✓</div><div class="body"><b>Audit log на 25+ типов событий</b></div></div>
+        <div class="item done"><div class="checkbox">✓</div><div class="body"><b>Динамический RBAC модуль уже есть</b><span>Таблицы roles + permissions + user_roles + role_permissions</span></div></div>
+        <div class="item done"><div class="checkbox">✓</div><div class="body"><b>Resource-level доступ к машинам уже работает</b><span>machine-access с 5 типами: FULL / REFILL / COLLECTION / MAINTENANCE / VIEW</span></div></div>
+        <div class="item done"><div class="checkbox">✓</div><div class="body"><b>Access-requests workflow для запросов доступа</b></div></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="acc" open>
+    <summary><span>Фаза 1 — перед запуском пилота</span><span class="meta">0 / 5 ← сейчас</span></summary>
+    <div class="body">
+      <div class="checklist">
+        <div class="item now"><div class="checkbox">!</div><div class="body"><b>Прописать env-переменные в Railway</b><span>JWT_SECRET, NODE_ENV=production, COOKIE_SAME_SITE=none, TELEGRAM_BOT_TOKEN, METRICS_TOKEN, METRICS_API_KEY</span></div></div>
+        <div class="item now"><div class="checkbox">!</div><div class="body"><b>Добавить tzdata в Dockerfile API</b><span>RUN apk add --no-cache tzdata в production stage</span></div></div>
+        <div class="item now"><div class="checkbox">!</div><div class="body"><b>Подтвердить с бухгалтером доступ к inventory</b></div></div>
+        <div class="item now"><div class="checkbox">!</div><div class="body"><b>Включить resource-level права на машины</b><span>machine-access уже в коде, нужно подключить фильтрацию + UI назначения</span></div></div>
+        <div class="item now"><div class="checkbox">!</div><div class="body"><b>Smoke-тест после деплоя</b><span>login → cookie → /me → logout → metrics с токеном → machine-access сценарий</span></div></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>Фаза 2 — первый месяц после запуска</span><span class="meta">0 / 5</span></summary>
+    <div class="body">
+      <div class="checklist">
+        <div class="item"><div class="checkbox"></div><div class="body"><b>Унифицировать стиль @Roles на енам</b><span>3 модуля MIXED, ~47 чисто string</span></div></div>
+        <div class="item"><div class="checkbox"></div><div class="body"><b>Явный owner в декораторах fiscal / analytics / integrations</b></div></div>
+        <div class="item"><div class="checkbox"></div><div class="body"><b>Typo guard для строковых ролей</b></div></div>
+        <div class="item"><div class="checkbox"></div><div class="body"><b>Permission discovery — простой UI</b></div></div>
+        <div class="item"><div class="checkbox"></div><div class="body"><b>Скрытие resource-level доступа в machine-access UI</b></div></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>Фаза 3 — миграция модели ролей</span><span class="meta">0 / 8 · главная архитектурная история</span></summary>
+    <div class="body">
+      <div class="checklist">
+        <div class="item"><div class="checkbox"></div><div class="body"><b>3.1 PermissionsGuard и интеграция с существующим RBAC</b></div></div>
+        <div class="item"><div class="checkbox"></div><div class="body"><b>3.2 Правило assertCanGrant — нельзя выдать чего нет</b></div></div>
+        <div class="item"><div class="checkbox"></div><div class="body"><b>3.3 Мета-галочки can_create_managers / can_create_employees</b></div></div>
+        <div class="item"><div class="checkbox"></div><div class="body"><b>3.4 Сокращение enum UserRole с 7 до 4</b></div></div>
+        <div class="item"><div class="checkbox"></div><div class="body"><b>3.5 Admin привязан к одной организации</b></div></div>
+        <div class="item"><div class="checkbox"></div><div class="body"><b>3.6 Разделение users и clients</b></div></div>
+        <div class="item"><div class="checkbox"></div><div class="body"><b>3.7 UI единой панели управления людьми</b></div></div>
+        <div class="item"><div class="checkbox"></div><div class="body"><b>3.8 Миграция декораторов с @Roles на @Permissions</b></div></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>Фаза 4 — улучшения после миграции</span><span class="meta">0 / 3</span></summary>
+    <div class="body">
+      <div class="checklist">
+        <div class="item"><div class="checkbox"></div><div class="body"><b>Approval workflows для крупных операций</b></div></div>
+        <div class="item"><div class="checkbox"></div><div class="body"><b>Immutable audit log</b><span>Перенести в append-only хранилище</span></div></div>
+        <div class="item"><div class="checkbox"></div><div class="body"><b>Risk-based 2FA</b></div></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>Фаза 5 — enterprise-фичи на потом</span><span class="meta">0 / 3</span></summary>
+    <div class="body">
+      <div class="checklist">
+        <div class="item"><div class="checkbox"></div><div class="body"><b>SCIM провиженинг</b></div></div>
+        <div class="item"><div class="checkbox"></div><div class="body"><b>JIT elevation + break-glass</b></div></div>
+        <div class="item"><div class="checkbox"></div><div class="body"><b>ABAC с контекстом</b></div></div>
+      </div>
+    </div>
+  </details>
+</section>
+
+<!-- ============ SEC A ============ -->
+<section id="sec-a" class="block">
+  <h2><span class="ico">A</span>Роли и права <span class="pill p-good" style="font-size: 13px; vertical-align: middle; margin-left: 8px;">готово</span></h2>
+  <p class="lead">Карта 7 текущих ролей × 84 модуля × 1067 эндпоинтов. Целевая модель из 5 ролей. Разрыв и план миграции.</p>
+
+  <div class="tabs" data-group="A">
+    <button aria-selected="true" data-target="A-current">Текущее состояние</button>
+    <button data-target="A-target">Целевое</button>
+    <button data-target="A-gap">Разрыв</button>
+  </div>
+
+  <div id="A-current" class="tabpanel active">
+    <h3>7 ролей с весовой иерархией</h3>
+    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
+      <div class="role-bar" style="background: #501313;"><span><b>Owner</b> — Владелец</span><span class="meta">100 / 100 — все организации</span></div>
+      <div class="role-bar" style="background: #993556; width: 92%;"><span><b>Admin</b> — Администратор</span><span class="meta">90</span></div>
+      <div class="role-bar" style="background: #3C3489; width: 75%;"><span><b>Manager</b> — Менеджер</span><span class="meta">70</span></div>
+      <div class="role-bar" style="background: #185FA5; width: 60%;"><span><b>Accountant</b> — Бухгалтер</span><span class="meta">50</span></div>
+      <div class="role-bar" style="background: #0F6E56; width: 52%;"><span><b>Warehouse</b> — Кладовщик</span><span class="meta">40</span></div>
+      <div class="role-bar" style="background: #854F0B; width: 44%;"><span><b>Operator</b> — Оператор</span><span class="meta">30</span></div>
+      <div class="role-bar" style="background: #5F5E5A; width: 30%;"><span><b>Viewer</b> — Наблюдатель</span><span class="meta">10</span></div>
+    </div>
+
+    <div class="quote info">Owner-bypass: в коде RolesGuard есть правило «если роль = OWNER, пропустить любой фильтр». Поэтому в матрице колонка Own может показывать 0 — это просто стиль декораторов, не блокировка.</div>
+
+    <h3>Найденные проблемы</h3>
+    <div class="modgrid">
+      <div class="mcard">
+        <div class="head"><div class="letter" style="background: var(--warn-bg); color: var(--warn);">1</div><h4>Mixed style @Roles</h4></div>
+        <p class="desc"><code>loyalty</code>, <code>referrals</code>, <code>reports</code> смешивают <code>UserRole.X</code> и строки <code>"admin"</code>. Опечатка в строке (<code>"adimn"</code>) пройдёт компилятор.</p>
+      </div>
+      <div class="mcard">
+        <div class="head"><div class="letter" style="background: var(--warn-bg); color: var(--warn);">2</div><h4>Нет явного OWNER в 3 модулях</h4></div>
+        <p class="desc"><code>fiscal</code>, <code>analytics</code>, <code>integrations</code>. Owner проходит через bypass, но в логах сложнее читать.</p>
+      </div>
+      <div class="mcard">
+        <div class="head"><div class="letter" style="background: var(--warn-bg); color: var(--warn);">3</div><h4>Бухгалтер закрыт от inventory</h4></div>
+        <p class="desc">14 эндпоинтов, у бухгалтера 0 доступа. Может быть правильно — нужно подтвердить с реальным бухгалтером.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="A-target" class="tabpanel">
+    <h3>Пять ролей — четыре staff + один client</h3>
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 14px;">
+      <div>
+        <div style="background: #501313; color: #FCEBEB; border-radius: 8px; padding: 12px 16px; margin-bottom: 6px;">
+          <b>Owner — Jamshid</b><br><span style="font-size: 12px; opacity: 0.85;">1 пользователь · все организации · создаёт Admin</span>
+        </div>
+        <div style="text-align: center; color: var(--text-3); font-size: 13px;">↓</div>
+        <div style="background: #993556; color: #FBEAF0; border-radius: 8px; padding: 12px 16px; margin: 6px 0;">
+          <b>Admin — глава одной организации</b><br><span style="font-size: 12px; opacity: 0.85;">создаёт Manager и Employee · обе мета-галочки</span>
+        </div>
+        <div style="text-align: center; color: var(--text-3); font-size: 13px;">↓</div>
+        <div style="background: #3C3489; color: #EEEDFE; border-radius: 8px; padding: 12px 16px; margin: 6px 0;">
+          <b>Manager — руководитель команды</b><br><span style="font-size: 12px; opacity: 0.85;">создаёт Employee только если Admin включил мета-галочку</span>
+        </div>
+        <div style="text-align: center; color: var(--text-3); font-size: 13px;">↓</div>
+        <div style="background: #854F0B; color: #FAEEDA; border-radius: 8px; padding: 12px 16px; margin: 6px 0;">
+          <b>Employee — сотрудник</b><br><span style="font-size: 12px; opacity: 0.85;">шаблоны: Оператор / Кладовщик / Бухгалтер / Наблюдатель</span>
+        </div>
+      </div>
+      <div>
+        <div style="background: #185FA5; color: #E6F1FB; border-radius: 8px; padding: 12px 16px;">
+          <b>Client — клиент</b><br><span style="font-size: 12px; opacity: 0.85;">сам регистрируется через Telegram · свой кабинет</span>
+        </div>
+        <div style="background: var(--surface-2); border-radius: 8px; padding: 10px 14px; margin-top: 10px; font-size: 12px; color: var(--text-2); line-height: 1.5;">
+          Параллельная ветка пользователей. Не часть staff-иерархии. JWT audience <code>vendhub-clients</code> отделён от <code>vendhub-users</code>.
+        </div>
+      </div>
+    </div>
+
+    <h3>8 категорий галочек-конструктора</h3>
+    <table class="matrix">
+      <thead><tr><th style="width: 22%;">Категория</th><th>Модули</th></tr></thead>
+      <tbody>
+        <tr><td>Поле</td><td><code>routes, tasks, maintenance, work-logs, incidents</code></td></tr>
+        <tr><td>Склад</td><td><code>inventory, warehouse, storage, containers, stock-movements, opening-balances</code></td></tr>
+        <tr><td>Деньги</td><td><code>payments, fiscal, billing, payment-reports, cash-finance, payout-requests</code></td></tr>
+        <tr><td>Каталог</td><td><code>products, categories, directories, references, custom-fields</code></td></tr>
+        <tr><td>Лояльность</td><td><code>loyalty, achievements, quests, complaints, promo-codes, referrals</code></td></tr>
+        <tr><td>Машины</td><td><code>machines, equipment, alerts, predictive-refill, geo, locations</code></td></tr>
+        <tr><td>Отчёты</td><td><code>reports, analytics, ai, audit (read), investor</code></td></tr>
+        <tr><td>Админка</td><td><code>users, rbac, security, settings, organizations</code> · только Admin</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="A-gap" class="tabpanel">
+    <table class="matrix">
+      <thead><tr><th>Аспект</th><th>Сейчас (7 ролей)</th><th>Цель (4 staff + Client)</th></tr></thead>
+      <tbody>
+        <tr><td>Базовых ролей</td><td>7</td><td>5 (4 staff + Client)</td></tr>
+        <tr><td>Owner</td><td>любой с ролью OWNER</td><td>один пользователь, Jamshid</td></tr>
+        <tr><td>Admin</td><td>все организации</td><td>только своя организация</td></tr>
+        <tr><td>Operator/Warehouse/Accountant</td><td>отдельные роли</td><td>пресеты галочек</td></tr>
+        <tr><td>Клиенты</td><td>в общей таблице users</td><td>отдельная таблица clients</td></tr>
+        <tr><td>Per-user override</td><td>нет</td><td>таблица user_permissions</td></tr>
+        <tr><td>Делегирование «своих»</td><td>нет</td><td>есть — assertCanGrant</td></tr>
+        <tr><td>JWT audience</td><td>один</td><td>два — staff и clients</td></tr>
+      </tbody>
+    </table>
+
+    <div class="quote">Идея «custom roles» отпадает — конструктор галочек делает то же самое более гибко. «Field-level права» — overkill для текущего масштаба.</div>
+  </div>
+</section>
+
+<!-- ============ AUTH AUDIT ============ -->
+<section id="auth-audit" class="block">
+  <h2><span class="ico">🔐</span>Аудит модуля auth</h2>
+  <p class="lead">Корневой модуль аутентификации. 30 файлов, 5598 LOC, 121 тест. От него зависят 129 файлов в системе.</p>
+
+  <div class="stat-tiles">
+    <div class="stat-tile"><div class="lab">Файлов кода</div><div class="val">30</div></div>
+    <div class="stat-tile"><div class="lab">Строк кода</div><div class="val">5598</div></div>
+    <div class="stat-tile"><div class="lab">Эндпоинтов</div><div class="val">18</div></div>
+    <div class="stat-tile"><div class="lab">Тестов</div><div class="val">121</div></div>
+    <div class="stat-tile"><div class="lab">Зависят от auth</div><div class="val">129</div></div>
+    <div class="stat-tile"><div class="lab">Cron-задач</div><div class="val">3</div></div>
+  </div>
+
+  <h3>5 рисков перед запуском</h3>
+  <table class="matrix">
+    <thead><tr><th style="width: 8%;">#</th><th>Риск</th><th>Действие</th></tr></thead>
+    <tbody>
+      <tr><td>R1</td><td><code>JWT_SECRET ?? ""</code> — фолбэк на пустой секрет</td><td><span class="pill p-warn">прописать в env</span></td></tr>
+      <tr><td>R2</td><td>AGENT_MODE bypass зависит от <code>NODE_ENV=production</code></td><td><span class="pill p-warn">NODE_ENV=production</span></td></tr>
+      <tr><td>R3</td><td>Cookie SameSite дефолт <code>lax</code> ломает cross-origin login</td><td><span class="pill p-warn">COOKIE_SAME_SITE=none</span></td></tr>
+      <tr><td>R4</td><td>Telegram login без <code>TELEGRAM_BOT_TOKEN</code> = 401</td><td><span class="pill p-warn">прописать токен</span></td></tr>
+      <tr><td>R5</td><td>tzdata отсутствует в Alpine — cron'ы Asia/Tashkent работают по UTC</td><td><span class="pill p-warn">apk add tzdata</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ TARGET MODEL ============ -->
+<section id="target-model" class="block">
+  <h2><span class="ico">⚙</span>Целевая модель — детали</h2>
+  <p class="lead">Архитектура после миграции. Правила делегирования, мета-галочки, изоляция Staff и Client.</p>
+
+  <h3>Мета-разрешения на создание</h3>
+  <ul>
+    <li><code>can_create_managers</code> — есть только у Owner и у Admin (по дефолту).</li>
+    <li><code>can_create_employees</code> — есть у Admin (по дефолту), у Manager только если Admin явно включил.</li>
+  </ul>
+  <p>Manager без <code>can_create_employees</code> — это «специалист», работает с данными, но команду не нанимает. С галочкой — «руководитель команды».</p>
+
+  <h3>Изоляция Staff и Client</h3>
+  <p>Технические гарантии:</p>
+  <ul>
+    <li>Разные таблицы: <code>users</code> и <code>clients</code></li>
+    <li>Разные эндпоинты логина: <code>/auth/login</code> и <code>/auth/client/telegram</code></li>
+    <li>Разный <code>audience</code> в JWT: <code>vendhub-users</code> vs <code>vendhub-clients</code></li>
+    <li>Гарды отбивают чужой токен — клиентский физически не пройдёт на staff-эндпоинт</li>
+  </ul>
+</section>
+
+<!-- ============ SCREENS ============ -->
+<section id="screens" class="block">
+  <h2><span class="ico">▢</span>Целевые экраны</h2>
+  <p class="lead">Пять экранов после миграции.</p>
+
+  <div class="modgrid">
+    <div class="mcard">
+      <div class="head"><div class="letter" style="background: var(--info-bg); color: var(--info);">1</div><h4>Список пользователей</h4></div>
+      <p class="desc">Единая таблица команды. Колонки: имя, роль, шаблон, закреплённые машины, статус. Кнопка «+ Добавить» по мета-галочкам.</p>
+    </div>
+    <div class="mcard">
+      <div class="head"><div class="letter" style="background: var(--info-bg); color: var(--info);">2</div><h4>Карточка пользователя</h4></div>
+      <p class="desc">Конструктор по 8 категориям с тремя состояниями. Мета-разрешения отдельно. Закреплённые машины. Полная история изменений прав.</p>
+    </div>
+    <div class="mcard">
+      <div class="head"><div class="letter" style="background: var(--info-bg); color: var(--info);">3</div><h4>Wizard создания</h4></div>
+      <p class="desc">Двухшаговый: выбор уровня и шаблона, потом тонкая настройка. Шаблоны: Оператор, Кладовщик, Бухгалтер, Наблюдатель.</p>
+    </div>
+    <div class="mcard">
+      <div class="head"><div class="letter" style="background: var(--good-bg); color: var(--good);">4</div><h4>Resource-level закрепления</h4></div>
+      <p class="desc">Карта машин слева, список закреплённых справа. Drag-and-drop с типами FULL / REFILL / COLLECTION / MAINTENANCE / VIEW. <span class="pill p-good">уже есть в коде</span></p>
+    </div>
+    <div class="mcard">
+      <div class="head"><div class="letter" style="background: var(--info-bg); color: var(--info);">5</div><h4>Кабинет клиента</h4></div>
+      <p class="desc">Telegram Mini App + web. Профиль, баланс, история покупок, ачивки, рефералы. Полностью отрезан от staff.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TEAM ============ -->
+<section id="team" class="block">
+  <h2><span class="ico">⚒</span>Команда — агенты и скиллы</h2>
+  <p class="lead">6 кастомных агентов проекта и 15 VHM24-скиллов. Распределение по задачам.</p>
+
+  <h3>6 агентов проекта</h3>
+  <table class="matrix">
+    <thead><tr><th>Агент</th><th style="width: 12%;">Модель</th><th>Зона ответственности</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill p-accent">module-migrator</span></td><td>opus</td><td>Перенос NestJS-модулей. Идеален для миграции users и разделения users/clients.</td></tr>
+      <tr><td><span class="pill p-accent">db-migration-helper</span></td><td>sonnet</td><td>TypeORM-миграции для новых таблиц.</td></tr>
+      <tr><td><span class="pill p-accent">build-verifier</span></td><td>sonnet</td><td>После каждого PR — проверка компиляции монорепо.</td></tr>
+      <tr><td><span class="pill p-accent">production-quality-guardian</span></td><td>opus</td><td>Финальная проверка перед прод-деплоем.</td></tr>
+      <tr><td><span class="pill p-accent">health-check</span></td><td>sonnet</td><td>SRE-диагностика во время и после миграции.</td></tr>
+      <tr><td><span class="pill p-accent">dependency-audit</span></td><td>sonnet</td><td>Аудит безопасности раз в 2 недели.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>VHM24-скиллы — ключевые для миграции</h3>
+  <div class="modgrid" style="margin-top: 8px;">
+    <div class="mcard"><h4>vhm24-orchestrator</h4><p class="desc">Стартовая точка любой большой задачи.</p></div>
+    <div class="mcard"><h4>vhm24-ux-spec</h4><p class="desc">Перед каждым новым экраном — обязательно.</p></div>
+    <div class="mcard"><h4>vhm24-auth-rbac</h4><p class="desc">Якорный скилл для Фазы 3 миграции.</p></div>
+    <div class="mcard"><h4>vhm24-db-expert</h4><p class="desc">Новые таблицы user_permissions, clients.</p></div>
+    <div class="mcard"><h4>vhm24-forms</h4><p class="desc">Wizard создания, конструктор галочек.</p></div>
+    <div class="mcard"><h4>vhm24-component-lib</h4><p class="desc">PermissionToggle, CategoryGroup, RoleBadge.</p></div>
+    <div class="mcard"><h4>vhm24-mobile</h4><p class="desc">Кабинет клиента в Telegram Mini App.</p></div>
+    <div class="mcard"><h4>vhm24-i18n</h4><p class="desc">Все новые строки на ru/uz.</p></div>
+  </div>
+</section>
+
+<!-- ============ WORKFLOW ============ -->
+<section id="workflow" class="block">
+  <h2><span class="ico">▶</span>Workflow — daily / weekly ритм</h2>
+  <p class="lead">Как организовать работу день за днём.</p>
+
+  <div class="quote"><b>Главный принцип:</b> миграция Auth/RBAC — не место для героических многоликих PR'ов. Каждый шаг маленький, изолированный, обратимый.</div>
+
+  <h3>Ритм</h3>
+  <div class="modgrid">
+    <div class="mcard"><h4>Каждый день</h4><p class="desc">Чтение MODULE_AUDIT_INDEX + последнего HANDOFF. 5 минут — полный контекст.</p></div>
+    <div class="mcard"><h4>Каждая задача</h4><p class="desc">UX-спек или ADR перед кодом.</p></div>
+    <div class="mcard"><h4>Каждый PR</h4><p class="desc">build-verifier + vhm24-qa-review + engineering:code-review. Тройная проверка.</p></div>
+    <div class="mcard"><h4>Каждый спринт</h4><p class="desc">Деплой на staging → 24 часа наблюдения → ревью → прод.</p></div>
+    <div class="mcard"><h4>Каждые 2 недели</h4><p class="desc">dependency-audit для новых CVE.</p></div>
+    <div class="mcard"><h4>Перед последним PR</h4><p class="desc">production-quality-guardian — финальный аудит.</p></div>
+  </div>
+
+  <h3>Твоя роль как Owner</h3>
+  <p>В этом workflow твоя зона — не «писать код», а «делать решения»:</p>
+  <ul>
+    <li>Утверждать ADR — раз в неделю, документ на 1 страницу</li>
+    <li>Утверждать UX-спеки перед генерацией экранов — 1-2 в неделю</li>
+    <li>Принимать staging-деплой — пройтись по 5-10 сценариям</li>
+    <li>Финальное согласие на прод-деплой</li>
+  </ul>
+</section>
+
+<!-- ============ PLACEHOLDER SECTIONS B-H ============ -->
+<section id="sec-b" class="block">
+  <h2><span class="ico">B</span>Telegram Mini App — поток входа <span class="pill p-good" style="font-size: 13px; vertical-align: middle; margin-left: 8px;">готово</span></h2>
+  <p class="lead">Как клиент в Telegram открывает Mini App и автоматически логинится. Что физически происходит на сервере, какие защиты, и где может сломаться.</p>
+
+  <div class="tabs" data-group="B">
+    <button aria-selected="true" data-target="B-flow">Поток</button>
+    <button data-target="B-security">Безопасность</button>
+    <button data-target="B-edge">Edge cases</button>
+  </div>
+
+  <div id="B-flow" class="tabpanel active">
+    <h3>Шаг за шагом — что происходит за 1 секунду</h3>
+    <div class="checklist">
+      <div class="item">
+        <div class="checkbox">1</div>
+        <div class="body"><b>Клиент нажимает кнопку «Запустить» у бота в Telegram</b><span>Telegram открывает Mini App в WebView и передаёт initData — подписанную URL-encoded строку с user, auth_date, query_id, hash.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">2</div>
+        <div class="body"><b>Mini App загружается в браузере Telegram</b><span>JavaScript читает <code>window.Telegram.WebApp.initData</code> — это и есть подписанный пакет.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">3</div>
+        <div class="body"><b>Mini App шлёт POST /api/v1/auth/telegram</b><span>Body: <code>{ initData: "..." }</code>. Throttle: 10 запросов в минуту с IP.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">4</div>
+        <div class="body"><b>Сервер вызывает loginTelegram → verifyTelegramData</b><span>Функция в auth.service.ts:509 и :291. Парсит initData как URLSearchParams.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">5</div>
+        <div class="body"><b>HMAC-SHA256 двухступенчатая проверка</b><span>1) secretKey = HMAC-SHA256("WebAppData", botToken). 2) computedHash = HMAC-SHA256(secretKey, sortedCheckString). 3) computedHash === params.hash. Несовпадение — 401 «Invalid Telegram signature».</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">6</div>
+        <div class="body"><b>Проверка свежести auth_date</b><span>Если auth_date старше 60 секунд — 401 «Telegram auth data has expired». Защита от replay-атак с украденным initData.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">7</div>
+        <div class="body"><b>Парсинг user из params.user</b><span>Получаем id, first_name, last_name, username. Это id в Telegram (не в нашей БД).</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">8</div>
+        <div class="body"><b>Поиск или создание записи в users</b><span>Сейчас клиенты в общей таблице users. После Фазы 3 — в отдельной clients. Если telegramId не найден → создаётся новая запись с auto-сгенерированным email.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">9</div>
+        <div class="body"><b>Создание сессии + JWT токены + куки</b><span>Стандартный flow auth: сессия в user_sessions, два токена с подписью, HttpOnly Secure cookies.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">10</div>
+        <div class="body"><b>Mini App рендерит дашборд клиента</b><span>Видит баланс, бонусы, историю покупок, ачивки. Все следующие запросы автоматически с куками.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="B-security" class="tabpanel">
+    <h3>Защиты в коде</h3>
+    <div class="modgrid">
+      <div class="mcard"><h4>HMAC-SHA256 двухступенчатая</h4><p class="desc">Telegram использует уникальную схему подписи: сначала HMAC от строки «WebAppData» с токеном бота, потом HMAC от данных с этим ключом. Без правильного TELEGRAM_BOT_TOKEN подделать невозможно.</p></div>
+      <div class="mcard"><h4>auth_date freshness</h4><p class="desc">60 секунд от момента подписи Telegram'ом. Если кто-то перехватит initData и попытается использовать через минуту — 401.</p></div>
+      <div class="mcard"><h4>Throttle 10/мин</h4><p class="desc">@Throttle decorator на /auth/telegram. Защита от brute force и DoS.</p></div>
+      <div class="mcard"><h4>HttpOnly cookies</h4><p class="desc">JWT токены в куках с HttpOnly+Secure. JavaScript на странице Mini App их не видит — защита от XSS.</p></div>
+    </div>
+
+    <h3>Чего НЕТ и нужно добавить (Фаза 3)</h3>
+    <ul>
+      <li>Разный JWT audience для клиентов и staff — сейчас один <code>vendhub-users</code>. После миграции <code>vendhub-clients</code> для клиентских токенов.</li>
+      <li>Проверка типа на гардах: client-токен не должен проходить на staff-эндпоинт.</li>
+      <li>Отдельная таблица <code>clients</code> вместо общей <code>users</code> — упростит scoping и защиту PII.</li>
+    </ul>
+  </div>
+
+  <div id="B-edge" class="tabpanel">
+    <h3>Edge cases и сценарии ошибок</h3>
+    <table class="matrix">
+      <thead><tr><th>Сценарий</th><th>Поведение</th></tr></thead>
+      <tbody>
+        <tr><td>TELEGRAM_BOT_TOKEN не установлен</td><td>500 «Telegram bot token not configured». Проверить в Railway env.</td></tr>
+        <tr><td>initData без поля hash</td><td>401 «Missing hash in Telegram data»</td></tr>
+        <tr><td>Подпись не совпадает</td><td>401 «Invalid Telegram signature». Возможные причины: токен неверный, данные изменены.</td></tr>
+        <tr><td>auth_date старше 60 сек</td><td>401 «Telegram auth data has expired». Клиент должен повторно открыть Mini App.</td></tr>
+        <tr><td>Поле user отсутствует</td><td>401 «Missing user data in Telegram data»</td></tr>
+        <tr><td>telegramId уже привязан к другому пользователю</td><td>409 «This Telegram account is already linked to another user». Нужно сначала отвязать у того.</td></tr>
+        <tr><td>Клиент закрыл Mini App до завершения логина</td><td>Пакет не отправлен — без последствий. При следующем открытии всё пройдёт заново.</td></tr>
+        <tr><td>Несколько Telegram-аккаунтов у одного человека</td><td>Каждый telegramId = отдельная запись клиента. Объединение требует отдельного flow «связать аккаунты».</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Связь с loyalty при первом входе</h3>
+    <p>При создании новой клиентской записи через Telegram-вход сразу:</p>
+    <ul>
+      <li>Создаётся профиль лояльности (Bronze tier по умолчанию)</li>
+      <li>Если в URL Mini App был реферальный код (<code>start_param</code>) — записывается реферер</li>
+      <li>Триггерится ачивка «Первый вход» если она настроена</li>
+      <li>Бонусные баллы за реферал начисляются после первой покупки, не при регистрации</li>
+    </ul>
+  </div>
+</section>
+
+<section id="sec-c" class="block">
+  <h2><span class="ico">C</span>Регистрация по приглашению <span class="pill p-good" style="font-size: 13px; vertical-align: middle; margin-left: 8px;">готово</span></h2>
+  <p class="lead">Главный способ добавить нового сотрудника. Менеджер создаёт код, отдаёт сотруднику, тот регистрируется. Используется каждый день.</p>
+
+  <div class="tabs" data-group="C">
+    <button aria-selected="true" data-target="C-flow">Поток</button>
+    <button data-target="C-entity">Структура invite</button>
+    <button data-target="C-edge">Edge cases</button>
+  </div>
+
+  <div id="C-flow" class="tabpanel active">
+    <h3>Создание приглашения (Owner / Admin)</h3>
+    <div class="checklist">
+      <div class="item">
+        <div class="checkbox">1</div>
+        <div class="body"><b>Owner или Admin открывает /dashboard/users/invites</b><span>Кнопка «Создать приглашение». Доступ через @Roles(OWNER, ADMIN).</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">2</div>
+        <div class="body"><b>Заполняет форму</b><span>Роль (OPERATOR / WAREHOUSE / ACCOUNTANT и т.д.), организация (своя), описание, expires (дни), maxUses (обычно 1).</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">3</div>
+        <div class="body"><b>POST /api/v1/invites</b><span>Сервер генерирует уникальный 12-символьный hex-код, создаёт запись со статусом ACTIVE.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">4</div>
+        <div class="body"><b>Ссылка для отправки</b><span>Формат: <code>https://app.vendhub.uz/register?invite=AB12CD34EF56</code>. Можно скопировать или сразу сгенерить QR-код для печати.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">5</div>
+        <div class="body"><b>Доставка сотруднику</b><span>Telegram, мессенджер, e-mail, бумажный QR — на усмотрение. Система сама не шлёт.</span></div>
+      </div>
+    </div>
+
+    <h3>Использование приглашения (новый сотрудник)</h3>
+    <div class="checklist">
+      <div class="item">
+        <div class="checkbox">1</div>
+        <div class="body"><b>Открывает ссылку с кодом</b><span>Frontend сразу проверяет код через GET /api/v1/invites/validate/:code (Public).</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">2</div>
+        <div class="body"><b>Если код валиден — показывает форму</b><span>Frontend знает: «приглашают как Operator в Olma Vending». Просит email + пароль или Telegram-привязку.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">3</div>
+        <div class="body"><b>POST /api/v1/auth/register/invite</b><span>Body: <code>{inviteCode, email, password}</code> или <code>{inviteCode, telegramData}</code>. Throttle: 5/мин.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">4</div>
+        <div class="body"><b>Сервер: validateInvite</b><span>Проверки в InvitesService.validateInvite: статус ACTIVE, не expired, currentUses &lt; maxUses. Если что-то — кидает 400/410.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">5</div>
+        <div class="body"><b>Сервер: проверка дубликатов</b><span>Если email уже есть — 409. Если telegramId уже привязан — 409 «already linked».</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">6</div>
+        <div class="body"><b>Создание User-записи</b><span>Роль и organizationId берутся из invite. Пароль хешируется bcrypt 12.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">7</div>
+        <div class="body"><b>Markings invite as used</b><span>currentUses++. Если достиг maxUses → status = USED.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">8</div>
+        <div class="body"><b>Auto-login</b><span>Сразу выдаются токены и куки — сотрудник попадает на /dashboard без отдельного логина.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="C-entity" class="tabpanel">
+    <h3>Структура таблицы invites</h3>
+    <table class="matrix">
+      <thead><tr><th>Поле</th><th>Тип</th><th>Назначение</th></tr></thead>
+      <tbody>
+        <tr><td><code>code</code></td><td>varchar(24), unique</td><td>12 hex-символов, индексирован для быстрого поиска</td></tr>
+        <tr><td><code>role</code></td><td>UserRole enum</td><td>Какую роль получит зарегистрированный</td></tr>
+        <tr><td><code>organizationId</code></td><td>uuid</td><td>В какую организацию попадёт</td></tr>
+        <tr><td><code>status</code></td><td>ACTIVE / USED / EXPIRED / REVOKED</td><td>Жизненный цикл</td></tr>
+        <tr><td><code>expiresAt</code></td><td>timestamp</td><td>Обычно 7-30 дней</td></tr>
+        <tr><td><code>maxUses</code></td><td>int, default 1</td><td>Сколько человек может использовать (для группового invite)</td></tr>
+        <tr><td><code>currentUses</code></td><td>int, default 0</td><td>Сколько уже использовано</td></tr>
+        <tr><td><code>description</code></td><td>varchar(255)</td><td>«Для нового оператора Алишера», для удобства</td></tr>
+        <tr><td><code>usedByUserId</code></td><td>uuid, nullable</td><td>Кто конкретно использовал (для maxUses=1)</td></tr>
+        <tr><td><code>createdById</code></td><td>uuid (BaseEntity)</td><td>Кто создал invite — для audit</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4 эндпоинта в InvitesController</h3>
+    <ul>
+      <li><code>POST /invites</code> — Owner/Admin создаёт</li>
+      <li><code>GET /invites</code> — Owner/Admin список</li>
+      <li><code>GET /invites/validate/:code</code> — <b>Public</b>, валидация перед формой</li>
+      <li><code>GET /invites/:id</code> — Owner/Admin детали</li>
+      <li><code>DELETE /invites/:id</code> — Owner/Admin отзыв (статус → REVOKED)</li>
+    </ul>
+  </div>
+
+  <div id="C-edge" class="tabpanel">
+    <h3>Edge cases</h3>
+    <table class="matrix">
+      <thead><tr><th>Сценарий</th><th>Поведение</th></tr></thead>
+      <tbody>
+        <tr><td>Сотрудник открыл просроченный invite</td><td>GET /validate/:code вернёт 410. Frontend покажет «Срок действия истёк, попроси новый.»</td></tr>
+        <tr><td>Кто-то перебирает коды brute force</td><td>Throttle 5/мин на /auth/register/invite. Плюс код 12 hex = 16^12 = 280 трлн вариантов.</td></tr>
+        <tr><td>Двое одновременно используют один invite (maxUses=1)</td><td>Race condition защищён транзакцией: если currentUses ≥ maxUses, второй получает 409.</td></tr>
+        <tr><td>Admin создал invite для другой организации</td><td>Контроль на уровне controller — Admin может создавать только для своей орг.</td></tr>
+        <tr><td>Invite REVOKED, но ссылка ещё на руках</td><td>validateInvite кидает 410. Без лазейки.</td></tr>
+        <tr><td>Сотрудник зарегался по invite, но забыл пароль</td><td>Стандартный flow forgot-password через /auth/password/forgot.</td></tr>
+        <tr><td>Telegram-аккаунт сотрудника уже привязан где-то</td><td>409 при регистрации. Нужно вручную отвязать или использовать другой Telegram.</td></tr>
+        <tr><td>Owner отзывает invite после регистрации</td><td>Отзыв не влияет на уже созданного user. Только сам код становится невалидным для повторного использования.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Что после регистрации</h3>
+    <ul>
+      <li>User создан с указанной ролью и organizationId</li>
+      <li>Сразу выдаются токены — нет отдельного шага «теперь залогинься»</li>
+      <li>Прямой редирект на /dashboard с правами этой роли</li>
+      <li>Опционально — first-login flow смены временного пароля (если admin создал invite с временным паролем)</li>
+      <li>Audit-лог записывает кто, когда и по какому invite создал кого</li>
+    </ul>
+
+    <h3>Целевая модель — что изменится</h3>
+    <p>В Фазе 3 (Этап 3) добавятся мета-галочки. При создании invite Admin сможет выбрать:</p>
+    <ul>
+      <li>Уровень (Manager / Employee)</li>
+      <li>Шаблон прав (Оператор / Кладовщик / Бухгалтер / Наблюдатель / Без шаблона)</li>
+      <li>Может ли создавать сотрудников (для Manager)</li>
+      <li>Закреплённые машины (через machine-access)</li>
+    </ul>
+  </div>
+</section>
+
+<section id="sec-d" class="block">
+  <h2><span class="ico">D</span>RBAC модуль и тонкие права <span class="pill p-good" style="font-size: 13px; vertical-align: middle; margin-left: 8px;">готово</span></h2>
+  <p class="lead">Модуль rbac уже в коде с полной инфраструктурой динамических ролей и permissions. Не используется массово — это «спящий» функционал, который будет основой Фазы 3 миграции.</p>
+
+  <div class="tabs" data-group="D">
+    <button aria-selected="true" data-target="D-arch">Архитектура</button>
+    <button data-target="D-api">12 эндпоинтов</button>
+    <button data-target="D-future">Что в Фазе 3</button>
+  </div>
+
+  <div id="D-arch" class="tabpanel active">
+    <h3>Что есть в коде сейчас</h3>
+    <p>4 таблицы образуют классическую RBAC-структуру:</p>
+    <table class="matrix">
+      <thead><tr><th>Таблица</th><th>Назначение</th></tr></thead>
+      <tbody>
+        <tr><td><code>roles</code></td><td>Динамические роли. Могут быть глобальные (organizationId=null) или scoped к организации. Системные (isSystem=true) нельзя удалять.</td></tr>
+        <tr><td><code>permissions</code></td><td>Гранулярные права формата <code>resource:action</code>: users:create, machines:read, payments:write и т.д.</td></tr>
+        <tr><td><code>user_roles</code></td><td>Связь many-to-many: пользователь имеет одну или несколько ролей.</td></tr>
+        <tr><td><code>role_permissions</code></td><td>Связь many-to-many: роль имеет набор permissions.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Поля Role entity</h3>
+    <ul>
+      <li><code>name</code> — уникальное имя в рамках организации</li>
+      <li><code>description</code> — human-readable</li>
+      <li><code>level</code> — иерархический уровень (0-100). Используется для hierarchy checks.</li>
+      <li><code>isSystem</code> — системные роли защищены от удаления и переименования</li>
+      <li><code>isActive</code> — soft enable/disable без удаления</li>
+      <li><code>organizationId</code> — null = глобальная, иначе — scoped к одной орг</li>
+      <li><code>permissions</code> — массив через junction table role_permissions</li>
+    </ul>
+
+    <h3>Поля Permission entity</h3>
+    <ul>
+      <li><code>name</code> — формат <code>resource:action</code>, уникален</li>
+      <li><code>resource</code> — что за ресурс (users, machines, reports)</li>
+      <li><code>action</code> — что разрешено (create, read, update, delete, manage)</li>
+      <li><code>description</code> — для UI и документации</li>
+      <li><code>isActive</code> — на случай deprecation permission'а</li>
+    </ul>
+
+    <div class="quote">
+      <b>Ключевой инсайт:</b> RBAC-фундамент в проекте уже значительно более продвинутый, чем enum UserRole с 7 значениями. Просто 1067 декораторов <code>@Roles</code> по 84 модулям всё ещё используют enum, а не permissions из этой таблицы. Фаза 3 — это про массовый переход с одного на другое.
+    </div>
+  </div>
+
+  <div id="D-api" class="tabpanel">
+    <h3>12 эндпоинтов в RbacController</h3>
+
+    <h4>Управление ролями</h4>
+    <table class="matrix">
+      <thead><tr><th>Метод</th><th>Эндпоинт</th><th>Доступ</th><th>Назначение</th></tr></thead>
+      <tbody>
+        <tr><td>GET</td><td><code>/rbac/roles</code></td><td>Owner, Admin, Manager</td><td>Список ролей (фильтр по организации)</td></tr>
+        <tr><td>POST</td><td><code>/rbac/roles</code></td><td>Owner, Admin</td><td>Создать новую роль</td></tr>
+        <tr><td>GET</td><td><code>/rbac/roles/:id</code></td><td>Owner, Admin, Manager</td><td>Детали роли с permissions</td></tr>
+        <tr><td>PATCH</td><td><code>/rbac/roles/:id</code></td><td>Owner, Admin</td><td>Обновить (нельзя для isSystem)</td></tr>
+        <tr><td>DELETE</td><td><code>/rbac/roles/:id</code></td><td>Owner, Admin</td><td>Удалить (нельзя для isSystem)</td></tr>
+        <tr><td>PUT</td><td><code>/rbac/roles/:id/permissions</code></td><td>Owner, Admin</td><td>Назначить набор permissions для роли</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Управление permissions</h4>
+    <table class="matrix">
+      <thead><tr><th>Метод</th><th>Эндпоинт</th><th>Доступ</th><th>Назначение</th></tr></thead>
+      <tbody>
+        <tr><td>GET</td><td><code>/rbac/permissions</code></td><td>Owner, Admin, Manager</td><td>Список всех permissions</td></tr>
+        <tr><td>POST</td><td><code>/rbac/permissions</code></td><td>Только Owner</td><td>Создать новое permission (редко, обычно через seed)</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Назначение ролей пользователям</h4>
+    <table class="matrix">
+      <thead><tr><th>Метод</th><th>Эндпоинт</th><th>Доступ</th><th>Назначение</th></tr></thead>
+      <tbody>
+        <tr><td>POST</td><td><code>/rbac/users/:userId/roles</code></td><td>Owner, Admin</td><td>Назначить роль пользователю</td></tr>
+        <tr><td>DELETE</td><td><code>/rbac/users/:userId/roles/:roleId</code></td><td>Owner, Admin</td><td>Снять роль</td></tr>
+        <tr><td>GET</td><td><code>/rbac/users/:userId/roles</code></td><td>Owner, Admin, Manager</td><td>Какие роли у пользователя</td></tr>
+        <tr><td>GET</td><td><code>/rbac/users/:userId/permissions</code></td><td>Owner, Admin, Manager</td><td>Эффективный набор permissions (через все роли)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="D-future" class="tabpanel">
+    <h3>Что нужно добавить в Фазе 3</h3>
+    <p>Инфраструктура есть, но к ней нужно дописать ключевую логику и интеграцию.</p>
+
+    <h4>1. PermissionsGuard</h4>
+    <p>Сейчас все эндпоинты защищены только через <code>RolesGuard</code>. Нужен новый guard, который читает permissions через RbacService и проверяет точечный доступ.</p>
+    <pre style="background: var(--surface-2); padding: 12px; border-radius: 8px; font-size: 13px; overflow-x: auto;">@Permissions('payments:read')
+@Get('payments')
+async list() { ... }</pre>
+
+    <h4>2. assertCanGrant</h4>
+    <p>Метод в RbacService, проверяющий «может ли grantor выдать это permission». Без него можно случайно дать сотруднику больше прав, чем у себя.</p>
+    <pre style="background: var(--surface-2); padding: 12px; border-radius: 8px; font-size: 13px; overflow-x: auto;">async assertCanGrant(grantorId: string, permissionName: string) {
+  const grantor = await this.getUserPermissions(grantorId);
+  if (!grantor.includes(permissionName)) {
+    throw new ForbiddenException(`You can't grant ${permissionName}`);
+  }
+}</pre>
+
+    <h4>3. Мета-разрешения can_create_*</h4>
+    <p>Просто добавить два permissions в seed:</p>
+    <ul>
+      <li><code>users:create_manager</code></li>
+      <li><code>users:create_employee</code></li>
+    </ul>
+    <p>Этого достаточно — дальше работает обычный механизм. Manager без users:create_employee не увидит кнопку создания. Admin может включить ему отдельно.</p>
+
+    <h4>4. Шаблоны как роли</h4>
+    <p>«Оператор», «Кладовщик», «Бухгалтер», «Наблюдатель» — создаются как системные роли (isSystem=true) с заранее настроенными permissions. При создании сотрудника UI показывает их как кнопки-пресеты.</p>
+
+    <h4>5. Постепенная миграция декораторов</h4>
+    <p>Параллельно с <code>@Roles</code> массово вводится <code>@Permissions</code>. Можно пометить эндпоинт обоими — пройдёт если хотя бы один проверяется. По одному модулю за PR. После полной миграции старые удаляются.</p>
+
+    <h4>Что НЕ нужно делать</h4>
+    <ul>
+      <li>Не нужно строить таблицу user_permissions с прямыми привязками — есть user_roles + role_permissions, этого хватает</li>
+      <li>Не нужно изобретать новый ORM-механизм — eager:false в Role entity нужно просто включить когда понадобится</li>
+      <li>Не нужно ждать 4-6 недель строго — фундамент готов, можно делать постепенно</li>
+    </ul>
+  </div>
+</section>
+
+<section id="sec-e" class="block">
+  <h2><span class="ico">E</span>План выкатки пилота на Railway <span class="pill p-good" style="font-size: 13px; vertical-align: middle; margin-left: 8px;">готово</span></h2>
+  <p class="lead">Пошаговый чек-лист от текущего состояния до работающего пилота на 23 машинах. 5 этапов, каждый изолирован и обратим.</p>
+
+  <div class="quote warn"><b>Текущий блокер:</b> Railway web build пустой с 06.04.2026. Этап 0 — починка Railway. Без этого остальные этапы бессмысленны.</div>
+
+  <div class="tabs" data-group="E">
+    <button aria-selected="true" data-target="E-step0">0 · Railway</button>
+    <button data-target="E-step1">1 · Env</button>
+    <button data-target="E-step2">2 · Миграции</button>
+    <button data-target="E-step3">3 · Деплой</button>
+    <button data-target="E-step4">4 · Smoke</button>
+    <button data-target="E-step5">5 · Мониторинг 48ч</button>
+    <button data-target="E-rollback">Откат</button>
+  </div>
+
+  <!-- Step 0: Railway -->
+  <div id="E-step0" class="tabpanel active">
+    <h3>Этап 0 — починить Railway</h3>
+    <p>Без этого ничего не запустится. Симптом: <code>vendhubweb-production</code> не билдится с 06.04.2026, логи пустые. Локальный <code>docker build</code> работает — проблема не в коде.</p>
+
+    <div class="checklist">
+      <div class="item now">
+        <div class="checkbox">!</div>
+        <div class="body">
+          <b>Открыть Railway dashboard</b>
+          <span>railway.app/account/usage. Проверить план, лимиты, статус биллинга.</span>
+        </div>
+      </div>
+      <div class="item now">
+        <div class="checkbox">!</div>
+        <div class="body">
+          <b>Если на free tier и упёрся лимит — поднять до Pro</b>
+          <span>$20/мес. Покрывает текущий объём с большим запасом.</span>
+        </div>
+      </div>
+      <div class="item now">
+        <div class="checkbox">!</div>
+        <div class="body">
+          <b>Manual redeploy всех сервисов</b>
+          <span>vendhubapi-production, vendhubweb-production, vendhubclient-production. Через UI «три точки → Redeploy».</span>
+        </div>
+      </div>
+      <div class="item now">
+        <div class="checkbox">!</div>
+        <div class="body">
+          <b>Watch logs в реальном времени</b>
+          <span><code>railway logs --service=vendhubweb-production --follow</code>. Build должен начаться в течение 30 секунд после redeploy.</span>
+        </div>
+      </div>
+      <div class="item now">
+        <div class="checkbox">!</div>
+        <div class="body">
+          <b>Если за 5 минут логи пустые — пересоздать сервис</b>
+          <span>Удалить vendhubweb-production. Создать заново из того же репо. Root Directory оставить «/». Прописать env заново.</span>
+        </div>
+      </div>
+    </div>
+
+    <h4>Critical: правильная Root Directory для каждого сервиса</h4>
+    <p>В Railway dashboard → Service → Settings:</p>
+    <table class="matrix">
+      <thead><tr><th>Service</th><th>Root Directory</th><th>Dockerfile</th></tr></thead>
+      <tbody>
+        <tr><td><code>vendhubapi-production</code></td><td><code>/</code></td><td><code>apps/api/Dockerfile</code></td></tr>
+        <tr><td><code>vendhubweb-production</code></td><td><code>/</code></td><td><code>apps/web/Dockerfile</code></td></tr>
+        <tr><td><code>vendhubsite-production</code></td><td><code>apps/site</code></td><td>nixpacks, без Dockerfile</td></tr>
+        <tr><td><code>vendhubclient-production</code></td><td><code>apps/client</code></td><td>nixpacks</td></tr>
+        <tr><td><code>vendhubbot-production</code></td><td><code>/</code></td><td><code>apps/bot/Dockerfile</code></td></tr>
+      </tbody>
+    </table>
+    <p><b>Важно:</b> Dockerfile-builds должны иметь Root «/» — иначе монорепо-структура (pnpm-workspace.yaml, packages/) не попадает в build context. Это типичная ошибка.</p>
+  </div>
+
+  <!-- Step 1: ENV -->
+  <div id="E-step1" class="tabpanel">
+    <h3>Этап 1 — env-переменные по сервисам</h3>
+    <p>83 переменные в .env.example. Прописать в Railway Dashboard → Service → Variables. Группировано по критичности.</p>
+
+    <h4>Сервис api — обязательные</h4>
+    <table class="matrix">
+      <thead><tr><th>Переменная</th><th>Значение</th><th>Зачем</th></tr></thead>
+      <tbody>
+        <tr><td><code>NODE_ENV</code></td><td><code>production</code></td><td>отключает AGENT_MODE, активирует cookie.secure</td></tr>
+        <tr><td><code>DB_MIGRATIONS_RUN</code></td><td><code>false</code></td><td>миграции через releaseCommand отдельно</td></tr>
+        <tr><td><code>JWT_SECRET</code></td><td><code>openssl rand -base64 48</code></td><td>подпись access-токенов</td></tr>
+        <tr><td><code>JWT_REFRESH_SECRET</code></td><td><code>openssl rand -base64 48</code></td><td>подпись refresh-токенов</td></tr>
+        <tr><td><code>COOKIE_SECRET</code></td><td><code>openssl rand -base64 32</code></td><td>подпись куков</td></tr>
+        <tr><td><code>COOKIE_SAME_SITE</code></td><td><code>none</code></td><td>cross-origin между web и api на разных доменах</td></tr>
+        <tr><td><code>COOKIE_SECURE</code></td><td><code>true</code></td><td>обязательно при SAME_SITE=none</td></tr>
+        <tr><td><code>METRICS_API_KEY</code></td><td><code>openssl rand -base64 32</code></td><td>защита /monitoring</td></tr>
+        <tr><td><code>METRICS_TOKEN</code></td><td><code>openssl rand -base64 32</code></td><td>защита /metrics для Prometheus scrape</td></tr>
+        <tr><td><code>DATABASE_URL</code></td><td>auto от Railway PG</td><td>подключение к Postgres</td></tr>
+        <tr><td><code>REDIS_URL</code></td><td>auto от Railway Redis</td><td>BullMQ + cache + sessions</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Сервис api — интеграции</h4>
+    <table class="matrix">
+      <thead><tr><th>Переменная</th><th>Где взять</th></tr></thead>
+      <tbody>
+        <tr><td><code>TELEGRAM_BOT_TOKEN</code></td><td>@BotFather в Telegram</td></tr>
+        <tr><td><code>TELEGRAM_WEBHOOK_URL</code></td><td><code>https://api.vendhub.uz/telegram-bot/webhook</code></td></tr>
+        <tr><td><code>TELEGRAM_WEBHOOK_SECRET</code></td><td>сгенерировать openssl rand -hex 16</td></tr>
+        <tr><td><code>PAYME_MERCHANT_ID, PAYME_SECRET_KEY</code></td><td>кабинет Payme</td></tr>
+        <tr><td><code>CLICK_MERCHANT_ID, CLICK_SERVICE_ID, CLICK_SECRET_KEY</code></td><td>кабинет Click</td></tr>
+        <tr><td><code>UZUM_MERCHANT_ID, UZUM_SECRET_KEY</code></td><td>кабинет Uzum</td></tr>
+        <tr><td><code>SENTRY_DSN</code></td><td>sentry.io создать проект для api</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Сервис web — обязательные</h4>
+    <table class="matrix">
+      <thead><tr><th>Переменная</th><th>Значение</th></tr></thead>
+      <tbody>
+        <tr><td><code>NEXT_PUBLIC_API_URL</code></td><td><code>https://vendhubapi-production.up.railway.app</code></td></tr>
+        <tr><td><code>NEXT_PUBLIC_WS_URL</code></td><td><code>wss://vendhubapi-production.up.railway.app</code></td></tr>
+        <tr><td><code>NEXT_PUBLIC_SENTRY_DSN</code></td><td>sentry.io отдельный проект для web</td></tr>
+        <tr><td><code>NEXT_PUBLIC_TELEGRAM_BOT_USERNAME</code></td><td>имя бота без @</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Сервисы client и site</h4>
+    <p>Client (Telegram Mini App) — те же NEXT_PUBLIC_API_URL, NEXT_PUBLIC_WS_URL. Site (маркетинг) — минимум переменных, в основном Sentry.</p>
+
+    <div class="quote">
+      <b>Команда для генерации всех секретов разом:</b><br>
+      <code style="display: block; padding: 10px; margin-top: 8px; background: white;">for v in JWT_SECRET JWT_REFRESH_SECRET COOKIE_SECRET METRICS_API_KEY METRICS_TOKEN; do echo "$v=$(openssl rand -base64 48 | tr -d '\\n')"; done</code>
+    </div>
+  </div>
+
+  <!-- Step 2: Migrations -->
+  <div id="E-step2" class="tabpanel">
+    <h3>Этап 2 — миграции на прод DB</h3>
+    <p>40 миграций в репо. Латест — <code>1776900000000-AddMaintenanceComponentLink.ts</code>. Известно что прод отстаёт — точно нужно накатить как минимум начиная с <code>1776100000000-PredictiveRefillPhase3.ts</code>.</p>
+
+    <h4>Авто-миграции через releaseCommand</h4>
+    <p>В <code>apps/api/railway.toml</code> уже настроен <code>releaseCommand</code>, который выполняет <code>runMigrations()</code> перед стартом контейнера. То есть при следующем deploy миграции прокатятся сами.</p>
+
+    <div class="checklist">
+      <div class="item">
+        <div class="checkbox"></div>
+        <div class="body">
+          <b>2.1 Backup БД перед миграциями</b>
+          <span><code>railway run pg_dump $DATABASE_URL > backup-2026-04-29.sql</code>. Без этого нельзя.</span>
+        </div>
+      </div>
+      <div class="item">
+        <div class="checkbox"></div>
+        <div class="body">
+          <b>2.2 Проверить migrations table</b>
+          <span><code>railway connect postgres</code> → <code>SELECT * FROM migrations ORDER BY id DESC LIMIT 5;</code> — какая последняя.</span>
+        </div>
+      </div>
+      <div class="item">
+        <div class="checkbox"></div>
+        <div class="body">
+          <b>2.3 Dry-run на staging</b>
+          <span>Создать в Railway отдельный проект-staging с копией БД. Накатить туда — посмотреть на ошибки.</span>
+        </div>
+      </div>
+      <div class="item">
+        <div class="checkbox"></div>
+        <div class="body">
+          <b>2.4 Прокатить на проде</b>
+          <span>Через redeploy api-сервиса. releaseCommand сам прокатит. Watch logs.</span>
+        </div>
+      </div>
+      <div class="item">
+        <div class="checkbox"></div>
+        <div class="body">
+          <b>2.5 Проверить что миграции применились</b>
+          <span><code>SELECT * FROM migrations WHERE id > 1776100000000</code> — должны вернуться 8 строк.</span>
+        </div>
+      </div>
+      <div class="item">
+        <div class="checkbox"></div>
+        <div class="body">
+          <b>2.6 Seed PREDICTED_STOCKOUT alert rules</b>
+          <span>Phase 3 предсказательного refill требует seed-записей в alert_rules. Запустить отдельным скриптом или вручную: <code>SELECT * FROM alert_rules WHERE metric = 'predicted_stockout'</code> — должны быть строки на каждую активную организацию.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="quote warn">
+      <b>Опасные миграции:</b> ни одна из последних 10 не делает DROP COLUMN или подобное. Все ADD COLUMN с DEFAULT, новые таблицы, индексы. Это безопасно для blue-green.
+    </div>
+  </div>
+
+  <!-- Step 3: Deploy -->
+  <div id="E-step3" class="tabpanel">
+    <h3>Этап 3 — последовательность деплоя</h3>
+    <p>Каждый сервис деплоится отдельно. Порядок важен: api первый, потом фронтенды.</p>
+
+    <div class="checklist">
+      <div class="item">
+        <div class="checkbox">1</div>
+        <div class="body">
+          <b>API service (vendhubapi-production)</b>
+          <span>Redeploy → releaseCommand прокатывает миграции → start → health-check /api/v1/health → готов. Если health-check валится — НЕ продолжать дальше. Логи + откат.</span>
+        </div>
+      </div>
+      <div class="item">
+        <div class="checkbox">2</div>
+        <div class="body">
+          <b>Bot service (vendhubbot-production)</b>
+          <span>Telegram-бот. Зависит от api. После того как api отвечает 200 на /health — задеплоить бот. Бот сам зарегистрирует webhook в Telegram.</span>
+        </div>
+      </div>
+      <div class="item">
+        <div class="checkbox">3</div>
+        <div class="body">
+          <b>Web service (vendhubweb-production)</b>
+          <span>Админка. После api. Standalone Next.js билд. Health-check на /. Проверить что NEXT_PUBLIC_API_URL правильный — иначе все запросы в браузере уйдут на localhost.</span>
+        </div>
+      </div>
+      <div class="item">
+        <div class="checkbox">4</div>
+        <div class="body">
+          <b>Client service (vendhubclient-production)</b>
+          <span>Telegram Mini App. Vite build, статика. Health-check на /.</span>
+        </div>
+      </div>
+      <div class="item">
+        <div class="checkbox">5</div>
+        <div class="body">
+          <b>Site service (vendhubsite-production)</b>
+          <span>Маркетинг-сайт. Не блокирует пилот, можно отложить.</span>
+        </div>
+      </div>
+    </div>
+
+    <h4>Custom domain (опционально, можно после)</h4>
+    <p>Railway даёт каждому сервису домен <code>*.up.railway.app</code>. Для production обычно ставят свой:</p>
+    <ul>
+      <li><code>api.vendhub.uz</code> → vendhubapi-production</li>
+      <li><code>app.vendhub.uz</code> → vendhubweb-production</li>
+      <li><code>m.vendhub.uz</code> → vendhubclient-production</li>
+      <li><code>vendhub.uz</code> → vendhubsite-production</li>
+    </ul>
+    <p>Настройка в Railway → Service → Settings → Custom Domain. CNAME на стороне DNS-провайдера. Если перешли на свой домен — обновить <code>NEXT_PUBLIC_API_URL</code> и <code>COOKIE_DOMAIN=.vendhub.uz</code>.</p>
+  </div>
+
+  <!-- Step 4: Smoke -->
+  <div id="E-step4" class="tabpanel">
+    <h3>Этап 4 — smoke-тесты после деплоя</h3>
+    <p>Минимальный сценарий который должен пройти. Если что-то падает — сразу к этапу «Откат».</p>
+
+    <h4>Health endpoints</h4>
+    <table class="matrix">
+      <thead><tr><th>URL</th><th>Ожидаемый ответ</th></tr></thead>
+      <tbody>
+        <tr><td><code>https://api.vendhub.uz/api/v1/health</code></td><td>200 OK, <code>{status: "ok"}</code></td></tr>
+        <tr><td><code>https://api.vendhub.uz/api/v1/health/live</code></td><td>200 OK, memory check OK</td></tr>
+        <tr><td><code>https://api.vendhub.uz/api/v1/health/ready</code></td><td>200 OK, db + redis up</td></tr>
+        <tr><td><code>https://api.vendhub.uz/api/v1/health/detailed</code></td><td>200 OK с info по каждому сервису</td></tr>
+        <tr><td><code>https://api.vendhub.uz/metrics?token=...</code></td><td>200 OK с Prometheus metrics</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Критические сценарии (10 шагов)</h4>
+    <div class="checklist">
+      <div class="item"><div class="checkbox"></div><div class="body"><b>1. Логин Owner-аккаунтом</b><span>POST /api/v1/auth/login → 200 + cookie. /api/v1/auth/me → 200 + профиль.</span></div></div>
+      <div class="item"><div class="checkbox"></div><div class="body"><b>2. Открыть admin dashboard</b><span>https://app.vendhub.uz/dashboard → загружается, видно метрики.</span></div></div>
+      <div class="item"><div class="checkbox"></div><div class="body"><b>3. Список 23 машин</b><span>/dashboard/machines → таблица из 23 строк, статусы загружены.</span></div></div>
+      <div class="item"><div class="checkbox"></div><div class="body"><b>4. Карточка одной машины</b><span>Клик на машину → телеметрия, остатки, история событий.</span></div></div>
+      <div class="item"><div class="checkbox"></div><div class="body"><b>5. Predictive refill дашборд</b><span>/dashboard/predictive-refill → recommendations table с реальными данными.</span></div></div>
+      <div class="item"><div class="checkbox"></div><div class="body"><b>6. WebSocket realtime</b><span>На machine detail page открыть DevTools → Network → WS → должно быть подключение к wss://api.vendhub.uz</span></div></div>
+      <div class="item"><div class="checkbox"></div><div class="body"><b>7. Telegram Mini App</b><span>Открыть бот в Telegram → нажать «Запустить» → загружается Mini App, показывает баланс.</span></div></div>
+      <div class="item"><div class="checkbox"></div><div class="body"><b>8. Тестовая транзакция Payme sandbox</b><span>Через Payme sandbox оплатить копеечную сумму. Проверить webhook пришёл, MachineSlot.currentQuantity декрементировался.</span></div></div>
+      <div class="item"><div class="checkbox"></div><div class="body"><b>9. Включение machine-access</b><span>Создать тестового manager. Привязать к 2 машинам. Залогиниться от его имени. Проверить что видит только эти 2.</span></div></div>
+      <div class="item"><div class="checkbox"></div><div class="body"><b>10. Логаут</b><span>POST /api/v1/auth/logout → 204. Cookie удалена. /api/v1/auth/me → 401.</span></div></div>
+    </div>
+  </div>
+
+  <!-- Step 5: Monitoring -->
+  <div id="E-step5" class="tabpanel">
+    <h3>Этап 5 — мониторинг первые 48 часов</h3>
+    <p>Самый рисковый период после деплоя. За чем смотреть и какие алерты настроить.</p>
+
+    <h4>Что наблюдать</h4>
+    <div class="modgrid">
+      <div class="mcard">
+        <h4>Sentry — ошибки</h4>
+        <p class="desc">Спайки новых ошибок. Baseline — ловить за неделю до деплоя. Алерт при превышении в 5x на 10 минут.</p>
+      </div>
+      <div class="mcard">
+        <h4>Railway logs</h4>
+        <p class="desc">Свежие ошибки уровня ERROR. Особенно auth, payments, fiscal.</p>
+      </div>
+      <div class="mcard">
+        <h4>Prometheus / Grafana</h4>
+        <p class="desc">http_requests_total, p95 latency, payment success rate, login success rate.</p>
+      </div>
+      <div class="mcard">
+        <h4>Postgres</h4>
+        <p class="desc">Slow queries, lock waits, connection pool. Через Railway dashboard или pgAdmin.</p>
+      </div>
+      <div class="mcard">
+        <h4>Bull queues</h4>
+        <p class="desc">/admin/queues (bull-board). Видеть failed jobs, особенно fiscal и web-push.</p>
+      </div>
+      <div class="mcard">
+        <h4>Telegram bot</h4>
+        <p class="desc">Обновления приходят? Webhook делает ответ &lt; 5s? @BotFather → My Bots → API Stats.</p>
+      </div>
+    </div>
+
+    <h4>Алерты (минимум)</h4>
+    <ul>
+      <li><b>Critical:</b> любая 5xx ошибка на /api/v1/auth/* или /api/v1/payments/*</li>
+      <li><b>Critical:</b> p95 latency &gt; 2 секунд</li>
+      <li><b>Warning:</b> failed payments &gt; 1% от общего числа</li>
+      <li><b>Warning:</b> новый класс ошибок появился в Sentry</li>
+      <li><b>Info:</b> очередь BullMQ &gt; 50 задач — backlog</li>
+    </ul>
+
+    <h4>Что делать при срабатывании</h4>
+    <ol>
+      <li>Прочитать алерт. Понять — это spike или fundamental.</li>
+      <li>Проверить через /health/detailed — все компоненты живы?</li>
+      <li>Если deploy был меньше часа назад — кандидат на откат.</li>
+      <li>Если после часа всё стабильно но проблема осталась — hotfix forward.</li>
+    </ol>
+  </div>
+
+  <!-- Rollback -->
+  <div id="E-rollback" class="tabpanel">
+    <h3>План отката</h3>
+    <p>В <code>docs/runbooks/rollback.md</code> уже есть детальный playbook. Здесь — выжимка.</p>
+
+    <h4>Когда откатываемся</h4>
+    <ul>
+      <li>Error rate в Sentry &gt; 5x baseline за 10 минут после deploy</li>
+      <li>Сломан критический flow: login, payment, order placement</li>
+      <li>Замечена data corruption</li>
+    </ul>
+
+    <h4>Когда НЕ откатываемся</h4>
+    <ul>
+      <li>Изолированная ошибка на одном модуле — частичный hotfix</li>
+      <li>Минорная UX-регрессия — hotfix forward</li>
+    </ul>
+
+    <h4>Опция A — откат через Railway dashboard (~2 минуты)</h4>
+    <ol>
+      <li>Railway dashboard → service → Deployments</li>
+      <li>Найти последний known-good deployment (по timestamp до инцидента)</li>
+      <li>Клик «Redeploy» на нём</li>
+      <li>Verify /health/ready возвращает 200</li>
+    </ol>
+
+    <h4>Опция B — git revert (медленнее, но в истории)</h4>
+    <pre style="background: var(--surface-2); padding: 12px; border-radius: 8px; font-size: 13px; margin: 8px 0; overflow-x: auto;">cd ~/VendHub-OS
+git revert &lt;bad-commit-sha&gt;
+git push origin main
+# CI runs, then auto-deploys</pre>
+
+    <h4>Откат миграций БД</h4>
+    <div class="quote warn"><b>Внимание:</b> откат кода НЕ откатывает миграции. Если плохой deploy накатил миграцию — после отката кода БД остаётся в новой схеме.</div>
+    <p><b>Безопасные сценарии</b> (откат кода достаточен):</p>
+    <ul>
+      <li>Миграция добавила новый optional column / index — старый код игнорирует</li>
+      <li>Миграция добавила новую таблицу — старый код её не трогает</li>
+    </ul>
+    <p><b>Опасные сценарии</b> (нужен откат БД):</p>
+    <ul>
+      <li>Миграция DROPped column / table, от которых старый код зависит</li>
+      <li>Изменился тип колонки несовместимо</li>
+    </ul>
+    <pre style="background: var(--surface-2); padding: 12px; border-radius: 8px; font-size: 13px; margin: 8px 0; overflow-x: auto;">cd ~/VendHub-OS/apps/api
+pnpm migration:revert
+# Подтвердить что последняя миграция в pg_migrations table откачена</pre>
+
+    <h4>После отката</h4>
+    <ul>
+      <li>Документировать root cause</li>
+      <li>Создать issue с тегом «post-rollback»</li>
+      <li>Если миграция была откачена — спланировать forward path (fix + новая миграция)</li>
+      <li>Добавить regression test чтобы не повторилось</li>
+    </ul>
+  </div>
+</section>
+
+<section id="sec-f" class="block">
+  <h2><span class="ico">F</span>Аудит модуля users <span class="pill p-good" style="font-size: 13px; vertical-align: middle; margin-left: 8px;">готово</span></h2>
+  <p class="lead">«Отдел кадров» системы. Хранит User entity, на которую опирается весь auth и большинство модулей. Сам модуль — небольшой и прямой, главная сложность — entity с 30+ полями.</p>
+
+  <div class="stat-tiles">
+    <div class="stat-tile"><div class="lab">Файлов кода</div><div class="val">8</div></div>
+    <div class="stat-tile"><div class="lab">Строк кода</div><div class="val">1650</div></div>
+    <div class="stat-tile"><div class="lab">Эндпоинтов</div><div class="val">5</div></div>
+    <div class="stat-tile"><div class="lab">Service-методов</div><div class="val">~30</div></div>
+    <div class="stat-tile"><div class="lab">Полей в User</div><div class="val">81</div></div>
+    <div class="stat-tile"><div class="lab">Индексов</div><div class="val">19</div></div>
+  </div>
+
+  <h3>1. Назначение и границы</h3>
+  <p>Модуль владеет User entity и обеспечивает CRUD над пользователями + сервисные методы для других модулей.</p>
+  <ul>
+    <li><b>Делает:</b> создание / список / детали / обновление / удаление пользователей. Approve / reject pending. Block / unblock / deactivate / activate. Поиск по email / telegramId / username. Хеширование пароля.</li>
+    <li><b>НЕ делает:</b> логин (это auth), приглашения (invites), 2FA (auth), сессии (auth).</li>
+  </ul>
+
+  <h3>2. Связи</h3>
+  <p>Этот модуль — фундамент: он экспортирует UsersService, и его потребляют десятки других модулей.</p>
+  <ul>
+    <li><b>Импортирует:</b> только TypeOrmModule.forFeature([User]) и общие DTO-helpers.</li>
+    <li><b>Экспортирует:</b> UsersService.</li>
+    <li><b>Потребители:</b> auth, invites, employees, security, access-requests, rbac, machine-access, audit, notifications — практически весь Identity и большинство feature-модулей.</li>
+  </ul>
+
+  <h3>3. Схема данных — User entity</h3>
+  <p>Богатая entity. Группы полей:</p>
+
+  <h4>Идентификация</h4>
+  <ul>
+    <li><code>id</code>, <code>email</code> (unique), <code>username</code> (nullable, unique)</li>
+    <li><code>firstName</code>, <code>lastName</code>, <code>phone</code></li>
+    <li><code>telegramId</code> (unique nullable), <code>telegramUsername</code></li>
+  </ul>
+
+  <h4>Авторизация</h4>
+  <ul>
+    <li><code>password</code> — bcrypt-хеш</li>
+    <li><code>role</code> (UserRole enum)</li>
+    <li><code>status</code> (active / inactive / blocked / pending / rejected)</li>
+    <li><code>organizationId</code> — фундамент multi-tenancy</li>
+    <li><code>loginAttempts</code> — счётчик провалов для lockout</li>
+    <li><code>lockedUntil</code>, <code>lastLoginAt</code>, <code>lastLoginIp</code></li>
+    <li><code>passwordChangedAt</code> — для blacklist по iat в JWT</li>
+    <li><code>twoFactorEnabled</code>, <code>twoFactorSecret</code></li>
+  </ul>
+
+  <h4>Approval workflow</h4>
+  <ul>
+    <li><code>approvedById</code>, <code>approvedAt</code>, <code>rejectedById</code>, <code>rejectedAt</code></li>
+    <li><code>blockReason</code>, <code>rejectionReason</code></li>
+  </ul>
+
+  <h4>Loyalty / клиентские поля</h4>
+  <ul>
+    <li><code>referredById</code>, <code>referralCode</code></li>
+    <li><code>loyaltyPoints</code>, <code>tier</code></li>
+    <li>(всё это переедет в отдельную <code>clients</code> таблицу в Фазе 3.6)</li>
+  </ul>
+
+  <h4>Индексы (19)</h4>
+  <p>Email (unique), username (unique conditional), telegramId (unique conditional), organizationId, role, status, approvedById, rejectedById, referredById, плюс ещё 10 на FK, soft-delete и временные поля. Все важные lookup'ы покрыты.</p>
+
+  <h3>4. API surface — 5 эндпоинтов</h3>
+  <table class="matrix">
+    <thead><tr><th>Метод</th><th>Эндпоинт</th><th>Доступ</th><th>Назначение</th></tr></thead>
+    <tbody>
+      <tr><td>POST</td><td><code>/users</code></td><td>Owner, Admin</td><td>Создать пользователя (обычно через invites, не напрямую)</td></tr>
+      <tr><td>GET</td><td><code>/users</code></td><td>Owner, Admin, Manager</td><td>Список с пагинацией и фильтрами</td></tr>
+      <tr><td>GET</td><td><code>/users/:id</code></td><td>Owner, Admin, Manager</td><td>Детали пользователя</td></tr>
+      <tr><td>PATCH</td><td><code>/users/:id</code></td><td>Owner, Admin</td><td>Обновить (через stripProtectedFields)</td></tr>
+      <tr><td>DELETE</td><td><code>/users/:id</code></td><td>Owner, Admin</td><td>Soft delete (через BaseEntity)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5. Tenant scoping и RBAC</h3>
+  <ul>
+    <li>Все запросы фильтруются по <code>organizationId</code> текущего пользователя (Owner-bypass для всех орг)</li>
+    <li>Метод <code>findById(id, organizationId?)</code> принимает opts orgId для double-check</li>
+    <li>Sensitive поля (password, twoFactorSecret) исключены из ответов через DTO-mapping</li>
+    <li><code>stripProtectedFields</code> перед update — нельзя обновить role / organizationId / status через PATCH /users/:id (только через специальные эндпоинты)</li>
+  </ul>
+
+  <h3>6. Тестовое покрытие</h3>
+  <p>2 spec-файла в модуле:</p>
+  <ul>
+    <li><code>users.controller.spec.ts</code> — endpoints behavior</li>
+    <li><code>users.service.spec.ts</code> — CRUD + поиск</li>
+  </ul>
+  <p>Покрытие достаточное для основных путей. Не покрыто: edge cases approval workflow, race condition при одновременном update.</p>
+
+  <h3>7. Риски к проду</h3>
+  <table class="matrix">
+    <thead><tr><th>Уровень</th><th>Риск</th><th>Действие</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill p-good">low</span></td><td>User entity содержит и staff и client поля (loyalty, tier, referrals)</td><td>Технический долг. Решается в Фазе 3.6 разделением на отдельную таблицу clients.</td></tr>
+      <tr><td><span class="pill p-warn">med</span></td><td>30+ полей в одной entity</td><td>Усложняет миграции и индексирование. Не блокер, но затрудняет refactoring.</td></tr>
+      <tr><td><span class="pill p-warn">med</span></td><td>stripProtectedFields — последний рубеж против privilege escalation</td><td>Покрыть unit-тестом: PATCH с ролью в body не должен повышать роль.</td></tr>
+      <tr><td><span class="pill p-good">low</span></td><td>username — nullable + unique</td><td>Уникальный индекс с условием WHERE username IS NOT NULL — корректно.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>8. Готовность <span class="pill p-good">🟢 ready</span></h3>
+  <p>Модуль <b>готов к запуску пилота как есть</b>. Никаких блокирующих изменений не требуется.</p>
+  <p><b>Action items на будущее:</b></p>
+  <ul>
+    <li>Фаза 3.6: разделить User → User (staff) + Client (purchasers)</li>
+    <li>Добавить unit-тест на stripProtectedFields для всех protected полей</li>
+    <li>В рамках Фазы 3.7 (UI единой панели) — переписать /users/:id PATCH чтобы принимать структурированный объект permissions</li>
+  </ul>
+</section>
+
+<section id="sec-g" class="block">
+  <h2><span class="ico">G</span>Остальные модули Identity & Access <span class="pill p-good" style="font-size: 13px; vertical-align: middle; margin-left: 8px;">готово</span></h2>
+  <p class="lead">Краткий аудит 5 оставшихся модулей группы. Каждый по упрощённой методике: что делает, готовность, риски.</p>
+
+  <details class="acc" open>
+    <summary><span>security · модуль безопасности</span><span class="meta">11 файлов · 4 эндпоинта · готов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> логирование security-событий — попытки входа, изменение прав, подозрительная активность. Не сама защита, а аудит.</p>
+      <p><b>Эндпоинты:</b> events, events/user/:userId, events/unresolved/count, events/:id/resolve. Все Owner+Admin.</p>
+      <p><b>Используется:</b> auth (login attempts), rbac (permission changes). Через события.</p>
+      <p><b>Риски:</b> низкие. Записи копятся, но cleanup пока не настроен — потенциально большая таблица за год. Не блокирует пилот.</p>
+      <p><b>Готовность:</b> <span class="pill p-good">🟢 ready</span></p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>invites · приглашения</span><span class="meta">6 файлов · 5 эндпоинтов · готов</span></summary>
+    <div class="body">
+      <p>Полный разбор был в секции C. Кратко:</p>
+      <ul>
+        <li>Уникальный 24-char hex код</li>
+        <li>Статусы: ACTIVE / USED / EXPIRED / REVOKED</li>
+        <li>maxUses + currentUses для group invites</li>
+        <li>Throttle 5/min на регистрацию по invite</li>
+      </ul>
+      <p><b>Готовность:</b> <span class="pill p-good">🟢 ready</span></p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>access-requests · запросы доступа</span><span class="meta">5 файлов · 6 эндпоинтов · готов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> когда сотрудник видит «у меня нет прав на X», он может подать запрос. Admin одобряет или отклоняет.</p>
+      <p><b>Эндпоинты:</b> POST создать запрос, GET список, GET stats, GET :id, POST :id/approve, POST :id/reject.</p>
+      <p><b>Связь с ролями:</b> сотрудник из своей организации может подать запрос на любую permission. Admin одобряет — запись в audit + автоматическое назначение прав.</p>
+      <p><b>Этот модуль идеально ложится на Фазу 3:</b> в новой модели вместо «дай мне роль» будет «включи мне permission такой-то». Workflow — тот же.</p>
+      <p><b>Готовность:</b> <span class="pill p-good">🟢 ready</span></p>
+    </div>
+  </details>
+
+  <details class="acc" open>
+    <summary><span>machine-access · resource-level доступ к автоматам</span><span class="meta">7 файлов · 13 эндпоинтов · ключевой для пилота</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> закрепление пользователей за конкретными машинами. Реализует «менеджер видит только свои 10 машин из 100» уже сейчас.</p>
+
+      <h4>Структура</h4>
+      <ul>
+        <li>Таблица <code>machine_access(organizationId, machineId, userId, role, granted_at)</code></li>
+        <li>Уникальный индекс на (machineId, userId) с WHERE deleted_at IS NULL — нельзя дублировать</li>
+        <li>Enum MachineAccessRole: <b>FULL / REFILL / COLLECTION / MAINTENANCE / VIEW</b></li>
+      </ul>
+
+      <h4>5 типов доступа на одну машину</h4>
+      <table class="matrix">
+        <thead><tr><th>Тип</th><th>Что разрешает</th></tr></thead>
+        <tbody>
+          <tr><td>FULL</td><td>Всё — телеметрия, пополнение, инкассация, ремонт</td></tr>
+          <tr><td>REFILL</td><td>Только пополнение товара</td></tr>
+          <tr><td>COLLECTION</td><td>Только инкассация (выемка денег)</td></tr>
+          <tr><td>MAINTENANCE</td><td>Только техобслуживание и ремонт</td></tr>
+          <tr><td>VIEW</td><td>Только просмотр без действий</td></tr>
+        </tbody>
+      </table>
+
+      <h4>13 эндпоинтов</h4>
+      <ul>
+        <li>POST / — назначить пользователя машине</li>
+        <li>POST /revoke — отозвать</li>
+        <li>GET /, /machine/:machineId, /user/:userId, /:id — выборки</li>
+        <li>DELETE /:id — мягкое удаление</li>
+        <li>POST /templates, GET /templates/list, GET/PATCH/DELETE /templates/:id, POST /templates/apply — шаблоны массового назначения (например «всем операторам Бостандыкского района — REFILL на машины этого района»)</li>
+      </ul>
+
+      <p><b>Включение на пилоте</b> — Решение 4 принятых решений. Нужно подключить фильтрацию в основные машинные эндпоинты + добавить UI назначения.</p>
+      <p><b>Готовность:</b> <span class="pill p-warn">🟡 нужно действие</span> — модуль в коде, но реальное использование требует включения в Фазе 1 запуска.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>employees · сотрудники</span><span class="meta">24 файла · 40 эндпоинтов · самый большой</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> расширенный профиль сотрудника поверх User entity. HR-данные: должность, отдел, контракт, документы, ставка, график.</p>
+      <p>Это <b>другой scope</b>, чем User: User — для логина и прав, Employee — для HR-учёта.</p>
+      <p><b>Связь:</b> один-к-одному employee.userId → users.id (опционально, не у всех User есть Employee).</p>
+      <p><b>40 эндпоинтов</b> — много, потому что покрывает: CRUD сотрудников, документы, графики, отпуска, начисления, отчёты по труду.</p>
+      <p><b>Не блокирует пилот:</b> на старте можно использовать только базовую часть (создание employee при регистрации сотрудника).</p>
+      <p><b>Готовность:</b> <span class="pill p-good">🟢 ready</span> для базовой работы. Полный охват HR-функций — Фаза 4+.</p>
+    </div>
+  </details>
+
+  <h3>Сводка по группе Identity & Access</h3>
+  <table class="matrix">
+    <thead><tr><th>Модуль</th><th>Эндпоинтов</th><th>Готовность</th></tr></thead>
+    <tbody>
+      <tr><td>auth</td><td>18</td><td><span class="pill p-warn">🟡 нужны env-настройки</span></td></tr>
+      <tr><td>users</td><td>5</td><td><span class="pill p-good">🟢 ready</span></td></tr>
+      <tr><td>rbac</td><td>12</td><td><span class="pill p-good">🟢 ready (фундамент)</span></td></tr>
+      <tr><td>security</td><td>4</td><td><span class="pill p-good">🟢 ready</span></td></tr>
+      <tr><td>invites</td><td>5</td><td><span class="pill p-good">🟢 ready</span></td></tr>
+      <tr><td>access-requests</td><td>6</td><td><span class="pill p-good">🟢 ready</span></td></tr>
+      <tr><td>machine-access</td><td>13</td><td><span class="pill p-warn">🟡 включить фильтрацию</span></td></tr>
+      <tr><td>employees</td><td>40</td><td><span class="pill p-good">🟢 ready (basic)</span></td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top: 12px;">Группа Identity & Access технически <b>готова к запуску пилота</b>. Из 8 модулей блокирующих изменений нет ни в одном — только настройки и включение готовых возможностей.</p>
+</section>
+
+<section id="sec-h" class="block">
+  <h2><span class="ico">H</span>Группа Payments — деньги <span class="pill p-good" style="font-size: 13px; vertical-align: middle; margin-left: 8px;">готово</span></h2>
+  <p class="lead">Критический путь денег. 7 модулей покрывают приём платежей, фискализацию, выплаты партнёрам, биллинг подписок, отчётность.</p>
+
+  <div class="stat-tiles">
+    <div class="stat-tile"><div class="lab">Модулей</div><div class="val">7</div></div>
+    <div class="stat-tile"><div class="lab">Эндпоинтов</div><div class="val">79</div></div>
+    <div class="stat-tile"><div class="lab">Файлов кода</div><div class="val">67</div></div>
+    <div class="stat-tile"><div class="lab">Платёжных систем</div><div class="val">3</div></div>
+    <div class="stat-tile"><div class="lab">Telegram Stars</div><div class="val">да</div></div>
+    <div class="stat-tile"><div class="lab">Фискал Soliq.uz</div><div class="val">да</div></div>
+  </div>
+
+  <div class="tabs" data-group="H">
+    <button aria-selected="true" data-target="H-modules">Модули</button>
+    <button data-target="H-flow">End-to-end сценарий</button>
+    <button data-target="H-risks">Риски</button>
+  </div>
+
+  <div id="H-modules" class="tabpanel active">
+    <h3>7 модулей группы</h3>
+
+    <details class="acc" open>
+      <summary><span>payments · приём платежей через Payme / Click / Uzum</span><span class="meta">12 файлов · 11 эндпоинтов</span></summary>
+      <div class="body">
+        <p><b>Назначение:</b> создание платёжных сессий и приём webhook'ов от трёх локальных провайдеров.</p>
+        <p><b>Эндпоинты:</b></p>
+        <ul>
+          <li>POST <code>/payments/payme/create</code>, <code>/click/create</code>, <code>/uzum/create</code> — создание сессии</li>
+          <li>POST webhook'и от каждого провайдера — Public, защищены HMAC от провайдера</li>
+          <li>GET <code>/payments</code>, <code>/:id</code> — выборки</li>
+        </ul>
+        <p><b>RBAC:</b> чтение для Owner/Admin/Manager/Accountant. Operator видит только свои машины через machine-access.</p>
+        <p><b>Готовность:</b> <span class="pill p-good">🟢 ready</span> — нужны только PAYME/CLICK/UZUM ключи в env (см. секцию E).</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><span>telegram-payments · оплата через Telegram Stars / провайдеры внутри Telegram</span><span class="meta">8 файлов · 10 эндпоинтов</span></summary>
+      <div class="body">
+        <p><b>Назначение:</b> Telegram Bot Payments API. Клиент покупает прямо в Mini App без перехода на сайт.</p>
+        <p><b>Эндпоинты:</b> POST /invoice, POST /invoice-link, GET /my, webhook от Telegram, GET /:id и т.д.</p>
+        <p><b>Связь:</b> зависит от TELEGRAM_BOT_TOKEN. Связан с loyalty (начисление бонусов после оплаты).</p>
+        <p><b>Готовность:</b> <span class="pill p-good">🟢 ready</span></p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><span>fiscal · фискализация Soliq.uz (Multikassa)</span><span class="meta">15 файлов · 17 эндпоинтов</span></summary>
+      <div class="body">
+        <p><b>Назначение:</b> создание фискальных чеков для налоговой Узбекистана. Каждая продажа должна быть зафискализирована.</p>
+        <p><b>Эндпоинты:</b> CRUD устройств, чеки, статус фискализации, повторная отправка проваленных.</p>
+        <p><b>BullMQ-очередь:</b> <code>fiscal</code> queue — асинхронная отправка чеков с retry. Если Soliq недоступен — в backlog, повтор позже.</p>
+        <p><b>Риск:</b> важно мониторить failed jobs в bull-board. Если очередь растёт — проверять токен Multikassa.</p>
+        <p><b>RBAC:</b> 0 Owner в декораторах (см. code smell в секции A) — только Admin и Manager явно. Owner проходит через bypass.</p>
+        <p><b>Готовность:</b> <span class="pill p-good">🟢 ready</span> — нужны Soliq-credentials.</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><span>billing · биллинг подписок и тарифов</span><span class="meta">7 файлов · 10 эндпоинтов</span></summary>
+      <div class="body">
+        <p><b>Назначение:</b> биллинг для франчайзи — выставление инвойсов организациям за использование платформы.</p>
+        <p><b>Эндпоинты:</b> POST /invoices, GET /invoices, /stats, /:id, POST /pay, /void и т.д.</p>
+        <p><b>На пилоте:</b> один организация (твоя), биллинг себе самому — формальность. Реально пригодится при франчайзи.</p>
+        <p><b>Готовность:</b> <span class="pill p-good">🟢 ready</span></p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><span>payment-reports · отчёты по платежам</span><span class="meta">11 файлов · 20 эндпоинтов · 2 controllers</span></summary>
+      <div class="body">
+        <p><b>Назначение:</b> загрузка банковских выписок и сверка с платежами в системе. Reconciliation.</p>
+        <p><b>Эндпоинты:</b> POST /upload (CSV/Excel/PDF), GET /, /stats, /:id, POST /:id/reconcile и т.д.</p>
+        <p><b>Связь:</b> bank-statement parser, reconciliation модуль.</p>
+        <p><b>Готовность:</b> <span class="pill p-good">🟢 ready</span></p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><span>cash-finance · кассовые операции</span><span class="meta">6 файлов · 4 эндпоинта</span></summary>
+      <div class="body">
+        <p><b>Назначение:</b> наличные деньги — депозиты с инкассации, баланс кассы.</p>
+        <p><b>Эндпоинты:</b> GET /balance, GET /deposits, POST /deposits, GET /transactions и т.д.</p>
+        <p><b>Связь:</b> machine-access (COLLECTION тип), audit log.</p>
+        <p><b>Готовность:</b> <span class="pill p-good">🟢 ready</span></p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><span>payout-requests · запросы на выплаты</span><span class="meta">8 файлов · 7 эндпоинтов</span></summary>
+      <div class="body">
+        <p><b>Назначение:</b> когда нужно вывести деньги (себе как Owner или партнёру-франчайзи) — создаётся запрос, проходит approval, исполняется.</p>
+        <p><b>Эндпоинты:</b> GET /, /stats, /:id, POST /:id/approve, /:id/reject, /:id/execute.</p>
+        <p><b>Готовность:</b> <span class="pill p-good">🟢 ready</span></p>
+      </div>
+    </details>
+  </div>
+
+  <div id="H-flow" class="tabpanel">
+    <h3>End-to-end: как клиент платит за кофе</h3>
+    <p>Сценарий пошагово: от нажатия кнопки в автомате до записи в фискальном чеке.</p>
+
+    <div class="checklist">
+      <div class="item">
+        <div class="checkbox">1</div>
+        <div class="body"><b>Клиент сканирует QR-код на автомате</b><span>Открывается Telegram Mini App с product context (machineId, productId).</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">2</div>
+        <div class="body"><b>Mini App вызывает /payments/payme/create</b><span>POST с amount, machineId, productId. Сервер создаёт Payment запись со статусом PENDING.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">3</div>
+        <div class="body"><b>Возвращается paymentUrl</b><span>Mini App переходит на checkout Payme.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">4</div>
+        <div class="body"><b>Клиент оплачивает</b><span>Payme делает свою магию, потом отправляет webhook на /payments/payme/webhook.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">5</div>
+        <div class="body"><b>Webhook верифицируется HMAC</b><span>Проверка подписи с PAYME_SECRET_KEY. Невалидная — отбивается 401.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">6</div>
+        <div class="body"><b>Payment status → PAID</b><span>Транзакция в БД. Эмиттится event <code>transaction.created</code>.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">7</div>
+        <div class="body"><b>QuantitySyncService слушает event</b><span>Декремент <code>MachineSlot.currentQuantity</code> для проданного товара. Если был последний — алерт.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">8</div>
+        <div class="body"><b>Loyalty начисляет бонусы</b><span>Listener на <code>order.completed</code>. Баллы в clients.loyaltyPoints, проверка ачивок (например «100 покупок» → unlock).</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">9</div>
+        <div class="body"><b>FiscalQueue добавляет задачу</b><span>BullMQ job: создать фискальный чек через Soliq.uz / Multikassa API.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">10</div>
+        <div class="body"><b>Worker фискализирует</b><span>Получает чек от Soliq, сохраняет fiscal_id, qrCode, ссылку на проверку. Если ошибка — retry с exponential backoff.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">11</div>
+        <div class="body"><b>Команда автомату «налить»</b><span>Через WebSocket Gateway — автомат получает signal и делает напиток.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox">12</div>
+        <div class="body"><b>Audit-лог</b><span>PAYMENT_PROCESSED + FISCAL_OPERATION + INVENTORY_ADJUSTMENT — три записи в audit_log с user_id (client), machine_id, amount.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="H-risks" class="tabpanel">
+    <h3>Риски в денежном потоке</h3>
+    <table class="matrix">
+      <thead><tr><th>Уровень</th><th>Риск</th><th>Митигация</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill p-bad">high</span></td><td>Двойная оплата (race на webhook'е)</td><td>В коде должна быть idempotency через payment.externalId. Проверить тестами.</td></tr>
+        <tr><td><span class="pill p-bad">high</span></td><td>Soliq.uz недоступен → продажи не фискализированы</td><td>BullMQ с retry. Алерт когда failed jobs &gt; 10.</td></tr>
+        <tr><td><span class="pill p-warn">med</span></td><td>QuantitySyncService не сработал → остаток не декрементировался</td><td>Решение в P2.1 ROADMAP — нужна верификация event-flow на проде. Пилот без этой проверки рискован.</td></tr>
+        <tr><td><span class="pill p-warn">med</span></td><td>Webhook'и не приходят (Payme misconfig)</td><td>Health-check + алерт на «Payment в PENDING более 30 минут».</td></tr>
+        <tr><td><span class="pill p-warn">med</span></td><td>Loyalty начисление не сработало</td><td>Обнаружится через жалобы клиентов. Audit-лог поможет восстановить.</td></tr>
+        <tr><td><span class="pill p-good">low</span></td><td>Rate limit от провайдера</td><td>Throttle на наших эндпоинтах создания платежа.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Action items перед запуском</h3>
+    <div class="checklist">
+      <div class="item now">
+        <div class="checkbox">!</div>
+        <div class="body"><b>Прописать ключи провайдеров в Railway env</b><span>PAYME_MERCHANT_ID, PAYME_SECRET_KEY (test mode сначала), CLICK_*, UZUM_*. Для пилота можно начать только с Payme.</span></div>
+      </div>
+      <div class="item now">
+        <div class="checkbox">!</div>
+        <div class="body"><b>Прописать Multikassa credentials для фискала</b><span>Без них чеки не создаются. Налоговая может оштрафовать.</span></div>
+      </div>
+      <div class="item now">
+        <div class="checkbox">!</div>
+        <div class="body"><b>Smoke-тест Payme sandbox</b><span>Купить копеечную сумму через тестовую среду. Проверить: payment в PAID, machine_slot декремент, fiscal_receipt создан, loyalty начислен, audit_log полный.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox"></div>
+        <div class="body"><b>После пилота: проверить QuantitySyncService на реальных машинах</b><span>P2.1 из ROADMAP. Нужно убедиться что event flow работает на проде end-to-end.</span></div>
+      </div>
+      <div class="item">
+        <div class="checkbox"></div>
+        <div class="body"><b>Настроить алерт «Payment в PENDING > 30 мин»</b><span>Сигнал что webhook не приходит.</span></div>
+      </div>
+    </div>
+
+    <h3>Готовность группы Payments</h3>
+    <p>Все 7 модулей <b>технически готовы</b>. Блокеры — только конфигурация (Payme/Click/Uzum/Soliq credentials) и одна верификация (event flow для quantity sync).</p>
+    <p><b>Стратегия запуска пилота:</b> начать только с Payme (1 из 3 провайдеров) и Soliq fiscal. Click и Uzum — добавить через 1-2 недели после стабилизации. Меньше variables в первые дни.</p>
+  </div>
+</section>
+
+<footer>
+  Документ сгенерирован 29.04.2026. Это <b>master-файл</b> — единая точка входа в аудит. Дополняется по мере прохождения секций B–H. При обновлении — обновлять также <code>MODULE_AUDIT_INDEX.md</code>.
+</footer>
+
+</main>
+</div>
+
+<button class="top-fab" id="topFab" title="Наверх">↑</button>
+
+<script>
+  (function() {
+    document.querySelectorAll('.tabs').forEach(function(group) {
+      var btns = group.querySelectorAll('button');
+      btns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          btns.forEach(function(b) { b.setAttribute('aria-selected', 'false'); });
+          var sectionPanels = group.parentElement.querySelectorAll(':scope > .tabpanel');
+          sectionPanels.forEach(function(p) { p.classList.remove('active'); });
+          btn.setAttribute('aria-selected', 'true');
+          var target = document.getElementById(btn.dataset.target);
+          if (target) target.classList.add('active');
+        });
+      });
+    });
+
+    var navLinks = document.querySelectorAll('nav.sidebar a');
+    var sections = Array.from(document.querySelectorAll('section.block'));
+
+    navLinks.forEach(function(a) {
+      a.addEventListener('click', function() {
+        navLinks.forEach(function(b) { b.classList.remove('active'); });
+        a.classList.add('active');
+      });
+    });
+
+    var topFab = document.getElementById('topFab');
+    topFab.addEventListener('click', function() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    function onScroll() {
+      var y = window.scrollY;
+      if (y > 400) topFab.classList.add('visible'); else topFab.classList.remove('visible');
+
+      var current = sections[0];
+      sections.forEach(function(s) {
+        if (s.offsetTop - 80 <= y) current = s;
+      });
+      if (current) {
+        navLinks.forEach(function(a) {
+          if (a.getAttribute('href') === '#' + current.id) a.classList.add('active');
+          else a.classList.remove('active');
+        });
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
+</script>
+</body>
+</html>

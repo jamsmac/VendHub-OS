@@ -1,0 +1,1148 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Фаза 3 — детальный план исполнения</title>
+<style>
+  :root {
+    --bg: #FAF8F4;
+    --surface: #FFFFFF;
+    --surface-2: #F1EFE8;
+    --text: #2C2C2A;
+    --text-2: #5F5E5A;
+    --text-3: #888780;
+    --border: rgba(0, 0, 0, 0.08);
+    --border-strong: rgba(0, 0, 0, 0.18);
+    --accent: #534AB7;
+    --accent-bg: #EEEDFE;
+    --warn: #854F0B;
+    --warn-bg: #FAEEDA;
+    --good: #27500A;
+    --good-bg: #EAF3DE;
+    --bad: #791F1F;
+    --info: #185FA5;
+    --info-bg: #E6F1FB;
+    --teal: #0F6E56;
+    --teal-bg: #E1F5EE;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.6;
+    font-size: 15.5px;
+  }
+  .wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 28px 80px;
+  }
+  header.title {
+    margin-bottom: 28px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--border);
+  }
+  header.title h1 {
+    margin: 0 0 6px;
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  header.title p { margin: 0; color: var(--text-2); font-size: 15px; }
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .tab {
+    background: none;
+    border: none;
+    color: var(--text-2);
+    padding: 12px 18px;
+    font-size: 14.5px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab[aria-selected="true"] {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  h2 { margin: 0 0 8px; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  .lead { color: var(--text-2); margin: 0 0 22px; }
+  h3 { margin: 24px 0 10px; font-size: 17px; font-weight: 500; }
+  h4 { margin: 16px 0 8px; font-size: 15px; font-weight: 500; }
+  p { margin: 0 0 12px; }
+  code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    background: var(--surface-2);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  ul, ol { padding-left: 22px; margin: 6px 0 12px; }
+  li { margin: 4px 0; }
+  .group {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .group-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .group-head:hover { background: var(--surface-2); }
+  .group-head .meta { color: var(--text-3); font-size: 13px; font-weight: 400; }
+  .group-head .arrow { color: var(--text-3); margin-left: 12px; transition: transform 0.2s; }
+  .group[open] .arrow { transform: rotate(90deg); }
+  .group-body { display: none; padding: 0 18px 16px; border-top: 1px solid var(--border); }
+  .group[open] .group-body { display: block; padding-top: 14px; }
+
+  /* mockup styles */
+  .mockup {
+    background: var(--surface);
+    border: 0.5px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 14px;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  .mockup .titlebar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-bottom: 10px;
+    border-bottom: 0.5px solid var(--border);
+    margin-bottom: 10px;
+    color: var(--text-3);
+    font-size: 12px;
+  }
+  .mockup .titlebar .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #d8d6cf;
+  }
+  .mockup-row {
+    display: flex; gap: 8px; align-items: center;
+    padding: 6px 0;
+  }
+  .mockup-row.head {
+    font-weight: 500;
+    border-bottom: 0.5px solid var(--border);
+    color: var(--text-3);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .mockup-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .tag-active { background: var(--good-bg); color: var(--good); }
+  .tag-block { background: var(--bad); color: white; }
+  .tag-role-admin { background: #993556; color: #FBEAF0; }
+  .tag-role-mgr { background: #3C3489; color: #EEEDFE; }
+  .tag-role-emp { background: #854F0B; color: #FAEEDA; }
+  .tag-role-cli { background: #185FA5; color: #E6F1FB; }
+  .tag-role-own { background: #501313; color: #FCEBEB; }
+  .perm-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin: 10px 0;
+  }
+  .perm {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--surface-2);
+    border-radius: 6px;
+    font-size: 13px;
+  }
+  .perm.granted { background: var(--good-bg); color: var(--good); }
+  .perm.read { background: var(--info-bg); color: var(--info); }
+  .perm.denied { background: var(--surface-2); color: var(--text-3); }
+  .perm .ico {
+    width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid currentColor;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; flex-shrink: 0;
+  }
+
+  /* agent assignment */
+  .matrix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .matrix th {
+    text-align: left;
+    padding: 10px 12px;
+    background: var(--surface-2);
+    color: var(--text-2);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+  }
+  .matrix td {
+    padding: 12px;
+    border-bottom: 0.5px solid var(--border);
+    vertical-align: top;
+  }
+  .matrix code { font-size: 12px; }
+  .agent-pill {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--accent-bg);
+    color: var(--accent);
+    margin: 2px 3px 2px 0;
+  }
+  .skill-pill {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--teal-bg);
+    color: var(--teal);
+    margin: 2px 3px 2px 0;
+  }
+  .quote {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-bg);
+    color: #26215C;
+    padding: 12px 18px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+    font-size: 14px;
+  }
+  .step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    margin: 8px 0;
+  }
+  .step .num {
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 500; font-size: 13px;
+  }
+  .step .body { flex: 1; min-width: 0; }
+  .step .body b { display: block; margin-bottom: 4px; font-weight: 500; }
+  .step .body span { font-size: 13px; color: var(--text-2); }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  footer {
+    margin-top: 56px;
+    padding-top: 22px;
+    border-top: 1px solid var(--border);
+    color: var(--text-3);
+    font-size: 13px;
+  }
+  @media (max-width: 720px) {
+    .perm-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="title">
+  <h1>Фаза 3 — детальный план исполнения</h1>
+  <p>Что будет после миграции, кто это делает, какие скиллы и база знаний нужны, и как организовать работу день за днём</p>
+</header>
+
+<div class="tabs" role="tablist">
+  <button class="tab" role="tab" aria-selected="true" data-target="t-after">Что станет<span style="margin-left: 8px; opacity: 0.6;">экраны</span></button>
+  <button class="tab" role="tab" aria-selected="false" data-target="t-team">Команда<span style="margin-left: 8px; opacity: 0.6;">агенты + скиллы</span></button>
+  <button class="tab" role="tab" aria-selected="false" data-target="t-kb">База знаний<span style="margin-left: 8px; opacity: 0.6;">что писать</span></button>
+  <button class="tab" role="tab" aria-selected="false" data-target="t-workflow">Workflow<span style="margin-left: 8px; opacity: 0.6;">как работать</span></button>
+</div>
+
+<!-- =================== TAB 1: ЧТО СТАНЕТ =================== -->
+<section id="t-after" class="panel active" role="tabpanel">
+  <h2>Что станет — экраны после миграции</h2>
+  <p class="lead">Пять ключевых экранов, которые появятся или существенно изменятся. Это не финальный дизайн — это «протоэкраны» для понимания, что строить.</p>
+
+  <details class="group" open>
+    <summary class="group-head">
+      <span>Экран 1 — Список пользователей в едином окне<span class="meta"> · admin / manager</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <p>Главный hub управления людьми. Замена разрозненных экранов «Менеджеры», «Операторы», «Бухгалтеры». Admin видит всех своих, Manager видит только своих сотрудников.</p>
+      <div class="mockup">
+        <div class="titlebar">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span>vendhub.uz / dashboard / люди</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <div>
+            <div style="font-size: 18px; font-weight: 600;">Команда — Olma Vending</div>
+            <div style="font-size: 12px; color: var(--text-3);">12 пользователей · 1 admin · 3 manager · 8 employee</div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button style="padding: 8px 14px; background: var(--surface-2); border: none; border-radius: 6px; font-size: 13px; cursor: pointer;">Фильтр ▾</button>
+            <button style="padding: 8px 14px; background: var(--accent); color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer;">+ Добавить</button>
+          </div>
+        </div>
+        <div class="mockup-row head">
+          <div style="width: 30%;">Имя</div>
+          <div style="width: 18%;">Роль</div>
+          <div style="width: 22%;">Шаблон</div>
+          <div style="width: 15%;">Машин</div>
+          <div style="width: 15%;">Статус</div>
+        </div>
+        <div class="mockup-row">
+          <div style="width: 30%;">Алишер Норов</div>
+          <div style="width: 18%;"><span class="mockup-tag tag-role-mgr">Manager</span></div>
+          <div style="width: 22%;">Полевой руководитель</div>
+          <div style="width: 15%; color: var(--text-2);">8 машин</div>
+          <div style="width: 15%;"><span class="mockup-tag tag-active">активен</span></div>
+        </div>
+        <div class="mockup-row">
+          <div style="width: 30%;">Иван Петров</div>
+          <div style="width: 18%;"><span class="mockup-tag tag-role-emp">Employee</span></div>
+          <div style="width: 22%;">Оператор</div>
+          <div style="width: 15%; color: var(--text-2);">3 машины</div>
+          <div style="width: 15%;"><span class="mockup-tag tag-active">активен</span></div>
+        </div>
+        <div class="mockup-row">
+          <div style="width: 30%;">Мария Шакирова</div>
+          <div style="width: 18%;"><span class="mockup-tag tag-role-emp">Employee</span></div>
+          <div style="width: 22%;">Кладовщик</div>
+          <div style="width: 15%; color: var(--text-2);">—</div>
+          <div style="width: 15%;"><span class="mockup-tag tag-active">активен</span></div>
+        </div>
+        <div class="mockup-row">
+          <div style="width: 30%;">Дилмурод Каримов</div>
+          <div style="width: 18%;"><span class="mockup-tag tag-role-emp">Employee</span></div>
+          <div style="width: 22%;">Наблюдатель (read-only)</div>
+          <div style="width: 15%; color: var(--text-2);">все</div>
+          <div style="width: 15%;"><span class="mockup-tag tag-active">активен</span></div>
+        </div>
+      </div>
+      <p><b>Что нового по сравнению с текущим:</b></p>
+      <ul>
+        <li>Колонка «Шаблон» — какой пресет применён (Полевой руководитель, Оператор, Кладовщик, Наблюдатель и т.д.)</li>
+        <li>Колонка «Машин» — сколько закреплено через machine-access</li>
+        <li>Кнопка «+ Добавить» — выбор Manager / Employee, видна только если есть мета-галочка</li>
+        <li>Manager видит только своих, Admin видит всю организацию</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>Экран 2 — Карточка пользователя с конструктором прав<span class="meta"> · open from list</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <p>Кликаем на пользователя — открывается карточка. Все права в одной странице с раскрывающимися категориями. Изменения применяются сразу или через кнопку «Сохранить» в зависимости от UX-решения.</p>
+      <div class="mockup">
+        <div class="titlebar">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span>vendhub.uz / dashboard / люди / алишер-норов</span>
+        </div>
+        <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 16px;">
+          <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 18px;">АН</div>
+          <div>
+            <div style="font-size: 18px; font-weight: 600;">Алишер Норов</div>
+            <div style="font-size: 13px; color: var(--text-2);">alisher@olma-vending.uz · +998 90 123 45 67 · создан 28.04.2026 admin'ом</div>
+            <div style="margin-top: 6px;">
+              <span class="mockup-tag tag-role-mgr">Manager</span>
+              <span style="font-size: 12px; color: var(--text-3); margin-left: 8px;">Шаблон: Полевой руководитель</span>
+            </div>
+          </div>
+        </div>
+
+        <h4 style="margin-top: 14px;">Мета-разрешения</h4>
+        <div class="perm-grid">
+          <div class="perm granted"><span class="ico">✓</span> Может создавать сотрудников</div>
+          <div class="perm denied"><span class="ico"></span> Может создавать менеджеров</div>
+        </div>
+
+        <h4 style="margin-top: 14px;">Права по категориям</h4>
+        <div class="perm-grid">
+          <div class="perm granted"><span class="ico">✓</span> Поле — всё включено</div>
+          <div class="perm granted"><span class="ico">✓</span> Склад — всё включено</div>
+          <div class="perm read"><span class="ico">○</span> Деньги — только чтение</div>
+          <div class="perm granted"><span class="ico">✓</span> Каталог — всё включено</div>
+          <div class="perm read"><span class="ico">○</span> Лояльность — только чтение</div>
+          <div class="perm granted"><span class="ico">✓</span> Машины — всё включено</div>
+          <div class="perm granted"><span class="ico">✓</span> Отчёты — всё включено</div>
+          <div class="perm denied"><span class="ico"></span> Админка — недоступно</div>
+        </div>
+
+        <h4 style="margin-top: 14px;">Закреплённые машины (8 из 23)</h4>
+        <div style="font-size: 13px; color: var(--text-2); padding: 8px 12px; background: var(--surface-2); border-radius: 6px;">
+          BC-Mall-01, BC-Mall-02, NU-Building-A-01, NU-Building-A-02, BC-Center-03, BC-Center-04, ZN-Plaza-01, ZN-Plaza-02
+          <a href="#" style="color: var(--accent); margin-left: 8px;">изменить</a>
+        </div>
+
+        <h4 style="margin-top: 14px;">История изменений прав</h4>
+        <div style="font-size: 12px; color: var(--text-2);">
+          28.04.2026 12:34 — Owner Jamshid создал · Manager + Полевой руководитель<br>
+          28.04.2026 14:12 — Admin Eldor включил «Деньги: чтение» — для просмотра выручки своих машин<br>
+          29.04.2026 09:47 — Admin Eldor закрепил 3 новые машины
+        </div>
+      </div>
+      <p><b>Что нового:</b></p>
+      <ul>
+        <li>Конструктор по 8 категориям с тремя состояниями: всё / только чтение / запрещено</li>
+        <li>Мета-разрешения отдельно от функциональных</li>
+        <li>Закреплённые машины через machine-access прямо в карточке</li>
+        <li>Полная история — кто, когда, что изменил, и зачем</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>Экран 3 — Создание нового пользователя через шаблон<span class="meta"> · кнопка «+ Добавить»</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <p>Двухшаговый wizard. Шаг 1: выбор уровня и шаблона. Шаг 2: тонкая настройка галочек.</p>
+      <div class="mockup">
+        <div class="titlebar">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span>добавить пользователя</span>
+        </div>
+        <div style="margin-bottom: 14px;">
+          <div style="font-size: 12px; color: var(--text-3); margin-bottom: 4px;">Шаг 1 из 2</div>
+          <div style="font-size: 18px; font-weight: 600;">Кого вы добавляете?</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
+          <div style="background: var(--surface-2); border: 2px solid var(--accent); border-radius: 8px; padding: 14px;">
+            <div style="font-size: 14px; font-weight: 500; margin-bottom: 4px;">Manager</div>
+            <div style="font-size: 12px; color: var(--text-2);">Руководитель команды. Управляет своими сотрудниками и закреплёнными машинами.</div>
+          </div>
+          <div style="background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 8px; padding: 14px;">
+            <div style="font-size: 14px; font-weight: 500; margin-bottom: 4px;">Employee</div>
+            <div style="font-size: 12px; color: var(--text-2);">Сотрудник без подчинённых. Работает по своим правам и задачам.</div>
+          </div>
+        </div>
+
+        <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">Выберите шаблон:</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;">
+          <span style="padding: 6px 12px; background: var(--accent-bg); color: var(--accent); border-radius: 999px; font-size: 13px;">● Полевой руководитель</span>
+          <span style="padding: 6px 12px; background: var(--surface-2); color: var(--text-2); border-radius: 999px; font-size: 13px;">○ Финансовый менеджер</span>
+          <span style="padding: 6px 12px; background: var(--surface-2); color: var(--text-2); border-radius: 999px; font-size: 13px;">○ Manager-аналитик</span>
+          <span style="padding: 6px 12px; background: var(--surface-2); color: var(--text-2); border-radius: 999px; font-size: 13px;">○ Без шаблона</span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; padding-top: 14px; border-top: 0.5px solid var(--border);">
+          <button style="padding: 8px 16px; background: none; border: 0.5px solid var(--border-strong); border-radius: 6px; font-size: 13px; cursor: pointer;">Отмена</button>
+          <button style="padding: 8px 16px; background: var(--accent); color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer;">Далее → имя и почта</button>
+        </div>
+      </div>
+      <p><b>Шаблоны для Employee:</b></p>
+      <ul>
+        <li><b>Оператор</b> — Поле полностью, Машины (read+write), Каталог read</li>
+        <li><b>Кладовщик</b> — Склад полностью, Каталог полностью, остальное read</li>
+        <li><b>Бухгалтер</b> — Деньги полностью, Отчёты полностью, остальное read</li>
+        <li><b>Наблюдатель</b> — все 8 категорий read-only, мета-галочки выкл</li>
+        <li><b>Без шаблона</b> — никаких галочек по умолчанию, всё руками</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>Экран 4 — Resource-level: машины и закрепления<span class="meta"> · admin / manager</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <p>Двусторонний экран. Слева — карта с машинами. Справа — список менеджеров и сотрудников. Drag-and-drop или клик-привязка между ними.</p>
+      <div class="mockup">
+        <div class="titlebar">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span>vendhub.uz / dashboard / люди / закрепления</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div>
+            <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">Машины (23)</div>
+            <div style="background: var(--surface-2); padding: 10px; border-radius: 8px; height: 200px; display: flex; align-items: center; justify-content: center; color: var(--text-3); font-size: 12px;">[карта Узбекистана с точками]</div>
+            <div style="margin-top: 10px; font-size: 12px; color: var(--text-2);">Кликни машину для просмотра закреплённых.</div>
+          </div>
+          <div>
+            <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">BC-Mall-01 — закреплённые</div>
+            <div style="background: var(--surface-2); padding: 10px; border-radius: 8px; font-size: 13px;">
+              <div style="padding: 6px 8px; background: white; border-radius: 4px; margin: 4px 0; display: flex; justify-content: space-between;">
+                <span>Алишер Норов <span class="mockup-tag tag-role-mgr" style="margin-left: 4px;">Mgr</span></span>
+                <span style="color: var(--good);">FULL</span>
+              </div>
+              <div style="padding: 6px 8px; background: white; border-radius: 4px; margin: 4px 0; display: flex; justify-content: space-between;">
+                <span>Иван Петров <span class="mockup-tag tag-role-emp" style="margin-left: 4px;">Emp</span></span>
+                <span style="color: var(--info);">REFILL</span>
+              </div>
+              <div style="padding: 6px 8px; background: white; border-radius: 4px; margin: 4px 0; display: flex; justify-content: space-between;">
+                <span>Анвар Юсупов <span class="mockup-tag tag-role-emp" style="margin-left: 4px;">Emp</span></span>
+                <span style="color: var(--warn);">MAINTENANCE</span>
+              </div>
+              <button style="margin-top: 6px; padding: 6px 12px; background: white; border: 0.5px dashed var(--border-strong); border-radius: 6px; font-size: 12px; cursor: pointer; width: 100%;">+ Закрепить пользователя</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p><b>5 типов доступа</b> к машине (уже есть в коде через MachineAccess enum):</p>
+      <ul>
+        <li><b>FULL</b> — полный доступ ко всему</li>
+        <li><b>REFILL</b> — только пополнение товара</li>
+        <li><b>COLLECTION</b> — только инкассация (выемка денег)</li>
+        <li><b>MAINTENANCE</b> — только техобслуживание и ремонт</li>
+        <li><b>VIEW</b> — только просмотр телеметрии и истории</li>
+      </ul>
+      <p>Это даёт «менеджер видит только свои 10 машин из 100» сразу на пилоте, без ожидания Фазы 3.</p>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>Экран 5 — Кабинет клиента (Telegram Mini App + web)<span class="meta"> · client</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <p>Полностью отдельный интерфейс. Клиент никогда не видит staff-данные. Логин — через Telegram WebApp или phone+OTP.</p>
+      <div class="mockup" style="max-width: 380px; margin: 12px auto;">
+        <div class="titlebar">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span>VendHub — Telegram Mini App</span>
+        </div>
+        <div style="text-align: center; padding: 14px 0;">
+          <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-weight: 600;">МШ</div>
+          <div style="font-size: 16px; font-weight: 600;">Мирзохид Шарипов</div>
+          <div style="font-size: 12px; color: var(--text-3);">Gold tier · 247 чашек</div>
+        </div>
+
+        <div style="background: var(--accent-bg); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px;">
+          <div style="font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em;">Ваш баланс</div>
+          <div style="font-size: 22px; font-weight: 600; color: #26215C;">15 200 сум</div>
+          <div style="font-size: 12px; color: #26215C; opacity: 0.8;">+ 24 бонусных балла</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 10px;">
+          <button style="padding: 14px; background: var(--surface-2); border: none; border-radius: 8px; font-size: 13px; cursor: pointer;">Купить кофе ☕</button>
+          <button style="padding: 14px; background: var(--surface-2); border: none; border-radius: 8px; font-size: 13px; cursor: pointer;">Пополнить ＋</button>
+        </div>
+
+        <div style="font-size: 13px; font-weight: 500; margin-bottom: 6px;">Последние покупки</div>
+        <div style="font-size: 12px; color: var(--text-2);">
+          • 28.04 — Капучино — BC-Mall-01 — 12 000 сум<br>
+          • 26.04 — Латте — BC-Center-03 — 14 000 сум<br>
+          • 25.04 — Эспрессо — NU-Building — 8 000 сум
+        </div>
+      </div>
+      <p><b>Что в кабинете:</b></p>
+      <ul>
+        <li>Свой профиль (имя, телефон, Telegram ID)</li>
+        <li>Баланс и бонусы</li>
+        <li>История покупок</li>
+        <li>Ачивки и квесты</li>
+        <li>Реферальная ссылка</li>
+        <li>Список доступных автоматов поблизости</li>
+        <li>Жалобы / запросы</li>
+      </ul>
+      <p><b>Чего нет и не будет:</b> доступа к staff-эндпоинтам, к чужим клиентам, к финансовой аналитике, к настройкам организации. Это технически отрезано через JWT audience.</p>
+    </div>
+  </details>
+</section>
+
+<!-- =================== TAB 2: КОМАНДА =================== -->
+<section id="t-team" class="panel" role="tabpanel">
+  <h2>Команда — какие агенты и скиллы привлекаем</h2>
+  <p class="lead">У проекта уже 6 кастомных агентов и 15 VHM24-скиллов. Распределение этих ресурсов по конкретным задачам Фазы 3.</p>
+
+  <div class="legend">
+    <div class="legend-item"><span class="agent-pill">агент</span> — самостоятельный исполнитель с собственным контекстом</div>
+    <div class="legend-item"><span class="skill-pill">скилл</span> — паттерны и инструкции, применяются Claude'ом</div>
+  </div>
+
+  <h3>Готовые агенты в проекте</h3>
+  <table class="matrix">
+    <thead>
+      <tr><th style="width: 25%;">Агент</th><th style="width: 15%;">Модель</th><th>Зона ответственности</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="agent-pill">module-migrator</span></td>
+        <td>opus</td>
+        <td>Перенос NestJS-модулей. Изначально для VHM24→VendHub, но идеален для любой переделки модулей: сейчас — для миграции <code>users</code> на новую схему и разделения <code>users</code>/<code>clients</code>.</td>
+      </tr>
+      <tr>
+        <td><span class="agent-pill">db-migration-helper</span></td>
+        <td>sonnet</td>
+        <td>TypeORM-миграции: создание новых таблиц <code>user_permissions</code>, <code>clients</code>, <code>client_organizations</code>. Проверка консистентности entity ↔ схемы БД.</td>
+      </tr>
+      <tr>
+        <td><span class="agent-pill">build-verifier</span></td>
+        <td>sonnet</td>
+        <td>После каждого PR — проверка что весь монорепо компилируется. Без этого нельзя мерджить.</td>
+      </tr>
+      <tr>
+        <td><span class="agent-pill">production-quality-guardian</span></td>
+        <td>opus</td>
+        <td>Финальная проверка перед запуском Фазы 3 в прод. Ищет скрытые баги, ошибки конфигурации, regression'ы по функциональности.</td>
+      </tr>
+      <tr>
+        <td><span class="agent-pill">health-check</span></td>
+        <td>sonnet</td>
+        <td>SRE-диагностика. Запускается во время и после миграции — проверить что Docker-сервисы, БД, API живы.</td>
+      </tr>
+      <tr>
+        <td><span class="agent-pill">dependency-audit</span></td>
+        <td>sonnet</td>
+        <td>Аудит безопасности. Запускается раз в 2 недели — проверить новые CVE, устаревшие пакеты.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>VHM24-скиллы (15 шт.) — какие нужны для Фазы 3</h3>
+  <table class="matrix">
+    <thead>
+      <tr><th style="width: 28%;">Скилл</th><th>Когда применять</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="skill-pill">vhm24-orchestrator</span></td>
+        <td>Стартовая точка. Для каждой большой задачи Фазы 3 — orchestrator анализирует и распределяет работу между подскиллами. Используется первым.</td>
+      </tr>
+      <tr>
+        <td><span class="skill-pill">vhm24-ux-spec</span></td>
+        <td>Перед каждым новым экраном. Создаёт детальную UX-спецификацию: компоненты, состояния, поведение, тексты. Обязательно перед vhm24-ui-generator.</td>
+      </tr>
+      <tr>
+        <td><span class="skill-pill">vhm24-db-expert</span></td>
+        <td>Создание новых таблиц <code>user_permissions</code>, <code>clients</code>, <code>client_organizations</code>. Оптимизация запросов с JOIN'ами.</td>
+      </tr>
+      <tr>
+        <td><span class="skill-pill">vhm24-api-generator</span></td>
+        <td>Новые эндпоинты для управления permissions: создание Manager/Employee, изменение галочек, привязка к машинам.</td>
+      </tr>
+      <tr>
+        <td><span class="skill-pill">vhm24-auth-rbac</span></td>
+        <td>Расширение существующего RBAC: PermissionsGuard, assertCanGrant логика, мета-галочки. Это якорный скилл для Фазы 3.</td>
+      </tr>
+      <tr>
+        <td><span class="skill-pill">vhm24-forms</span></td>
+        <td>Wizard создания пользователя (2 шага). Конструктор галочек в карточке. Валидация. Multi-step с сохранением прогресса.</td>
+      </tr>
+      <tr>
+        <td><span class="skill-pill">vhm24-component-lib</span></td>
+        <td>Кастомные shadcn/ui компоненты для конструктора прав: PermissionToggle, CategoryGroup, RoleBadge, MachineAttachment.</td>
+      </tr>
+      <tr>
+        <td><span class="skill-pill">vhm24-ui-generator</span></td>
+        <td>Генерация самих экранов после готового UX-спека. Только после vhm24-ux-spec, никогда раньше.</td>
+      </tr>
+      <tr>
+        <td><span class="skill-pill">vhm24-mobile</span></td>
+        <td>Кабинет клиента в Telegram Mini App. Работа с initData, авто-логин, минимальный UI с offline-готовностью.</td>
+      </tr>
+      <tr>
+        <td><span class="skill-pill">vhm24-i18n</span></td>
+        <td>Все новые строки на ru/uz, форматирование сум, дат под Узбекистан. Обязательно для всех новых экранов.</td>
+      </tr>
+      <tr>
+        <td><span class="skill-pill">vhm24-testing</span></td>
+        <td>Unit + integration тесты для PermissionsGuard, RbacService, миграционных скриптов. Задача требует высокого покрытия — auth не падает.</td>
+      </tr>
+      <tr>
+        <td><span class="skill-pill">vhm24-qa-review</span></td>
+        <td>После генерации каждого экрана — финальный ревью на соответствие стандартам (consistency, dark mode, i18n, accessibility).</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Системные скиллы из плагинов (когда полезны)</h3>
+  <table class="matrix">
+    <thead>
+      <tr><th style="width: 28%;">Скилл</th><th>Когда применять</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="skill-pill">engineering:architecture</span></td>
+        <td>Перед стартом Фазы 3 — записать ADR (Architecture Decision Record): «почему перешли на 4 staff + Client + конструктор». Документ остаётся в репо для будущих сессий и новых разработчиков.</td>
+      </tr>
+      <tr>
+        <td><span class="skill-pill">engineering:testing-strategy</span></td>
+        <td>Стратегия тестирования миграции — что покрывать unit, что integration, что e2e, что вручную.</td>
+      </tr>
+      <tr>
+        <td><span class="skill-pill">engineering:code-review</span></td>
+        <td>На каждый PR Фазы 3 — структурированный ревью с фокусом на безопасность (это auth/RBAC, цена ошибки высокая).</td>
+      </tr>
+      <tr>
+        <td><span class="skill-pill">engineering:deploy-checklist</span></td>
+        <td>Перед каждым релизом, особенно перед мерджем 3.4 (изменение enum UserRole) — обязательный чеклист.</td>
+      </tr>
+      <tr>
+        <td><span class="skill-pill">engineering:incident-response</span></td>
+        <td>На случай если миграция Phase 3 что-то сломает в проде — план триажа и роллбэка.</td>
+      </tr>
+      <tr>
+        <td><span class="skill-pill">design:ux-copy</span></td>
+        <td>Для новых текстов в UI — кнопки, тултипы, ошибки. Чтобы было консистентно с существующим стилем VendHub.</td>
+      </tr>
+      <tr>
+        <td><span class="skill-pill">design:design-handoff</span></td>
+        <td>Передача готовых экранов разработчикам. Tokens, breakpoints, состояния, edge cases.</td>
+      </tr>
+      <tr>
+        <td><span class="skill-pill">product-management:write-spec</span></td>
+        <td>Полный PRD на каждый под-этап Фазы 3 (3.1, 3.2 и т.д.). Acceptance criteria, edge cases, метрики успеха.</td>
+      </tr>
+      <tr>
+        <td><span class="skill-pill">distinctive-ui</span></td>
+        <td>Когда нужно сделать что-то заметное, не «AI-slop». Особенно для кабинета клиента — он визитная карточка для покупателей.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Маршрут одной задачи через агентов и скиллы</h3>
+  <p>Пример: «Сделать карточку пользователя с конструктором прав» (Экран 2 из вкладки 1).</p>
+  <div class="step">
+    <div class="num">1</div>
+    <div class="body">
+      <b>Спецификация</b>
+      <span><span class="skill-pill">vhm24-ux-spec</span> + <span class="skill-pill">product-management:write-spec</span> создают детальный UX-спек: компоненты, состояния, ошибки, edge cases. Сохраняется в <code>docs/specs/</code>.</span>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">2</div>
+    <div class="body">
+      <b>Архитектурное решение</b>
+      <span><span class="skill-pill">engineering:architecture</span> — ADR на тему «как хранить и резолвить эффективные permissions». Решение принимается до кода.</span>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">3</div>
+    <div class="body">
+      <b>Схема БД</b>
+      <span><span class="skill-pill">vhm24-db-expert</span> + <span class="agent-pill">db-migration-helper</span> создают таблицу <code>user_permissions</code> и миграцию.</span>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">4</div>
+    <div class="body">
+      <b>API-слой</b>
+      <span><span class="skill-pill">vhm24-api-generator</span> + <span class="skill-pill">vhm24-auth-rbac</span> создают эндпоинты для чтения/изменения permissions с правильными гардами.</span>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">5</div>
+    <div class="body">
+      <b>UI-компоненты</b>
+      <span><span class="skill-pill">vhm24-component-lib</span> делает PermissionToggle и CategoryGroup. <span class="skill-pill">vhm24-ui-generator</span> собирает экран. <span class="skill-pill">vhm24-i18n</span> прогоняет тексты.</span>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">6</div>
+    <div class="body">
+      <b>Тесты</b>
+      <span><span class="skill-pill">vhm24-testing</span> — unit на PermissionsService, integration на API, e2e на изменение прав в UI.</span>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">7</div>
+    <div class="body">
+      <b>Ревью</b>
+      <span><span class="skill-pill">vhm24-qa-review</span> — соответствие стандартам. <span class="skill-pill">engineering:code-review</span> — безопасность и архитектура.</span>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">8</div>
+    <div class="body">
+      <b>Сборка и деплой</b>
+      <span><span class="agent-pill">build-verifier</span> — компиляция всего монорепо. <span class="skill-pill">engineering:deploy-checklist</span> — финальный чек.</span>
+    </div>
+  </div>
+</section>
+
+<!-- =================== TAB 3: БАЗА ЗНАНИЙ =================== -->
+<section id="t-kb" class="panel" role="tabpanel">
+  <h2>База знаний — что писать и куда сохранять</h2>
+  <p class="lead">Чтобы Claude (любая сессия) и команда могли подхватить работу без перепрочитывания всего кода. У проекта уже есть фундамент: <code>CLAUDE.md</code> на 1111 строк и папка <code>docs/audits/</code>. Расширяем её.</p>
+
+  <h3>Структура knowledge base</h3>
+  <details class="group" open>
+    <summary class="group-head">
+      <span>1. Корневой контекст<span class="meta"> · быстрый въезд в проект</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <ul>
+        <li><code>CLAUDE.md</code> — общий контекст проекта. Уже есть, 1111 строк. Не трогаем кроме крайней нужды.</li>
+        <li><code>docs/HANDOFF.md</code> — последний снимок состояния. Обновляется в конце каждой сессии или спринта.</li>
+        <li><code>docs/audits/MODULE_AUDIT_INDEX.md</code> — журнал аудита модулей и принятых решений. Каждая сессия читает его первым.</li>
+        <li><code>RESOURCES.md</code> — список людей, аккаунтов, доступов. Уже есть.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>2. Архитектурные решения<span class="meta"> · ADR-формат</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <p>Для каждого важного выбора записываем ADR (Architecture Decision Record) в <code>docs/adr/</code>:</p>
+      <ul>
+        <li>ADR-001 — переход на 4 staff + Client + конструктор</li>
+        <li>ADR-002 — разделение users и clients (две таблицы, два audience)</li>
+        <li>ADR-003 — Owner — singleton, проверка через user_id</li>
+        <li>ADR-004 — мета-галочки can_create_* как permissions, не как столбцы users</li>
+        <li>ADR-005 — стратегия миграции декораторов @Roles → @Permissions</li>
+      </ul>
+      <p>Формат ADR: контекст / альтернативы / решение / последствия. Один ADR — один файл, не редактируется задним числом, только дополняется новым ADR при пересмотре.</p>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>3. UX-спецификации<span class="meta"> · перед каждым экраном</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <p>В <code>docs/specs/</code>:</p>
+      <ul>
+        <li><code>spec-users-list.md</code> — экран списка пользователей</li>
+        <li><code>spec-user-card.md</code> — карточка пользователя</li>
+        <li><code>spec-create-user-wizard.md</code> — wizard создания</li>
+        <li><code>spec-machine-attachment.md</code> — экран закреплений</li>
+        <li><code>spec-client-cabinet.md</code> — кабинет клиента</li>
+      </ul>
+      <p>Формат: цель / personas / user stories / компоненты / состояния / edge cases / acceptance criteria / макет (можно ссылка на Figma или ASCII-mockup).</p>
+      <p>Использование: <span class="skill-pill">vhm24-ux-spec</span> создаёт черновик, человек ревьюит, скилл <span class="skill-pill">vhm24-ui-generator</span> читает и генерирует код.</p>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>4. Module-level знания<span class="meta"> · отчёты аудита</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <p>В <code>docs/audits/&lt;group&gt;/</code> по модулю — то что мы уже делаем:</p>
+      <ul>
+        <li><code>auth.md</code> — аудит auth модуля (8 пунктов)</li>
+        <li><code>users.md</code> — будет следующим</li>
+        <li><code>rbac.md</code> — аудит RBAC модуля</li>
+        <li>... и так далее по 84 модулям</li>
+      </ul>
+      <p>Каждый отчёт: назначение / связи / схема / API / RBAC / тесты / риски / готовность. Этот формат уже стандартизован.</p>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>5. Migration playbook<span class="meta"> · как откатить, если что</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <p>В <code>docs/runbooks/migration-phase3/</code>:</p>
+      <ul>
+        <li><code>preflight.md</code> — что проверить перед запуском</li>
+        <li><code>step-by-step.md</code> — пошаговый план каждого подэтапа</li>
+        <li><code>rollback.md</code> — как вернуться, если что-то пошло не так</li>
+        <li><code>verification.md</code> — smoke-тесты после каждого шага</li>
+      </ul>
+      <p>Это критично: миграция auth и RBAC — высокорисковая операция. Возможность откатиться — обязательное условие.</p>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>6. Conventions и code style<span class="meta"> · единый язык команды</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <ul>
+        <li><code>docs/conventions/</code>:</li>
+        <li><code>permissions-naming.md</code> — формат permissions: <code>resource:action</code>, например <code>machines:read</code>. Список зарезервированных префиксов.</li>
+        <li><code>rbac-decorators.md</code> — когда использовать @Roles vs @Permissions, как дать оба для совместимости.</li>
+        <li><code>migration-pattern.md</code> — шаблон любой миграции БД для Фазы 3 (down скрипт обязателен).</li>
+        <li><code>jwt-audiences.md</code> — vendhub-users vs vendhub-clients, как строить и проверять.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>7. Agent runbooks<span class="meta"> · как использовать каждого агента</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <p>В <code>docs/agent-runbooks/</code> — короткая инструкция как и когда вызывать каждый из 6 кастомных агентов:</p>
+      <ul>
+        <li><code>module-migrator.md</code> — пример вызова, типичный output, как читать его репорт</li>
+        <li><code>db-migration-helper.md</code> — какие команды он умеет, что проверяет</li>
+        <li><code>build-verifier.md</code> — когда обязателен (после каждого мержа)</li>
+        <li><code>production-quality-guardian.md</code> — финальный чек, формат отчёта</li>
+        <li><code>health-check.md</code> — диагностика во время инцидента</li>
+        <li><code>dependency-audit.md</code> — расписание (раз в 2 недели)</li>
+      </ul>
+    </div>
+  </details>
+
+  <h3>Что обновлять после каждого спринта Фазы 3</h3>
+  <ol>
+    <li><code>MODULE_AUDIT_INDEX.md</code> — журнал сессий, сводный список рисков, статус миграции</li>
+    <li>Соответствующий ADR — если решение уточнялось</li>
+    <li><code>docs/specs/</code> — фиксация финального дизайна (что отличается от исходного)</li>
+    <li><code>docs/runbooks/migration-phase3/</code> — обновлённый rollback (после каждой миграции БД)</li>
+    <li><code>CLAUDE.md</code> — только при изменении глобальных правил (раз в квартал максимум)</li>
+  </ol>
+</section>
+
+<!-- =================== TAB 4: WORKFLOW =================== -->
+<section id="t-workflow" class="panel" role="tabpanel">
+  <h2>Workflow — как организовать работу день за днём</h2>
+  <p class="lead">Чтобы Фаза 3 не превратилась в хаос. 8 подэтапов структурированы в 5 спринтов, каждый спринт занимает примерно 1 неделю. После каждого — деплой на staging, ревью, потом в прод.</p>
+
+  <div class="quote">
+    <b>Главный принцип:</b> миграция Auth/RBAC — это не место для героических многоликих PR'ов. Каждый шаг — маленький, изолированный, обратимый. Сначала ставим параллельно с существующим, проверяем, потом удаляем старое.
+  </div>
+
+  <h3>5 спринтов Фазы 3</h3>
+
+  <details class="group" open>
+    <summary class="group-head">
+      <span>Спринт A — фундамент в коде<span class="meta"> · 3.1 + 3.2</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <p><b>Цель:</b> PermissionsGuard и assertCanGrant работают параллельно с @Roles. Никаких изменений снаружи.</p>
+      <p><b>Команда:</b> <span class="skill-pill">vhm24-auth-rbac</span> + <span class="skill-pill">vhm24-api-generator</span> + <span class="skill-pill">vhm24-testing</span> + <span class="agent-pill">build-verifier</span></p>
+      <p><b>Шаги:</b></p>
+      <ol>
+        <li>ADR-005 (стратегия параллельных декораторов) — <span class="skill-pill">engineering:architecture</span></li>
+        <li>Расширить RbacService методом assertCanGrant(grantorId, permissionKey)</li>
+        <li>Создать PermissionsGuard в common/guards</li>
+        <li>Добавить unit-тесты на оба механизма (~30 кейсов)</li>
+        <li>На один тестовый эндпоинт повесить @Permissions параллельно с @Roles — проверить что оба гарда срабатывают</li>
+        <li><span class="agent-pill">build-verifier</span> + e2e smoke</li>
+      </ol>
+      <p><b>Acceptance:</b> RBAC canary тест проходит, новый PermissionsGuard покрыт тестами, существующая функциональность не сломана.</p>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>Спринт B — мета-галочки и сокращение enum<span class="meta"> · 3.3 + 3.4</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <p><b>Цель:</b> can_create_managers / can_create_employees как permissions. UserRole enum сокращён с 7 до 4. Скрипт миграции существующих пользователей готов и протестирован на staging.</p>
+      <p><b>Команда:</b> <span class="agent-pill">module-migrator</span> + <span class="agent-pill">db-migration-helper</span> + <span class="skill-pill">vhm24-db-expert</span> + <span class="skill-pill">vhm24-testing</span></p>
+      <p><b>Шаги:</b></p>
+      <ol>
+        <li>ADR-004 (мета-галочки как permissions, не как поля)</li>
+        <li>Добавить два permission в seed: <code>users:create_manager</code>, <code>users:create_employee</code></li>
+        <li>Скрипт миграции: для каждого пользователя проставить permissions на основе текущей роли (по матрице из 01-role-matrix.md)</li>
+        <li>Запустить на staging-копии прода. Сравнить «до» и «после» доступы для 100 случайных пользователей.</li>
+        <li>Сократить enum UserRole — удалить OPERATOR, WAREHOUSE, ACCOUNTANT, VIEWER</li>
+        <li>Обновить ROLE_HIERARCHY и ROLE_LABELS</li>
+        <li><span class="agent-pill">production-quality-guardian</span> финальный аудит</li>
+      </ol>
+      <p><b>Acceptance:</b> на staging все эндпоинты доступны тем же пользователям, что и до миграции. RBAC canary 0 нарушений.</p>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>Спринт C — Admin привязка к организации<span class="meta"> · 3.5</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <p><b>Цель:</b> Admin теперь жёстко привязан к одной организации. Может видеть только свои данные. Только Owner видит всё.</p>
+      <p><b>Команда:</b> <span class="agent-pill">module-migrator</span> + <span class="skill-pill">vhm24-auth-rbac</span></p>
+      <p><b>Шаги:</b></p>
+      <ol>
+        <li>Перебрать запросы, которые возвращают «все организации» — заменить на фильтр по user.organizationId, кроме Owner</li>
+        <li>OrganizationGuard — убедиться что injected org теперь обязательный</li>
+        <li>Сценарии: Admin видит свои данные / не видит чужие / Owner видит все</li>
+        <li>e2e тесты на cross-org изоляцию</li>
+      </ol>
+      <p><b>Acceptance:</b> Admin одной орг физически не может попасть на эндпоинт другой орг. Тест на cross-org — 0 утечек.</p>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>Спринт D — Разделение users и clients<span class="meta"> · 3.6</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <p><b>Цель:</b> клиенты живут в отдельной таблице. Логин клиента через <code>/auth/client/*</code>. Staff и Client изолированы технически.</p>
+      <p><b>Команда:</b> <span class="agent-pill">module-migrator</span> + <span class="agent-pill">db-migration-helper</span> + <span class="skill-pill">vhm24-mobile</span> (для Telegram Mini App)</p>
+      <p><b>Шаги:</b></p>
+      <ol>
+        <li>Создать таблицу <code>clients</code> и <code>client_organizations</code></li>
+        <li>Скрипт миграции — клиенты из <code>users</code> в <code>clients</code> (определить кого считать клиентом по флагу или по отсутствию роли)</li>
+        <li>Создать ClientAuthService и эндпоинты <code>/auth/client/telegram</code>, <code>/auth/client/phone-otp</code></li>
+        <li>Изменить JwtService — два audience: <code>vendhub-users</code> и <code>vendhub-clients</code></li>
+        <li>Гард на staff-эндпоинтах: rejected если audience = vendhub-clients</li>
+        <li>Гард на клиент-эндпоинтах: rejected если audience = vendhub-users</li>
+        <li>Обновить Telegram Mini App — использовать новый эндпоинт</li>
+        <li>Loyalty / achievements / quests — проверить, что они работают с client.id, а не user.id</li>
+      </ol>
+      <p><b>Acceptance:</b> client-токен физически не проходит на staff-эндпоинт и наоборот. Все 23 машины принимают платежи как раньше.</p>
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <span>Спринт E — UI единой панели + миграция декораторов<span class="meta"> · 3.7 + 3.8</span></span>
+      <span class="arrow">›</span>
+    </summary>
+    <div class="group-body">
+      <p><b>Цель:</b> страница «Команда» работает с конструктором, шаблонами, мета-галочками. 1067 декораторов мигрированы поэтапно.</p>
+      <p><b>Команда:</b> <span class="skill-pill">vhm24-ux-spec</span> + <span class="skill-pill">vhm24-ui-generator</span> + <span class="skill-pill">vhm24-component-lib</span> + <span class="skill-pill">vhm24-forms</span> + <span class="skill-pill">vhm24-i18n</span> + <span class="skill-pill">vhm24-qa-review</span></p>
+      <p><b>Шаги:</b></p>
+      <ol>
+        <li>UX-спеки на 4 экрана (список / карточка / wizard / закрепления)</li>
+        <li>Компоненты в библиотеке: PermissionToggle, CategoryGroup, RoleBadge, MachineAttachment, MetaPermissionSwitch</li>
+        <li>Wizard создания — двухшаговая форма с шаблонами</li>
+        <li>Карточка пользователя — конструктор + история</li>
+        <li>Migration декораторов: по одному модулю за PR. Сначала простые (users, invites, security), потом большие (machines, payments, reports)</li>
+        <li>После каждого PR — <span class="agent-pill">build-verifier</span> и RBAC canary</li>
+        <li>В конце — удалить @Roles, оставить только @Permissions</li>
+        <li><span class="agent-pill">production-quality-guardian</span> финальный аудит</li>
+      </ol>
+      <p><b>Acceptance:</b> новая UI-панель работает на staging со всеми сценариями (создать manager, дать ему права, создать сотрудника от его имени, отозвать права, увидеть историю). Все 1067 декораторов мигрированы.</p>
+    </div>
+  </details>
+
+  <h3>Daily / weekly ритм</h3>
+  <div class="step">
+    <div class="num">⏱</div>
+    <div class="body">
+      <b>Каждый день начинается с</b>
+      <span>Чтения <code>MODULE_AUDIT_INDEX.md</code> + последнего HANDOFF. Это 5 минут — но даёт полный контекст где остановились.</span>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">⏱</div>
+    <div class="body">
+      <b>Каждая задача начинается с</b>
+      <span>UX-спека или ADR (если затрагивает архитектуру). Только потом — код.</span>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">⏱</div>
+    <div class="body">
+      <b>Каждый PR заканчивается</b>
+      <span><span class="agent-pill">build-verifier</span> + <span class="skill-pill">vhm24-qa-review</span> + <span class="skill-pill">engineering:code-review</span>. Тройная проверка — миграция auth не место для срезания углов.</span>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">⏱</div>
+    <div class="body">
+      <b>Каждый спринт заканчивается</b>
+      <span>Деплой на staging → smoke-тесты → ревью → деплой в прод. Между staging и прод — минимум 24 часа на наблюдение.</span>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">⏱</div>
+    <div class="body">
+      <b>Каждые 2 недели</b>
+      <span><span class="agent-pill">dependency-audit</span> + проверка что новые CVE не появились в зависимостях.</span>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">⏱</div>
+    <div class="body">
+      <b>Перед самым последним PR Фазы 3</b>
+      <span><span class="agent-pill">production-quality-guardian</span> делает финальный аудит. Без его OK не мерджим.</span>
+    </div>
+  </div>
+
+  <h3>Готовность работать в этом ритме</h3>
+  <p>У тебя как Owner'а проекта в этом workflow роль не «писать код», а «делать решения»:</p>
+  <ul>
+    <li>Утверждать ADR — это раз в неделю короткий документ на 1 страницу</li>
+    <li>Утверждать UX-спеки перед генерацией экранов — раз в неделю 1-2 спека</li>
+    <li>Принимать staging-деплой — пройтись по 5-10 сценариям руками, дать «зелёный»</li>
+    <li>Финальное согласие на прод-деплой</li>
+  </ul>
+  <p>Программирование делают агенты + команда + Claude. Архитектурные решения и продуктовые приоритеты — твоя зона.</p>
+</section>
+
+<footer>
+  Документ сгенерирован 2026-04-29. Привязан к решению role-redesign-decision.md и к Фазе 3 в 01-role-matrix.html. При изменении этих документов нужно перегенерировать. Кнопки вкладок переключают разделы, заголовки секций со стрелкой раскрываются по клику.
+</footer>
+
+</div>
+
+<script>
+  (function() {
+    var tabs = document.querySelectorAll('.tab');
+    tabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        tabs.forEach(function(t) { t.setAttribute('aria-selected', 'false'); });
+        document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+        tab.setAttribute('aria-selected', 'true');
+        var target = document.getElementById(tab.dataset.target);
+        if (target) target.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+    document.querySelectorAll('.group-head').forEach(function(head) {
+      head.addEventListener('click', function(e) {
+        e.preventDefault();
+        var group = head.parentElement;
+        if (group.hasAttribute('open')) group.removeAttribute('open');
+        else group.setAttribute('open', '');
+      });
+    });
+  })();
+</script>
+</body>
+</html>

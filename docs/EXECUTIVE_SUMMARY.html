@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VendHub OS — Executive Summary</title>
+<style>
+  :root {
+    --bg: #FAF8F4;
+    --surface: #FFFFFF;
+    --surface-2: #F4F2EC;
+    --text: #1F1E1C;
+    --text-2: #5F5E5A;
+    --text-3: #8E8C85;
+    --border: rgba(0,0,0,0.07);
+    --accent: #534AB7;
+    --good: #1F6B0E;
+    --good-bg: #EAF3DE;
+    --warn: #854F0B;
+    --warn-bg: #FAEEDA;
+    --bad: #791F1F;
+    --bad-bg: #FCEBEB;
+    --info: #185FA5;
+    --info-bg: #E6F1FB;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.5;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 850px;
+    margin: 0 auto;
+    padding: 32px 36px;
+    background: var(--surface);
+    min-height: 100vh;
+  }
+  @media print {
+    body { background: white; }
+    .page { padding: 20px; max-width: 100%; }
+  }
+  header.title {
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+  }
+  header.title h1 {
+    margin: 0 0 4px;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  header.title .tagline {
+    color: var(--text-2);
+    font-size: 14px;
+    margin: 0;
+  }
+  header.title .meta {
+    color: var(--text-3);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 8px;
+  }
+  h2 {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin: 18px 0 8px;
+  }
+  p { margin: 0 0 8px; }
+  ul, ol { margin: 4px 0 8px; padding-left: 22px; }
+  li { margin: 2px 0; }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .stat {
+    background: var(--surface-2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .stat .num {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  .stat .lab {
+    display: block;
+    font-size: 10px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 2px;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 14px;
+  }
+  .col h2 { margin-top: 4px; }
+  .pill {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  .pill.good { background: var(--good-bg); color: var(--good); }
+  .pill.warn { background: var(--warn-bg); color: var(--warn); }
+  .pill.bad { background: var(--bad-bg); color: var(--bad); }
+  .pill.info { background: var(--info-bg); color: var(--info); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin: 4px 0;
+  }
+  table td, table th {
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  table th {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-3);
+    font-weight: 600;
+  }
+  .blocker-box {
+    background: var(--bad-bg);
+    border-left: 3px solid var(--bad);
+    padding: 8px 12px;
+    border-radius: 0 8px 8px 0;
+    margin: 6px 0;
+    font-size: 12.5px;
+  }
+  .next-box {
+    background: var(--warn-bg);
+    border-left: 3px solid var(--warn);
+    padding: 8px 12px;
+    border-radius: 0 8px 8px 0;
+    margin: 6px 0;
+    font-size: 12.5px;
+  }
+  .ok-box {
+    background: var(--good-bg);
+    border-left: 3px solid var(--good);
+    padding: 8px 12px;
+    border-radius: 0 8px 8px 0;
+    margin: 6px 0;
+    font-size: 12.5px;
+  }
+  footer {
+    margin-top: 18px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-3);
+    display: flex;
+    justify-content: space-between;
+  }
+  code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11.5px;
+    background: var(--surface-2);
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="title">
+  <h1>VendHub OS — Executive Summary</h1>
+  <p class="tagline">Multi-tenant SaaS для управления вендинговыми автоматами в Узбекистане. Готов к запуску пилота на 23 машинах.</p>
+  <div class="meta">2026-04-29 · Owner: Jamshid Sadikov · 1-страничная сводка</div>
+</header>
+
+<div class="stats">
+  <div class="stat"><span class="num">93</span><span class="lab">модулей</span></div>
+  <div class="stat"><span class="num">1156</span><span class="lab">эндпоинтов</span></div>
+  <div class="stat"><span class="num">23</span><span class="lab">машины</span></div>
+  <div class="stat"><span class="num">5</span><span class="lab">приложений</span></div>
+  <div class="stat"><span class="num">10/10</span><span class="lab">score</span></div>
+  <div class="stat"><span class="num">0</span><span class="lab">CVE</span></div>
+</div>
+
+<div class="row">
+  <div class="col">
+    <h2>Что есть</h2>
+    <ul>
+      <li><b>Backend:</b> NestJS 11, 93 модуля, 1156 эндпоинтов, 0 CVE, score 10/10</li>
+      <li><b>Frontend:</b> Next.js 16 админка + Vite Telegram Mini App + маркетинг-сайт</li>
+      <li><b>Платежи:</b> Payme, Click, Uzum, Telegram Stars</li>
+      <li><b>Фискал:</b> Soliq.uz / Multikassa интеграция</li>
+      <li><b>Локализация:</b> ru, uz, en</li>
+      <li><b>Predictive refill:</b> EWMA + рекомендации, готов к работе</li>
+      <li><b>RBAC:</b> 7 ролей, 0 нарушений canary-теста</li>
+    </ul>
+  </div>
+  <div class="col">
+    <h2>Архитектурные решения</h2>
+    <ul>
+      <li><b>Хостинг — Railway</b> (api/web/site/client/bot/Postgres/Redis), Vercel не используется</li>
+      <li><b>Multi-tenant</b> через <code>organizationId</code> (114 entities)</li>
+      <li><b>Целевая модель ролей</b> — 4 staff + 1 client + конструктор галочек (после стабилизации)</li>
+      <li><b>Resource-level доступ</b> к машинам через machine-access (5 типов)</li>
+      <li><b>Owner = singleton</b> — 1 пользователь (Jamshid)</li>
+    </ul>
+  </div>
+</div>
+
+<h2>12 групп модулей · все проаудированы</h2>
+<table>
+  <thead><tr><th>Группа</th><th>Модулей</th><th>Эндпоинтов</th><th>Готовность</th><th>Группа</th><th>Модулей</th><th>Эндпоинтов</th><th>Готовность</th></tr></thead>
+  <tbody>
+    <tr><td>Identity & Access</td><td>8</td><td>103</td><td><span class="pill warn">env</span></td>
+        <td>Routes & Field Ops</td><td>10</td><td>165</td><td><span class="pill good">ready</span></td></tr>
+    <tr><td>Payments</td><td>7</td><td>79</td><td><span class="pill warn">keys</span></td>
+        <td>Integrations</td><td>13</td><td>150</td><td><span class="pill warn">env</span></td></tr>
+    <tr><td>Machines & Telemetry</td><td>10</td><td>113</td><td><span class="pill good">ready</span></td>
+        <td>Reports & Analytics</td><td>5</td><td>89</td><td><span class="pill good">ready</span></td></tr>
+    <tr><td>Inventory & Stock</td><td>9</td><td>83</td><td><span class="pill good">ready</span></td>
+        <td>Tenancy & Admin</td><td>8</td><td>87</td><td><span class="pill good">ready</span></td></tr>
+    <tr><td>Orders & Sales</td><td>6</td><td>85</td><td><span class="pill good">ready</span></td>
+        <td>Plumbing</td><td>5</td><td>13</td><td><span class="pill warn">tokens</span></td></tr>
+    <tr><td>Products & Catalog</td><td>6</td><td>112</td><td><span class="pill good">ready</span></td>
+        <td>Loyalty & Engagement</td><td>6</td><td>77</td><td><span class="pill warn">tests</span></td></tr>
+  </tbody>
+</table>
+
+<div class="row">
+  <div class="col">
+    <h2>Активные блокеры запуска</h2>
+    <div class="blocker-box">
+      <b>1. Railway web build пустой с 06.04.2026.</b> Локальный <code>docker build</code> работает. Причина — биллинг или пауза проекта, не код.
+    </div>
+    <div class="blocker-box">
+      <b>2. Миграции БД не накатились на прод</b> (отсутствуют 1776100000000+). Накатятся через <code>releaseCommand</code> при следующем deploy api.
+    </div>
+  </div>
+  <div class="col">
+    <h2>5 действий до запуска (~2 часа)</h2>
+    <div class="next-box">
+      <ol style="margin: 2px 0; padding-left: 20px;">
+        <li>Прописать env-переменные в Railway (по <code>ENV_VARIABLES.md</code>)</li>
+        <li>Добавить tzdata в Dockerfile API (Asia/Tashkent cron'ы)</li>
+        <li>Подтвердить с бухгалтером доступ к inventory</li>
+        <li>Включить resource-level права на машины</li>
+        <li>Smoke-тест после деплоя — 10 сценариев</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col">
+    <h2>Команда: 6 агентов + 15 скиллов</h2>
+    <p style="margin: 4px 0; font-size: 12.5px;"><b>Кастомные агенты:</b> module-migrator, db-migration-helper, build-verifier, production-quality-guardian, health-check, dependency-audit.</p>
+    <p style="margin: 4px 0; font-size: 12.5px;"><b>VHM24-скиллы:</b> orchestrator, ux-spec, auth-rbac, db-expert, api-generator, forms, component-lib, ui-generator, mobile, i18n, testing, qa-review, charts, payments, realtime.</p>
+  </div>
+  <div class="col">
+    <h2>Documentation surface</h2>
+    <ul style="font-size: 12.5px;">
+      <li><b>MASTER.html</b> — главный аудит-документ (12 групп)</li>
+      <li><b>HANDOFF.md</b> — снимок состояния для команды</li>
+      <li><b>LAUNCH_CHECKLIST.md</b> — пошаговый запуск</li>
+      <li><b>ENV_VARIABLES.md</b> — copy-paste для Railway</li>
+      <li><b>4 ADR</b> в <code>docs/adr/</code> (0009-0012)</li>
+      <li><b>10 group-files</b> по каждой группе модулей</li>
+    </ul>
+  </div>
+</div>
+
+<h2>Дальше</h2>
+<div class="ok-box">
+  <b>На пилоте:</b> запуск, наблюдение 48 часов, smoke-тесты ежедневно, monitoring через Sentry/Grafana/bull-board.
+  <b>Через несколько недель:</b> Фаза 3 — миграция модели ролей (4 staff + Client + конструктор). 8 этапов, в коде уже есть фундамент (RBAC модуль с динамическими ролями + permissions, machine-access).
+  <b>В Q3-Q4 2026:</b> approval workflows, immutable audit log, risk-based 2FA. <b>В 2027+:</b> SCIM, JIT elevation, ABAC — только если попросит крупный клиент.
+</div>
+
+<footer>
+  <span>VendHub OS · Executive Summary · 1-page · 2026-04-29</span>
+  <span>Полный аудит → <code>docs/audits/MASTER.html</code></span>
+</footer>
+
+</div>
+</body>
+</html>

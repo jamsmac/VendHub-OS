@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Аудит группы Inventory & Stock</title>
+<link rel="stylesheet" href="_styles.css" />
+</head>
+<body>
+<div class="wrap">
+
+<header class="title">
+  <a href="MASTER.html" class="nav-back">← в мастер-документ</a>
+  <h1>Inventory & Stock — склад и движение товара</h1>
+  <p class="sub">9 модулей покрывают остатки, перемещения, приёмку и сверки. Источник данных для предсказательного refill и финансовой аналитики.</p>
+  <div class="stat-tiles">
+    <div class="stat-tile"><div class="lab">Модулей</div><div class="val">9</div></div>
+    <div class="stat-tile"><div class="lab">Файлов кода</div><div class="val">76</div></div>
+    <div class="stat-tile"><div class="lab">Эндпоинтов</div><div class="val">~83</div></div>
+    <div class="stat-tile"><div class="lab">Event-sourced</div><div class="val">да</div></div>
+    <div class="stat-tile"><div class="lab">Готовность</div><div class="val good">🟢 ready</div></div>
+  </div>
+</header>
+
+<section class="block">
+  <h2><span class="ico">I</span>Обзор группы</h2>
+  <p class="lead">Самая «бухгалтерская» группа. Каждое движение товара (приёмка, перемещение между складами, пополнение машины, продажа) фиксируется как event, потом материализуется в balances. Это event-sourced архитектура из Sprint G1.</p>
+  <table class="matrix">
+    <thead><tr><th>Модуль</th><th>Эндпоинтов</th><th>Назначение</th><th>Готовность</th></tr></thead>
+    <tbody>
+      <tr><td><b>inventory</b></td><td>14</td><td>Главный модуль — остатки на всех уровнях</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>inventory-dashboard</b></td><td>1</td><td>Сводный дашборд (один эндпоинт-агрегатор)</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>inventory-reconciliation</b></td><td>6</td><td>Сверка факт vs учёт после инвентаризации</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>stock-movements</b></td><td>0 (internal)</td><td>Event-listener для движений товара. Без HTTP.</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>batch-movements</b></td><td>3</td><td>Партии товара — для срока годности</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>opening-balances</b></td><td>9</td><td>Начальные остатки на старте периода</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>warehouse</b></td><td>25</td><td>Склады, приёмки, перемещения между складами</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>storage</b></td><td>14</td><td>Локации хранения внутри склада</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>containers</b></td><td>11</td><td>Контейнеры с товаром (паллеты, ящики)</td><td><span class="pill p-good">🟢</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <h2><span class="ico">⌘</span>Архитектура event-sourced</h2>
+  <p class="lead">Sprint G1 ввёл новую модель: вместо прямого UPDATE остатков в таблице — event-sourced подход.</p>
+  <div class="modgrid">
+    <div class="mcard">
+      <div class="head"><div class="letter">1</div><h4>StockMovement event</h4></div>
+      <p class="desc">Каждое физическое движение (приёмка, выдача, пополнение, продажа) пишется как append-only event с типом, источником, целью, productId, quantity, ts.</p>
+    </div>
+    <div class="mcard">
+      <div class="head"><div class="letter">2</div><h4>InventoryBalance — материализованный остаток</h4></div>
+      <p class="desc">Listener на StockMovement события пересчитывает balance per (productId, locationId, batchId).</p>
+    </div>
+    <div class="mcard">
+      <div class="head"><div class="letter">3</div><h4>Опт-снапшоты</h4></div>
+      <p class="desc">Раз в сутки делается snapshot балансов — для быстрого rollback и аудита.</p>
+    </div>
+    <div class="mcard">
+      <div class="head"><div class="letter">4</div><h4>QuantitySyncService</h4></div>
+      <p class="desc">При <code>transaction.created</code> event декрементирует MachineSlot.currentQuantity. Это ключевой связник между Payments и Inventory.</p>
+    </div>
+  </div>
+  <div class="quote warn"><b>Критический риск:</b> QuantitySyncService должен быть верифицирован на проде. P2.1 в ROADMAP — без этого предсказания пополнения работают на устаревших данных.</div>
+</section>
+
+<section class="block">
+  <h2><span class="ico">▣</span>Детали по модулям</h2>
+
+  <details class="acc" open>
+    <summary><span>inventory · главный модуль остатков</span><span class="meta">13 файлов · 14 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> read-API для остатков на всех уровнях иерархии (склад → ёмкость → продукт).</p>
+      <p><b>Эндпоинты:</b> GET /inventory (overview), /by-product, /by-location, /by-machine, /low-stock, /expiring, /movements (history), /balance/:id, POST /adjust (ручная корректировка), POST /transfer.</p>
+      <p><b>RBAC:</b> Owner/Admin/Manager — все 14, Warehouse — все 14 (его основная зона), Operator — 0 (через machine-access видит свои машины).</p>
+      <p><b>Code smell:</b> бухгалтер закрыт от inventory — 0 доступа. Может быть правильно (склад не его дело), но стоит подтвердить с реальным бухгалтером.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>warehouse · склады и операции</span><span class="meta">13 файлов · 25 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> CRUD складов, приёмка от поставщиков, исходящие перемещения, инвентаризация.</p>
+      <p>Самый «нагруженный» эндпоинтами модуль группы. Покрывает всю операционную работу склада.</p>
+      <p><b>Связь:</b> contractors (поставщики), purchases (закупки), inventory (остатки), batch-movements (партии).</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>storage · локации хранения</span><span class="meta">16 файлов · 14 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> разделение склада на зоны (стеллажи, полки, холодильники). У товара может быть конкретная storage-location.</p>
+      <p><b>RBAC:</b> Operator имеет 9/14 — через machine-access работает с конкретными storage при пополнении.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>containers · паллеты, ящики</span><span class="meta">8 файлов · 11 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> отслеживание физических контейнеров с товаром. Один контейнер может содержать много продуктов.</p>
+      <p><b>RBAC:</b> Warehouse 8/11, Operator 7/11 — оба много работают с контейнерами при пополнении автоматов.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>opening-balances · начальные остатки</span><span class="meta">6 файлов · 9 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> загрузка начальных остатков при первом запуске системы или при импорте из старой системы.</p>
+      <p>Каждый opening_balance — это виртуальный StockMovement в нулевую дату. После него все остальные движения накладываются последовательно.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>inventory-reconciliation · сверка после инвентаризации</span><span class="meta">8 файлов · 6 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> когда оператор делает физическую инвентаризацию автомата и считает реальный остаток — этот модуль фиксирует расхождение между фактом и учётом.</p>
+      <p>Расхождение → корректировка через StockMovement с типом ADJUSTMENT + комментарий. Audit-лог обязателен.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>stock-movements · event listener</span><span class="meta">4 файла · 0 HTTP</span></summary>
+    <div class="body">
+      <p>Internal сервис без контроллера. Слушает <code>transaction.created</code>, <code>warehouse.received</code>, <code>machine.refilled</code> и пишет StockMovement records.</p>
+      <p><b>Это ядро event-sourced архитектуры.</b> Если упадёт — балансы перестанут обновляться.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>batch-movements · партии товара</span><span class="meta">5 файлов · 3 эндпоинта</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> отслеживание партий по производственной дате и сроку годности. Когда продаётся товар — списывается из самой ранней партии (FIFO).</p>
+      <p><b>Связь с алертами:</b> алерт <code>EXPIRING_SOON</code> срабатывает за 7 дней до истечения срока партии.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>inventory-dashboard · сводный экран</span><span class="meta">3 файла · 1 эндпоинт</span></summary>
+    <div class="body">
+      <p>Один эндпоинт-агрегатор GET /inventory-dashboard, возвращающий всё для главного экрана: топ-движения, low-stock алерты, expiring soon, общая стоимость склада.</p>
+    </div>
+  </details>
+</section>
+
+<section class="block">
+  <h2><span class="ico">!</span>Риски и action items</h2>
+  <table class="matrix">
+    <thead><tr><th>Уровень</th><th>Риск</th><th>Действие</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill p-bad">high</span></td><td>QuantitySyncService не сработает</td><td>Smoke-тест на проде через Payme sandbox. P2.1 ROADMAP</td></tr>
+      <tr><td><span class="pill p-warn">med</span></td><td>Бухгалтер 0 доступа к inventory</td><td>Подтвердить с реальным бухгалтером (Фаза 1 LAUNCH_CHECKLIST)</td></tr>
+      <tr><td><span class="pill p-warn">med</span></td><td>FIFO для batch может не сработать корректно</td><td>Integration test «продажа → списание из старшей партии»</td></tr>
+      <tr><td><span class="pill p-good">low</span></td><td>Snapshot balances накопит много данных за год</td><td>Cleanup cron — оставлять последние 90 дней snapshots</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <h2><span class="ico">✓</span>Готовность группы</h2>
+  <p><b>🟢 Технически готова, но критически зависит от QuantitySyncService.</b> Если он не работает на проде — все остатки и предсказания идут вслепую.</p>
+  <p><b>Action items на пилоте:</b></p>
+  <ul>
+    <li>Smoke-тест Payme sandbox с проверкой декремента остатка (LAUNCH_CHECKLIST шаг 7)</li>
+    <li>Подтвердить с бухгалтером доступ к inventory</li>
+    <li>Убедиться что opening-balances загружены для всех 23 машин</li>
+  </ul>
+  <p><b>После пилота:</b></p>
+  <ul>
+    <li>Integration test полного цикла «приёмка → распределение → пополнение → продажа → рекомендация пополнения»</li>
+    <li>Snapshot retention policy (90 дней)</li>
+  </ul>
+</section>
+
+<footer>
+  Аудит группы Inventory & Stock. Сгенерирован 2026-04-29. <a href="MASTER.html">← MASTER</a>.
+</footer>
+
+</div>
+</body>
+</html>

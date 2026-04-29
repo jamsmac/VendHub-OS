@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Аудит группы Tenancy & Admin</title>
+<link rel="stylesheet" href="_styles.css" />
+</head>
+<body>
+<div class="wrap">
+
+<header class="title">
+  <a href="MASTER.html" class="nav-back">← в мастер-документ</a>
+  <h1>Tenancy & Admin — multi-tenant фундамент</h1>
+  <p class="sub">8 модулей покрывают сами организации, контрагентов, настройки, CMS и публичные страницы tenant'ов.</p>
+  <div class="stat-tiles">
+    <div class="stat-tile"><div class="lab">Модулей</div><div class="val">8</div></div>
+    <div class="stat-tile"><div class="lab">Файлов кода</div><div class="val">60</div></div>
+    <div class="stat-tile"><div class="lab">Эндпоинтов</div><div class="val">87</div></div>
+    <div class="stat-tile"><div class="lab">Готовность</div><div class="val good">🟢 ready</div></div>
+  </div>
+</header>
+
+<section class="block">
+  <h2><span class="ico">T</span>Обзор группы</h2>
+  <p class="lead">Эта группа — позвоночник multi-tenancy. 114 entities в проекте имеют <code>organizationId</code>, который задаётся именно отсюда.</p>
+  <table class="matrix">
+    <thead><tr><th>Модуль</th><th>Эндпоинтов</th><th>Назначение</th><th>Готовность</th></tr></thead>
+    <tbody>
+      <tr><td><b>organizations</b></td><td>5</td><td>Сами организации (твоя орг + будущие франчайзи)</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>contractors</b></td><td>25 (2 controllers)</td><td>Подрядчики (поставщики товара) и их контракты</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>counterparty</b></td><td>12</td><td>Контрагенты для финансовых расчётов (юр лица)</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>settings</b></td><td>11</td><td>Настройки организации</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>cms</b></td><td>11 (2 controllers)</td><td>CMS — баннеры и контент в админке</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>site-cms</b></td><td>6 (2 controllers)</td><td>CMS для маркетинг-сайта</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>public-tenant</b></td><td>4</td><td>Публичные страницы tenant'а (для лендинга)</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>website-config</b></td><td>7</td><td>Конфиг сайта-tenant'а</td><td><span class="pill p-good">🟢</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <h2><span class="ico">▣</span>Детали по модулям</h2>
+
+  <details class="acc" open>
+    <summary><span>organizations · сами организации</span><span class="meta">12 файлов · 5 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Главная сущность multi-tenancy.</b> Каждая запись в системе имеет organizationId, который ссылается сюда.</p>
+      <p><b>Эндпоинтов мало (5)</b> — потому что обычно одна организация. Создание новой — редкая операция (Owner-only).</p>
+      <p><b>RBAC:</b> Owner 5/5, Admin 2/5 (только своя), Manager 1/5, остальные 1/5 (read общей инфы).</p>
+      <p><b>Связано с Решением 3</b> — организации остаются как фундамент multi-tenancy, не убираются.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>contractors · поставщики и контракты</span><span class="meta">12 файлов · 25 эндпоинтов · 2 controllers</span></summary>
+    <div class="body">
+      <p><b>Не путать с counterparty.</b> Contractors = «поставщики товара/услуг» (кофейные зёрна, молоко, ремонт). Они закупают и поставляют.</p>
+      <h4>2 controller'а</h4>
+      <ul>
+        <li><code>contractors.controller.ts</code> — CRUD контрагентов</li>
+        <li><code>controllers/contract.controller.ts</code> — контракты с ними (договора, условия)</li>
+      </ul>
+      <p><b>RBAC:</b> Owner/Admin 25/25, Manager 20/25, Accountant 14/25 (для финансовых отношений).</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>counterparty · контрагенты для финрасчётов</span><span class="meta">5 файлов · 12 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> юридические сущности для финансовых расчётов. Один contractor может быть связан с несколькими counterparties (если у поставщика несколько юрлиц).</p>
+      <p><b>Use case:</b> для бухгалтерии важна не «организация-поставщик», а конкретное юрлицо для НДС, отчётности.</p>
+      <p><b>RBAC:</b> Owner/Admin 12/12, Manager 9/12, Accountant 6/12. Operator/Warehouse — 0 (это финансовая зона).</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>settings · настройки организации</span><span class="meta">7 файлов · 11 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> per-org настройки: валюта, часовой пояс, локаль, рабочие часы, политики возвратов.</p>
+      <p><b>RBAC:</b> Owner 10/11, Admin 6/11. Manager 0/11 — настройки только для верхнего уровня.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>cms · контент-менеджмент</span><span class="meta">9 файлов · 11 эндпоинтов · 2 controllers</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> управление баннерами и контентом в админке. Sprint 1775800 ввёл баннеры.</p>
+      <p><b>2 controller'а:</b> <code>cms.controller.ts</code> + <code>cms-banner.controller.ts</code>.</p>
+      <p><b>Code smell:</b> 8 в OWNER, 11 в ADMIN — Owner проходит через bypass, в декораторах не указан везде.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>site-cms · CMS для маркетинг-сайта</span><span class="meta">7 файлов · 6 эндпоинтов · 2 controllers</span></summary>
+    <div class="body">
+      <p><b>2 controller'а:</b></p>
+      <ul>
+        <li><code>site-cms.controller.ts</code> — admin endpoints для управления контентом сайта</li>
+        <li><code>site-cms-public.controller.ts</code> — публичный API для самого сайта (vendhub.uz)</li>
+      </ul>
+      <p><b>Sprint 1775900</b> создал инфраструктуру + seed данных.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>public-tenant · публичная информация tenant'а</span><span class="meta">3 файла · 4 эндпоинта (все Public)</span></summary>
+    <div class="body">
+      <p><b>Все 4 эндпоинта @Public.</b> Используются для:</p>
+      <ul>
+        <li>Telegram Mini App при старте без логина — получить tenant info по domain</li>
+        <li>Лендинги — показать какому-то посетителю «вы у такой-то компании»</li>
+        <li>QR-страницы с автоматов — показывают public info автомата без логина</li>
+      </ul>
+      <p><b>НЕ закрыты роли</b> — это правильно по дизайну. Никаких приватных данных.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>website-config · конфиг tenant-сайта</span><span class="meta">5 файлов · 7 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> конфигурация сайта tenant'а — тема, лого, тексты, контактные данные.</p>
+      <p><b>RBAC:</b> Owner 3/7, Admin 7/7. Manager 0/7 — это admin-зона.</p>
+    </div>
+  </details>
+</section>
+
+<section class="block">
+  <h2><span class="ico">!</span>Возможный refactoring</h2>
+  <p>В аудите была отмечена потенциальная избыточность между organizations / contractors / counterparty. Действительно ли все три нужны?</p>
+  <table class="matrix">
+    <thead><tr><th>Сущность</th><th>Чем уникальна</th></tr></thead>
+    <tbody>
+      <tr><td><b>organizations</b></td><td>Твоя компания или франчайзи. Главная единица tenancy. organizationId везде.</td></tr>
+      <tr><td><b>contractors</b></td><td>Подрядчики/поставщики (тот кто привозит товар, обслуживает технику).</td></tr>
+      <tr><td><b>counterparty</b></td><td>Юр. лица для финансовых расчётов (один contractor может иметь несколько counterparty — для разных видов услуг и НДС).</td></tr>
+    </tbody>
+  </table>
+  <div class="quote">Все три различимы и нужны. Нет необходимости консолидировать. Это была техническая проверка по результатам обсуждения «может организации лишние?» — вердикт оставлен в ADR-003.</div>
+</section>
+
+<section class="block">
+  <h2><span class="ico">!</span>Риски и action items</h2>
+  <table class="matrix">
+    <thead><tr><th>Уровень</th><th>Риск</th><th>Действие</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill p-warn">med</span></td><td>cms модуль с MIXED OWNER (8/11) → audit hard to read</td><td>Унифицировать в Фазе 2 LAUNCH_CHECKLIST</td></tr>
+      <tr><td><span class="pill p-good">low</span></td><td>public-tenant — все @Public</td><td>Это правильно по дизайну. Никаких приватных данных.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <h2><span class="ico">✓</span>Готовность группы</h2>
+  <p><b>🟢 Готова к запуску.</b> На пилоте используется одна организация (Jamshid'а). При появлении первого франчайзи — создаётся вторая через Owner-эндпоинт.</p>
+</section>
+
+<footer>
+  Аудит группы Tenancy & Admin. <a href="MASTER.html">← MASTER</a>.
+</footer>
+
+</div>
+</body>
+</html>

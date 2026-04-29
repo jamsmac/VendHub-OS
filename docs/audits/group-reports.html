@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Аудит группы Reports & Analytics</title>
+<link rel="stylesheet" href="_styles.css" />
+</head>
+<body>
+<div class="wrap">
+
+<header class="title">
+  <a href="MASTER.html" class="nav-back">← в мастер-документ</a>
+  <h1>Reports & Analytics — отчёты и аналитика</h1>
+  <p class="sub">5 модулей покрывают всю отчётность: операционную, финансовую, инвесторскую, AI-инсайты и аудит-логи.</p>
+  <div class="stat-tiles">
+    <div class="stat-tile"><div class="lab">Модулей</div><div class="val">5</div></div>
+    <div class="stat-tile"><div class="lab">Файлов кода</div><div class="val">71</div></div>
+    <div class="stat-tile"><div class="lab">Эндпоинтов</div><div class="val">89</div></div>
+    <div class="stat-tile"><div class="lab">AI-фичи</div><div class="val">да</div></div>
+    <div class="stat-tile"><div class="lab">Готовность</div><div class="val good">🟢 ready</div></div>
+  </div>
+</header>
+
+<section class="block">
+  <h2><span class="ico">R</span>Обзор группы</h2>
+  <table class="matrix">
+    <thead><tr><th>Модуль</th><th>Эндпоинтов</th><th>Назначение</th><th>Готовность</th></tr></thead>
+    <tbody>
+      <tr><td><b>reports</b></td><td>44 (3 controllers)</td><td>Главный модуль — все отчёты для разных аудиторий</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>analytics</b></td><td>11</td><td>Дашборд-аналитика, KPI-виджеты</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>ai</b></td><td>11</td><td>AI-фичи: импорт, аномалии, рекомендации</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>audit</b></td><td>16</td><td>Audit log с 25+ типов событий</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>investor</b></td><td>7</td><td>Метрики для инвестора (read-only)</td><td><span class="pill p-good">🟢</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <h2><span class="ico">▣</span>Детали по модулям</h2>
+
+  <details class="acc" open>
+    <summary><span>reports · главный отчётный модуль</span><span class="meta">29 файлов · 3 controllers · 44 эндпоинта</span></summary>
+    <div class="body">
+      <p><b>3 sub-controller'а:</b></p>
+      <ul>
+        <li><code>reports.controller.ts</code> (26) — операционные отчёты (продажи, инвентарь, KPI)</li>
+        <li><code>controllers/analytics.controller.ts</code> (6) — analytics-эндпоинты внутри модуля</li>
+        <li><code>controllers/vendhub-report.controller.ts</code> (12) — VendHub-специфичные отчёты</li>
+      </ul>
+      <h4>Виды отчётов</h4>
+      <ul>
+        <li>Sales reports — выручка по периоду, машинам, продуктам</li>
+        <li>Inventory reports — остатки, оборачиваемость, списания</li>
+        <li>Operational reports — KPI операторов, маршруты, инциденты</li>
+        <li>Financial reports — для бухгалтера, налогов</li>
+      </ul>
+      <p><b>Code smell:</b> MIXED стиль @Roles в этом модуле — нужно унифицировать.</p>
+      <p><b>RBAC:</b> Owner/Admin — все 44, Manager — 36/44, Accountant — 23/44 (финансовая часть), Viewer — 4/44 (только read).</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>analytics · KPI-дашборды</span><span class="meta">5 файлов · 11 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> KPI-виджеты для главного дашборда. Каждый виджет — отдельный эндпоинт с агрегированными данными.</p>
+      <h4>Эндпоинты</h4>
+      <ul>
+        <li>GET /analytics/daily — daily stats для date range</li>
+        <li>POST /analytics/aggregate/:date — manual trigger агрегации</li>
+        <li>GET /analytics/dashboard — главный дашборд с виджетами и stats</li>
+        <li>POST/PATCH/DELETE /analytics/widgets — кастомизация дашборда</li>
+      </ul>
+      <p><b>Code smell:</b> 0 в OWNER колонке — Owner проходит через bypass, в декораторах не указан.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>ai · AI-фичи</span><span class="meta">13 файлов · 11 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> AI-powered фичи через Anthropic Claude / OpenAI.</p>
+      <h4>Use cases</h4>
+      <ul>
+        <li>AI Import — парсинг неструктурированных файлов (накладные в PDF) в структуру</li>
+        <li>Anomaly Detection — обнаружение аномальных продаж / расходов</li>
+        <li>Smart Suggestions — рекомендации по автоматизации операций</li>
+        <li>Natural language queries — «покажи мне топ-5 машин по выручке за неделю»</li>
+      </ul>
+      <p><b>Зависимость:</b> ANTHROPIC_API_KEY / OPENAI_API_KEY в env. Без ключей — фичи отключаются gracefully.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>audit · audit log с 25+ типов событий</span><span class="meta">16 файлов · 16 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> append-only журнал всех значимых действий. Не путать с security модулем (тот про аномалии входа).</p>
+      <h4>AuditAction enum (25+ значений)</h4>
+      <p><code>CREATE</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>SOFT_DELETE</code>, <code>RESTORE</code>, <code>LOGIN</code>, <code>LOGOUT</code>, <code>LOGIN_FAILED</code>, <code>PASSWORD_CHANGE</code>, <code>PASSWORD_RESET</code>, <code>PERMISSION_CHANGE</code>, <code>SETTINGS_CHANGE</code>, <code>EXPORT</code>, <code>IMPORT</code>, <code>BULK_UPDATE</code>, <code>BULK_DELETE</code>, <code>API_CALL</code>, <code>WEBHOOK_RECEIVED</code>, <code>PAYMENT_PROCESSED</code>, <code>REFUND_ISSUED</code>, <code>REPORT_GENERATED</code>, <code>NOTIFICATION_SENT</code>, <code>TASK_ASSIGNED</code>, <code>TASK_COMPLETED</code>, <code>MACHINE_STATUS_CHANGE</code>, <code>INVENTORY_ADJUSTMENT</code>, <code>FISCAL_OPERATION</code>.</p>
+      <p><b>Limitation:</b> mutable таблица. Теоретически Admin с прямым SQL может изменить логи. Решается в Фазе 4 — immutable storage.</p>
+      <p><b>RBAC:</b> Owner 16/16, Admin 14/16 (свою орг), Manager 5/16 (только свои действия).</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>investor · метрики для инвестора</span><span class="meta">8 файлов · 7 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> read-only API для инвестора с агрегированными метриками: выручка, рост, юнит-экономика.</p>
+      <p><b>RBAC:</b> Owner 7/7, Admin 7/7, Manager 2/7 (только публичные метрики), Accountant 2/7. Operator/Warehouse/Viewer — 0.</p>
+      <p><b>Use case:</b> отдельный «инвесторский кабинет» с дашбордом и pdf-выгрузкой за период.</p>
+    </div>
+  </details>
+</section>
+
+<section class="block">
+  <h2><span class="ico">!</span>Риски и action items</h2>
+  <table class="matrix">
+    <thead><tr><th>Уровень</th><th>Риск</th><th>Действие</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill p-warn">med</span></td><td>Audit log mutable — Admin может изменить</td><td>Immutable storage в Фазе 4 (после миграции ролей)</td></tr>
+      <tr><td><span class="pill p-warn">med</span></td><td>Reports MIXED стиль @Roles</td><td>Унифицировать в Фазе 2 LAUNCH_CHECKLIST</td></tr>
+      <tr><td><span class="pill p-good">low</span></td><td>AI без ключей — фичи отключаются</td><td>Уже есть graceful fallback</td></tr>
+      <tr><td><span class="pill p-good">low</span></td><td>Большие отчёты могут таймаутить</td><td>BullMQ для async-генерации тяжёлых отчётов</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <h2><span class="ico">✓</span>Готовность группы</h2>
+  <p><b>🟢 Готова к запуску.</b> Audit log работает, отчёты есть, AI-фичи опциональны. На пилоте достаточно операционных отчётов из reports — без AI и инвестор-кабинета можно жить.</p>
+</section>
+
+<footer>
+  Аудит группы Reports & Analytics. <a href="MASTER.html">← MASTER</a>.
+</footer>
+
+</div>
+</body>
+</html>

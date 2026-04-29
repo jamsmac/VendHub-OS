@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Аудит группы Products & Catalog</title>
+<link rel="stylesheet" href="_styles.css" />
+</head>
+<body>
+<div class="wrap">
+
+<header class="title">
+  <a href="MASTER.html" class="nav-back">← в мастер-документ</a>
+  <h1>Products & Catalog — товары, справочники, мета</h1>
+  <p class="sub">6 модулей покрывают весь продуктовый каталог — от товара и категории до кастомных полей и пользовательских справочников.</p>
+  <div class="stat-tiles">
+    <div class="stat-tile"><div class="lab">Модулей</div><div class="val">6</div></div>
+    <div class="stat-tile"><div class="lab">Файлов кода</div><div class="val">65</div></div>
+    <div class="stat-tile"><div class="lab">Эндпоинтов</div><div class="val">112</div></div>
+    <div class="stat-tile"><div class="lab">Готовность</div><div class="val good">🟢 ready</div></div>
+  </div>
+</header>
+
+<section class="block">
+  <h2><span class="ico">P</span>Обзор группы</h2>
+  <table class="matrix">
+    <thead><tr><th>Модуль</th><th>Эндпоинтов</th><th>Назначение</th><th>Готовность</th></tr></thead>
+    <tbody>
+      <tr><td><b>products</b></td><td>33</td><td>Товары — кофе, снеки, ингредиенты. Рецепты, цены, фото</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>categories</b></td><td>5</td><td>Иерархия категорий — Кофе → Эспрессо → Латте</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>directories</b></td><td>27</td><td>Пользовательские справочники (брэнды, страны, единицы)</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>references</b></td><td>23</td><td>Системные справочники (валюты, валюты, типы упаковки)</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>custom-fields</b></td><td>8</td><td>Кастомные поля для extensibility</td><td><span class="pill p-good">🟢</span></td></tr>
+      <tr><td><b>favorites</b></td><td>16</td><td>Избранное клиентов — для Mini App</td><td><span class="pill p-good">🟢</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <h2><span class="ico">▣</span>Детали по модулям</h2>
+
+  <details class="acc" open>
+    <summary><span>products · сами товары</span><span class="meta">14 файлов · 33 эндпоинта</span></summary>
+    <div class="body">
+      <p><b>Самый нагруженный модуль.</b> Хранит:</p>
+      <ul>
+        <li>Готовые продукты (Капучино, Латте, Снек) — то что продаётся клиенту</li>
+        <li>Ингредиенты (зёрна, молоко, сахар, стаканы) — то из чего делается продукт</li>
+        <li>Рецепты — связь продукта с ингредиентами и их количеством</li>
+        <li>Цены — основная цена + промо-цены + историю изменений</li>
+        <li>Фото и описания</li>
+      </ul>
+      <p><b>RBAC:</b> Owner/Admin/Manager — все 33. Accountant/Warehouse — 13/33 (read + некоторые write по своим зонам). Operator — 10/33. Viewer — 13/33.</p>
+      <h4>Связи</h4>
+      <p>inventory (остатки), machines (что в каких слотах), orders (что покупают), categories (классификация), references (единицы измерения).</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>categories · иерархия категорий</span><span class="meta">6 файлов · 5 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> дерево категорий с parent_id. Используется для группировки и фильтрации в UI.</p>
+      <p><b>RBAC:</b> Owner/Admin/Manager — все 5. Operator/Warehouse/Accountant — 2/5 (только чтение).</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>directories · пользовательские справочники</span><span class="meta">16 файлов · 27 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> механизм пользовательских справочников через MDM Directory Builder. Admin может создать новый справочник (например, «Допустимые причины возврата») с произвольной схемой полей.</p>
+      <p><b>Use case:</b> добавление новых типов сущностей без изменения кода — всё через UI.</p>
+      <p><b>RBAC:</b> Owner 20/27 (не все справочники нужны), Admin 27/27, Manager 21/27, Operator/Warehouse 8/27.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>references · системные справочники</span><span class="meta">17 файлов · 23 эндпоинта</span></summary>
+    <div class="body">
+      <p><b>Не путать с directories.</b> References — это «жёсткие» системные справочники: валюты, единицы измерения, ставки НДС, страны. Меняются редко, через миграцию или сидинг.</p>
+      <p><b>RBAC:</b> Owner/Admin — все, Manager 13/23, Accountant/Warehouse 13/23 (для финансовых и складских справочников). Operator/Viewer — 0 (не нужны).</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>custom-fields · extensibility</span><span class="meta">5 файлов · 8 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> добавление произвольных полей к существующим сущностям без миграции БД. Например, для Machine добавить «дата последней мойки», для Product — «диетические ограничения».</p>
+      <p><b>RBAC:</b> Owner/Admin — управление, Manager 2/8 (только чтение).</p>
+      <p><b>Storage:</b> JSONB поле в самой сущности с валидацией по Schema из таблицы custom_field_definitions.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary><span>favorites · избранное клиента</span><span class="meta">7 файлов · 16 эндпоинтов</span></summary>
+    <div class="body">
+      <p><b>Назначение:</b> кэширование любимых продуктов клиента в Mini App. «Купить как в прошлый раз», «Любимый кофе».</p>
+      <p><b>RBAC:</b> 1/16 для всех ролей — это симметричный модуль, каждый видит свои favorites. Через JWT identity.</p>
+      <p><b>После Фазы 3.6:</b> переедет в clients-scope, будет привязан к Client а не User.</p>
+    </div>
+  </details>
+</section>
+
+<section class="block">
+  <h2><span class="ico">!</span>Риски и action items</h2>
+  <table class="matrix">
+    <thead><tr><th>Уровень</th><th>Риск</th><th>Действие</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill p-good">low</span></td><td>Custom-fields через JSONB — без типобезопасности</td><td>Schema-валидация при сохранении уже есть</td></tr>
+      <tr><td><span class="pill p-good">low</span></td><td>Categories дерево — потенциальные циклы</td><td>Constraint на сохранении проверяет</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block">
+  <h2><span class="ico">✓</span>Готовность группы</h2>
+  <p><b>🟢 Готова к запуску.</b> Никаких блокеров. Самая «чистая» группа в проекте — справочники по природе своей стабильны.</p>
+</section>
+
+<footer>
+  Аудит группы Products & Catalog. <a href="MASTER.html">← MASTER</a>.
+</footer>
+
+</div>
+</body>
+</html>
