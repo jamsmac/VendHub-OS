@@ -114,10 +114,10 @@ async function seedAdmin() {
       // Create admin user
       await queryRunner.manager.query(
         `INSERT INTO users (
-          id, email, password_hash, first_name, last_name, phone,
-          role, organization_id, status, email_verified,
+          id, email, password, first_name, last_name, phone,
+          role, organization_id, status,
           two_factor_enabled, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())`,
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())`,
         [
           userId,
           ADMIN_EMAIL,
@@ -128,7 +128,6 @@ async function seedAdmin() {
           "owner",
           organizationId,
           "active",
-          true,
           false,
         ],
       );

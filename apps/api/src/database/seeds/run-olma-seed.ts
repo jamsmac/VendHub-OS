@@ -30,8 +30,8 @@ if (organizationId === "your-org-id-here") {
 
 const dataSource = new DataSource({
   type: "postgres",
-  url: process.env.DATABASE_URL,
-  // Fallback to individual vars if DATABASE_URL is not set
+  // Use DATABASE_URL if set, otherwise fall back to individual vars
+  ...(process.env.DATABASE_URL ? { url: process.env.DATABASE_URL } : {}),
   host: process.env.DB_HOST ?? "localhost",
   port: parseInt(process.env.DB_PORT ?? "5432", 10),
   username: process.env.DB_USER ?? "vendhub",

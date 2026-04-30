@@ -480,7 +480,7 @@ export class MachineLocationHistory extends BaseEntity {
 @Index(["serialNumber"])
 @Index(["componentType"])
 export class MachineComponent extends BaseEntity {
-  @Column({ nullable: true })
+  @Column({ type: "uuid", nullable: true })
   machineId: string | null;
 
   @Column({ type: "enum", enum: ComponentType })

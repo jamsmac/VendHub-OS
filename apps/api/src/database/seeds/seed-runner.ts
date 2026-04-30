@@ -63,7 +63,7 @@ export async function runSeed(
 
     for (const sup of config.suppliers) {
       // Check if already exists (unique index: code where deleted_at IS NULL)
-      const existing = await runner.query<{ id: string }[]>(
+      const existing: Array<{ id: string }> = await runner.query(
         `SELECT id FROM suppliers WHERE code = $1 AND deleted_at IS NULL LIMIT 1`,
         [sup.code],
       );
@@ -108,7 +108,7 @@ export async function runSeed(
 
     for (const cat of config.categories) {
       // Unique index: (organization_id, code) where deleted_at IS NULL
-      const existing = await runner.query<{ id: string }[]>(
+      const existing: Array<{ id: string }> = await runner.query(
         `SELECT id FROM categories
           WHERE organization_id = $1 AND code = $2 AND deleted_at IS NULL
           LIMIT 1`,
@@ -152,7 +152,7 @@ export async function runSeed(
 
     for (const prod of config.products) {
       // Unique index: sku where deleted_at IS NULL
-      const existing = await runner.query<{ id: string }[]>(
+      const existing: Array<{ id: string }> = await runner.query(
         `SELECT id FROM products WHERE sku = $1 AND deleted_at IS NULL LIMIT 1`,
         [prod.sku],
       );
@@ -225,7 +225,7 @@ export async function runSeed(
     const withParent = config.locations.filter((l) => !!l.parentCode);
 
     for (const loc of [...withoutParent, ...withParent]) {
-      const existing = await runner.query<{ id: string }[]>(
+      const existing: Array<{ id: string }> = await runner.query(
         `SELECT id FROM locations WHERE code = $1 AND deleted_at IS NULL LIMIT 1`,
         [loc.code],
       );
@@ -292,7 +292,7 @@ export async function runSeed(
 
     for (const mac of config.machines) {
       // Unique index: machine_number where deleted_at IS NULL
-      const existing = await runner.query<{ id: string }[]>(
+      const existing: Array<{ id: string }> = await runner.query(
         `SELECT id FROM machines
           WHERE machine_number = $1 AND deleted_at IS NULL LIMIT 1`,
         [mac.code],
