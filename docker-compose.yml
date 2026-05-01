@@ -114,6 +114,9 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 4000
 
+      # CORS / CSRF
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
+
       # Database
       DB_HOST: postgres
       DB_PORT: 5432
