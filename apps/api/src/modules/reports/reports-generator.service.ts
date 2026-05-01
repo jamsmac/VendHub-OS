@@ -129,7 +129,12 @@ export class ReportsGeneratorService {
 
     const report = this.generatedRepo.create({
       organizationId: dto.organizationId,
-      definitionId: dto.reportDefinitionId || "",
+      // ad-hoc reports (e.g. /reports/sales?period=month) come without
+      // a definition; persist null instead of "" so the uuid column
+      // doesn't blow up with "invalid input syntax for type uuid"
+      ...(dto.reportDefinitionId && {
+        definitionId: dto.reportDefinitionId,
+      }),
       name: reportName,
       type: reportType,
       generationParams: {

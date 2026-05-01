@@ -88,13 +88,13 @@ export class RecommendationService {
       .leftJoinAndSelect("r.product", "product");
 
     if (query.action) {
-      qb.andWhere("r.recommended_action = :action", { action: query.action });
+      qb.andWhere("r.recommendedAction = :action", { action: query.action });
     }
     if (query.machineId) {
-      qb.andWhere("r.machine_id = :machineId", { machineId: query.machineId });
+      qb.andWhere("r.machineId = :machineId", { machineId: query.machineId });
     }
 
-    qb.orderBy("r.priority_score", "DESC");
+    qb.orderBy("r.priorityScore", "DESC");
     qb.skip(((query.page ?? 1) - 1) * (query.limit ?? 50));
     qb.take(query.limit ?? 50);
 

@@ -241,23 +241,28 @@ export class LoyaltyAnalyticsService {
     const periodEnd = new Date(now);
     periodEnd.setHours(23, 59, 59, 999);
 
-    // Query: aggregate earned points per user in the period
+    // Query: aggregate earned points per user in the period.
+    // NB: raw column references in .select/.addSelect/.groupBy are passed
+    // straight to Postgres (no SnakeNamingStrategy resolution after a manual
+    // entity-class JOIN), so they MUST be snake_case to match the actual
+    // column names. The result aliases (the second arg) stay camelCase so
+    // the row mapper below keeps working.
     const leaderboardQb = this.pointsTransactionRepo
       .createQueryBuilder("pt")
-      .select("pt.userId", "userId")
+      .select("pt.user_id", "userId")
       .addSelect("SUM(pt.amount)", "pointsEarned")
-      .innerJoin(User, "u", "u.id = pt.userId")
-      .addSelect("u.firstName", "firstName")
-      .addSelect("u.lastName", "lastName")
-      .addSelect("u.loyaltyLevel", "loyaltyLevel")
-      .addSelect("u.pointsBalance", "pointsBalance")
-      .addSelect("u.currentStreak", "currentStreak")
-      .addSelect("u.avatarUrl", "avatarUrl")
-      .where("pt.organizationId = :organizationId", { organizationId })
+      .innerJoin(User, "u", "u.id = pt.user_id")
+      .addSelect("u.first_name", "firstName")
+      .addSelect("u.last_name", "lastName")
+      .addSelect("u.loyalty_level", "loyaltyLevel")
+      .addSelect("u.points_balance", "pointsBalance")
+      .addSelect("u.current_streak", "currentStreak")
+      .addSelect("u.avatar", "avatarUrl")
+      .where("pt.organization_id = :organizationId", { organizationId })
       .andWhere("pt.type = :type", { type: PointsTransactionType.EARN })
-      .andWhere("pt.createdAt >= :periodStart", { periodStart })
-      .andWhere("pt.createdAt <= :periodEnd", { periodEnd })
-      .groupBy("pt.userId")
+      .andWhere("pt.created_at >= :periodStart", { periodStart })
+      .andWhere("pt.created_at <= :periodEnd", { periodEnd })
+      .groupBy("pt.user_id")
       .addGroupBy("u.id")
       .orderBy('"pointsEarned"', "DESC")
       .limit(limit);

@@ -494,8 +494,8 @@ export class GeneratedReport extends BaseEntity {
   @JoinColumn({ name: "organization_id" })
   organization: Organization;
 
-  @Column({ type: "uuid" })
-  definitionId: string;
+  @Column({ type: "uuid", nullable: true })
+  definitionId: string | null;
 
   @ManyToOne(() => ReportDefinition, { onDelete: "SET NULL" })
   @JoinColumn({ name: "definition_id" })
