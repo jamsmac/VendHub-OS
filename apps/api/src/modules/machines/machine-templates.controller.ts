@@ -39,23 +39,16 @@ import {
 } from "./dto/machine-template.dto";
 
 @ApiTags("machine-templates")
-@Controller("machine-templates")
+@Controller("references/machine-templates")
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class MachineTemplatesController {
-  constructor(
-    private readonly templatesService: MachineTemplatesService,
-  ) {}
+  constructor(private readonly templatesService: MachineTemplatesService) {}
 
   // ── List all templates ──
 
   @Get()
-  @Roles(
-    UserRole.OWNER,
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.OPERATOR,
-  )
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Get all machine templates for organization" })
   @ApiResponse({ status: 200, description: "List of machine templates" })
   findAll(@CurrentUser() user: User) {
@@ -65,12 +58,7 @@ export class MachineTemplatesController {
   // ── List active templates only (for dropdowns / machine creation) ──
 
   @Get("active")
-  @Roles(
-    UserRole.OWNER,
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.OPERATOR,
-  )
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Get active machine templates (for selectors)" })
   @ApiResponse({ status: 200, description: "List of active templates" })
   findActive(@CurrentUser() user: User) {
@@ -80,20 +68,12 @@ export class MachineTemplatesController {
   // ── Get single template ──
 
   @Get(":id")
-  @Roles(
-    UserRole.OWNER,
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.OPERATOR,
-  )
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
   @ApiOperation({ summary: "Get machine template by ID" })
   @ApiParam({ name: "id", type: "string", format: "uuid" })
   @ApiResponse({ status: 200, description: "Machine template details" })
   @ApiResponse({ status: 404, description: "Template not found" })
-  findOne(
-    @Param("id", ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
-  ) {
+  findOne(@Param("id", ParseUUIDPipe) id: string, @CurrentUser() user: User) {
     return this.templatesService.findOne(id, user.organizationId);
   }
 
@@ -104,15 +84,8 @@ export class MachineTemplatesController {
   @ApiOperation({ summary: "Create a new machine template" })
   @ApiResponse({ status: 201, description: "Template created" })
   @ApiResponse({ status: 400, description: "Validation error" })
-  create(
-    @Body() dto: CreateMachineTemplateDto,
-    @CurrentUser() user: User,
-  ) {
-    return this.templatesService.create(
-      dto,
-      user.organizationId,
-      user.id,
-    );
+  create(@Body() dto: CreateMachineTemplateDto, @CurrentUser() user: User) {
+    return this.templatesService.create(dto, user.organizationId, user.id);
   }
 
   // ── Update template ──
@@ -128,12 +101,7 @@ export class MachineTemplatesController {
     @Body() dto: UpdateMachineTemplateDto,
     @CurrentUser() user: User,
   ) {
-    return this.templatesService.update(
-      id,
-      dto,
-      user.organizationId,
-      user.id,
-    );
+    return this.templatesService.update(id, dto, user.organizationId, user.id);
   }
 
   // ── Soft-delete template ──
@@ -149,10 +117,7 @@ export class MachineTemplatesController {
     status: 409,
     description: "Cannot delete system template",
   })
-  remove(
-    @Param("id", ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
-  ) {
+  remove(@Param("id", ParseUUIDPipe) id: string, @CurrentUser() user: User) {
     return this.templatesService.remove(id, user.organizationId);
   }
 
