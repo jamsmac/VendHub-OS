@@ -653,15 +653,18 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <>
-      {/* Logo */}
-      <div className="flex h-16 items-center gap-2 px-6 border-b">
-        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+      {/* Logo — Hub Sand from VendHub brand book */}
+      <div className="flex h-16 items-center gap-2.5 px-6 border-b border-border/50">
+        <div className="w-8 h-8 bg-hub-sand rounded-lg flex items-center justify-center shadow-card-sm">
           <Coffee
-            className="w-5 h-5 text-primary-foreground"
+            className="w-5 h-5 text-hub-black"
             aria-hidden="true"
+            strokeWidth={1.8}
           />
         </div>
-        <span className="font-bold text-lg">VendHub</span>
+        <span className="font-display text-lg font-extrabold tracking-tight">
+          VendHub
+        </span>
       </div>
 
       {/* Navigation with section dividers (Issue #6 + #11) */}
@@ -673,8 +676,8 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           <div key={group.section}>
             {groupIndex > 0 && (
               <>
-                <div className="my-2 border-t" />
-                <p className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <div className="my-2 border-t border-border/50" />
+                <p className="px-3 py-1.5 text-label text-muted-foreground">
                   {tSections.has(group.section)
                     ? tSections(group.section)
                     : SECTION_LABELS[group.section] || group.section}
@@ -693,15 +696,21 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                     key={item.nameKey}
                     href={item.href}
                     onClick={onNavigate}
+                    aria-current={isActive ? "page" : undefined}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors duration-micro",
                       isActive
-                        ? "bg-primary text-primary-foreground"
+                        ? "nav-item-active font-medium"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
-                    <item.icon className="h-4 w-4" aria-hidden="true" />
-                    {t.has(item.nameKey) ? t(item.nameKey) : item.fallback}
+                    <item.icon
+                      className="h-4 w-4 shrink-0"
+                      aria-hidden="true"
+                    />
+                    <span className="truncate">
+                      {t.has(item.nameKey) ? t(item.nameKey) : item.fallback}
+                    </span>
                   </Link>
                 );
               })}
@@ -711,13 +720,15 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </nav>
 
       {/* User info + Locale + Logout */}
-      <div className="border-t p-3 space-y-2">
+      <div className="border-t border-border/50 p-3 space-y-2">
         {user && (
           <div className="px-3 py-1">
             <p className="text-sm font-medium truncate">
               {user.firstName} {user.lastName}
             </p>
-            <p className="text-xs text-muted-foreground">{user.role}</p>
+            <p className="text-label text-muted-foreground mt-0.5">
+              {user.role}
+            </p>
           </div>
         )}
         <div className="px-3 py-1">
@@ -735,10 +746,11 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-/** Desktop sidebar — hidden on mobile (Issue #1) */
+/** Desktop sidebar — hidden on mobile (Issue #1)
+ * Width 260px = handoff brand-book; glass-subtle for opaque-quiet shell */
 export function Sidebar() {
   return (
-    <div className="hidden lg:flex h-full w-64 flex-col bg-card/40 backdrop-blur-2xl border-r border-border/50">
+    <div className="hidden lg:flex h-full w-[260px] flex-col glass-subtle border-r border-border/50">
       <SidebarContent />
     </div>
   );

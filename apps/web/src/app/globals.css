@@ -262,9 +262,13 @@
     --status-info-bg: oklch(0.30 0.09 235 / 0.22);
     --status-neutral: #746d64;
 
-    /* ── Font family tokens ── */
-    --font-sans: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    /* ── Font family tokens ──
+     * Values are injected by next/font/google via classNames on <html>:
+     *   --font-sans  → Montserrat   (apps/web/src/app/layout.tsx)
+     *   --font-mono  → IBM Plex Mono
+     * Hardcoded fallbacks here would override next/font's hashed font name
+     * and cause the browser to skip to system-ui (fonts never load).
+     * Do NOT add --font-sans / --font-mono declarations here. */
 
     /* ── Font size scale ── */
     --fs-display-hero: 96px;
@@ -342,4 +346,149 @@
   :root[data-density="compact"]     { --row-h: 36px; --control-h: 32px; --card-pad: 14px; }
   :root[data-density="cozy"]        { --row-h: 44px; --control-h: 36px; --card-pad: 18px; }
   :root[data-density="comfortable"] { --row-h: 56px; --control-h: 42px; --card-pad: 24px; }
+}
+
+/* ─── Brand keyframes (used by .status-dot, .skeleton, fade-in-up) ──────── */
+@keyframes pulse-warm {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.5; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes fade-in-up {
+  0%   { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Brand utilities — handoff parity (P4.2) ────────────────────────────── */
+
+@layer utilities {
+  /* Status surface utilities — paired bg + border + fg for badges/alerts */
+  .surface-success { background: hsl(152 50% 95%); border-color: hsl(152 40% 80%); color: hsl(152 60% 28%); }
+  .surface-warning { background: hsl(38 90% 96%);  border-color: hsl(38 70% 80%);  color: hsl(38 80% 32%); }
+  .surface-danger  { background: hsl(0 80% 96%);   border-color: hsl(0 60% 82%);   color: hsl(0 65% 42%); }
+  .surface-info    { background: hsl(210 80% 96%); border-color: hsl(210 60% 82%); color: hsl(210 70% 38%); }
+
+  .dark .surface-success { background: hsl(152 30% 12%); border-color: hsl(152 30% 22%); color: hsl(152 55% 70%); }
+  .dark .surface-warning { background: hsl(38 50% 12%);  border-color: hsl(38 40% 22%);  color: hsl(38 90% 70%); }
+  .dark .surface-danger  { background: hsl(0 40% 12%);   border-color: hsl(0 35% 22%);   color: hsl(0 70% 75%); }
+  .dark .surface-info    { background: hsl(210 40% 12%); border-color: hsl(210 35% 22%); color: hsl(210 65% 75%); }
+
+  /* Status dot — live machine state indicator with pulse halo */
+  .status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    position: relative;
+  }
+  .status-dot::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 9999px;
+    opacity: 0.4;
+    animation: pulse-warm 2s ease-in-out infinite;
+  }
+  .status-dot--online      { background: hsl(var(--success)); }
+  .status-dot--online::after { background: hsl(var(--success)); }
+  .status-dot--warn        { background: hsl(var(--warning)); }
+  .status-dot--warn::after   { background: hsl(var(--warning)); }
+  .status-dot--err         { background: hsl(var(--destructive)); }
+  .status-dot--err::after    { background: hsl(var(--destructive)); }
+  .status-dot--idle        { background: hsl(var(--muted-foreground)); }
+  .status-dot--idle::after   { display: none; }
+
+  /* Tabular numerics — KPIs, tables, money */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  /* Mono ID/SKU — uppercase tracked machine and product identifiers */
+  .id-mono {
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Uppercase semantic label — pairs with text-label fontSize token */
+  .text-label {
+    text-transform: uppercase;
+  }
+
+  /* Skeleton shimmer — loading placeholders */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted) / 0.5) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.6s linear infinite;
+    border-radius: var(--radius);
+  }
+
+  /* Stock micro-bars — 3-channel inventory indicator (beans / milk / water) */
+  .stock-mini { display: flex; gap: 3px; align-items: center; }
+  .stock-mini__bar {
+    width: 28px;
+    height: 4px;
+    background: hsl(var(--muted));
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .stock-mini__fill {
+    height: 100%;
+    transition: width 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  /* Chart helpers — recharts grid + axis styling */
+  .chart-grid {
+    stroke: hsl(var(--border));
+    stroke-dasharray: 2 4;
+    stroke-width: 0.5;
+  }
+  .chart-axis {
+    font-family: var(--font-mono, monospace);
+    font-size: 10px;
+    fill: hsl(var(--muted-foreground));
+  }
+
+  /* Sidebar nav — active item accent (used by sidebar.tsx) */
+  .nav-item-active {
+    background: hsl(var(--sidebar-hover));
+    color: hsl(var(--sidebar-active));
+    box-shadow: inset 2px 0 0 hsl(var(--sidebar-active));
+  }
+
+  /* Legacy: warm glass card (used by SalaryTab and earlier brand iteration) */
+  .coffee-card {
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    background: hsl(var(--card) / 0.85);
+    border: 1px solid hsl(var(--border) / 0.6);
+    box-shadow: 0 1px 3px hsl(25 30% 8% / 0.06);
+  }
+}
+
+/* ─── Print styles — finance/payouts/reports ─────────────────────────────── */
+@media print {
+  .glass,
+  .glass-elevated,
+  .glass-subtle {
+    backdrop-filter: none !important;
+    background: white !important;
+  }
+  .no-print { display: none !important; }
+  body {
+    background: white !important;
+    color: black !important;
+  }
 }

@@ -256,17 +256,29 @@ export default function MachinesPage() {
     );
   }
 
+  // Inline subtitle (handoff: live segments)
+  const subtitleSegments = [
+    `${stats.total} всего`,
+    stats.active > 0 && `${stats.active} активных`,
+    stats.needsRefill > 0 && `${stats.needsRefill} к пополнению`,
+    stats.inactive > 0 && `${stats.inactive} неактивных`,
+  ].filter(Boolean) as string[];
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Header — handoff: font-display title + live inline-stats subtitle */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">{t("title")}</h1>
-          <p className="text-muted-foreground">{t("subtitle")}</p>
+          <h1 className="font-display text-2xl font-bold tracking-tight">
+            {t("title")}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {subtitleSegments.join(" · ")}
+          </p>
         </div>
         <Link href="/dashboard/machines/new">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
+          <Button size="sm" className="gap-2">
+            <Plus className="h-4 w-4" />
             {t("addMachine")}
           </Button>
         </Link>

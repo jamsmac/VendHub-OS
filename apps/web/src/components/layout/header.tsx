@@ -39,10 +39,11 @@ export function Header({ user }: HeaderProps) {
     return `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase() || "U";
   };
 
+  // TODO: replace with real notification count from API/WebSocket
   const notificationCount = 3;
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-border/50 bg-card/40 backdrop-blur-2xl px-4 lg:px-6 sticky top-0 z-40">
+    <header className="flex h-16 items-center justify-between border-b border-border/50 glass-subtle px-4 lg:px-6 sticky top-0 z-40">
       <div className="flex items-center gap-3">
         {/* Mobile hamburger (Issue #1) */}
         <MobileSidebar />
@@ -95,10 +96,10 @@ export function Header({ user }: HeaderProps) {
           <Bell className="h-4 w-4" />
           {notificationCount > 0 && (
             <span
-              className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground flex items-center justify-center"
+              className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground flex items-center justify-center tabular"
               aria-hidden="true"
             >
-              {notificationCount}
+              {notificationCount > 9 ? "9+" : notificationCount}
             </span>
           )}
         </Button>

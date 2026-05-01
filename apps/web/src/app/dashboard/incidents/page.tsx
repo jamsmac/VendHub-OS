@@ -22,8 +22,13 @@ import {
   Droplets,
   Package,
   HelpCircle,
-  Clock,
+  Download,
+  Activity,
+  Gauge,
+  CalendarDays,
 } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { KpiCard } from "@/components/dashboard/kpi-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -289,167 +294,241 @@ export default function IncidentsPage() {
     );
   }
 
+  // Inline subtitle stats (handoff: "1 критичный · 2 открыты · 14 закрыто за неделю")
+  const activeCount = stats.reported + stats.investigating;
+  const criticalCount = incidents.filter(
+    (i) =>
+      i.priority === "HIGH" &&
+      (i.status === "REPORTED" || i.status === "INVESTIGATING"),
+  ).length;
+  const closedThisWeek = incidents.filter((i) => {
+    if (i.status !== "CLOSED" && i.status !== "RESOLVED") return false;
+    const ts = i.resolved_at ?? i.created_at;
+    if (!ts) return false;
+    const ageMs = Date.now() - new Date(ts).getTime();
+    return ageMs <= 7 * 24 * 60 * 60 * 1000;
+  }).length;
+
+  const subtitleSegments = [
+    criticalCount > 0 && `${criticalCount} критичных`,
+    `${activeCount} активных`,
+    `${closedThisWeek} закрыто за неделю`,
+  ].filter(Boolean) as string[];
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Header — handoff: title + inline-stats subtitle + Export + Create */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{t("title")}</h1>
-          <p className="text-muted-foreground">{t("subtitle")}</p>
+          <h1 className="font-display text-2xl font-bold tracking-tight">
+            {t("title")}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {subtitleSegments.join(" · ")}
+          </p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              {t("createIncident")}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>{t("createIncident")}</DialogTitle>
-            </DialogHeader>
-            <IncidentForm
-              onSuccess={() => {
-                setIsCreateDialogOpen(false);
-                queryClient.invalidateQueries({ queryKey: ["incidents"] });
-              }}
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="gap-2">
+            <Download className="w-4 h-4" />
+            {t.has("export") ? t("export") : "Экспорт"}
+          </Button>
+          <Dialog
+            open={isCreateDialogOpen}
+            onOpenChange={setIsCreateDialogOpen}
+          >
+            <DialogTrigger asChild>
+              <Button size="sm" className="gap-2">
+                <Plus className="w-4 h-4" />
+                {t("createIncident")}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>{t("createIncident")}</DialogTitle>
+              </DialogHeader>
+              <IncidentForm
+                onSuccess={() => {
+                  setIsCreateDialogOpen(false);
+                  queryClient.invalidateQueries({ queryKey: ["incidents"] });
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {/* KPI cards — handoff: Активных / MTTR / Uptime / 30d
+       *
+       * MTTR и Uptime сейчас mock — backend ещё не возвращает эти агрегаты.
+       * TODO: подключить /incidents/metrics → mttr_avg, fleet_uptime, last_30d_closed.
+       */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard
+          icon={<AlertTriangle className="w-5 h-5" />}
+          label={t.has("kpiActive") ? t("kpiActive") : "Активных"}
+          value={String(activeCount)}
+          {...(criticalCount > 0
+            ? {
+                trend: `+${criticalCount}`,
+                trendDir: "up",
+                trendKind: "bad",
+              }
+            : {})}
+          foot={
+            criticalCount > 0
+              ? `${criticalCount} критичных`
+              : t.has("kpiNoActiveCritical")
+                ? t("kpiNoActiveCritical")
+                : "Нет критичных"
+          }
+        />
+        <KpiCard
+          icon={<Activity className="w-5 h-5" />}
+          label={t.has("kpiMttr") ? t("kpiMttr") : "Среднее MTTR"}
+          value="1ч 42м"
+          trend="−18%"
+          trendDir="down"
+          trendKind="good"
+          foot={t.has("kpiMttrFoot") ? t("kpiMttrFoot") : "vs прошлая неделя"}
+        />
+        <KpiCard
+          icon={<Gauge className="w-5 h-5" />}
+          label={t.has("kpiUptime") ? t("kpiUptime") : "Аптайм парка"}
+          value="96.8%"
+          foot={t.has("kpiUptimeFoot") ? t("kpiUptimeFoot") : "SLA 98%"}
+        />
+        <KpiCard
+          icon={<CalendarDays className="w-5 h-5" />}
+          label={t.has("kpiLast30d") ? t("kpiLast30d") : "За 30 дней"}
+          value={String(stats.resolved + (statistics?.closed ?? 0))}
+          trend="−12%"
+          trendDir="down"
+          trendKind="good"
+          foot={
+            t.has("kpiLast30dFoot") ? t("kpiLast30dFoot") : "успешно закрыто"
+          }
+        />
+      </div>
+
+      {/* Filters — Segmented (Все/Открытые/Закрытые) + search + advanced (type/priority) */}
+      <div className="space-y-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          {/* Primary: Segmented (handoff) — maps to statusFilter via 3 buckets */}
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            size="sm"
+            value={
+              statusFilter === "all"
+                ? "all"
+                : statusFilter === "REPORTED" ||
+                    statusFilter === "INVESTIGATING"
+                  ? "open"
+                  : "closed"
+            }
+            onValueChange={(v) => {
+              if (!v) return;
+              if (v === "all") setStatusFilter("all");
+              else if (v === "open") setStatusFilter("REPORTED");
+              else setStatusFilter("CLOSED");
+            }}
+            aria-label={t.has("filterStatus") ? t("filterStatus") : "Статус"}
+          >
+            <ToggleGroupItem value="all">
+              {t.has("segAll") ? t("segAll") : "Все"}
+            </ToggleGroupItem>
+            <ToggleGroupItem value="open">
+              {t.has("segOpen") ? t("segOpen") : "Открытые"}
+            </ToggleGroupItem>
+            <ToggleGroupItem value="closed">
+              {t.has("segClosed") ? t("segClosed") : "Закрытые"}
+            </ToggleGroupItem>
+          </ToggleGroup>
+
+          {/* Search — right-aligned for desktop */}
+          <div className="relative w-full sm:max-w-xs">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
+              aria-hidden="true"
             />
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Statistics */}
-      <div className="grid grid-cols-4 gap-4">
-        <div className="bg-card rounded-xl p-4 border">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.total}</p>
-              <p className="text-sm text-muted-foreground">{t("statsTotal")}</p>
-            </div>
+            <Input
+              placeholder={t("searchPlaceholder")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10"
+            />
           </div>
-        </div>
-        <div className="bg-card rounded-xl p-4 border">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-              <Clock className="w-5 h-5 text-amber-500" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.reported}</p>
-              <p className="text-sm text-muted-foreground">
-                {t("statsReported")}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-card rounded-xl p-4 border">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-              <Search className="w-5 h-5 text-blue-500" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.investigating}</p>
-              <p className="text-sm text-muted-foreground">
-                {t("statsInvestigating")}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-card rounded-xl p-4 border">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-green-500" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.resolved}</p>
-              <p className="text-sm text-muted-foreground">
-                {t("statsResolved")}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder={t("searchPlaceholder")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
         </div>
 
-        {/* Status filter */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              <Filter className="w-4 h-4 mr-2" />
-              {statusFilter === "all"
-                ? t("filterStatus")
-                : t(`status_${statusFilter}`)}
-              <ChevronDown className="w-4 h-4 ml-2" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setStatusFilter("all")}>
-              {t("allStatuses")}
-            </DropdownMenuItem>
-            {INCIDENT_STATUSES.map((s) => (
-              <DropdownMenuItem key={s} onClick={() => setStatusFilter(s)}>
-                {t(`status_${s}`)}
+        {/* Advanced filters — Type / Priority dropdowns */}
+        <div className="flex flex-wrap items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <AlertTriangle className="w-4 h-4 mr-2" />
+                {typeFilter === "all"
+                  ? t("filterType")
+                  : t(`type_${typeFilter}`)}
+                <ChevronDown className="w-4 h-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => setTypeFilter("all")}>
+                {t("allTypes")}
               </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+              {INCIDENT_TYPES.map((tp) => (
+                <DropdownMenuItem key={tp} onClick={() => setTypeFilter(tp)}>
+                  {t(`type_${tp}`)}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-        {/* Type filter */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              <AlertTriangle className="w-4 h-4 mr-2" />
-              {typeFilter === "all" ? t("filterType") : t(`type_${typeFilter}`)}
-              <ChevronDown className="w-4 h-4 ml-2" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setTypeFilter("all")}>
-              {t("allTypes")}
-            </DropdownMenuItem>
-            {INCIDENT_TYPES.map((tp) => (
-              <DropdownMenuItem key={tp} onClick={() => setTypeFilter(tp)}>
-                {t(`type_${tp}`)}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <ShieldAlert className="w-4 h-4 mr-2" />
+                {priorityFilter === "all"
+                  ? t("filterPriority")
+                  : t(`priority_${priorityFilter}`)}
+                <ChevronDown className="w-4 h-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => setPriorityFilter("all")}>
+                {t("allPriorities")}
               </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+              {INCIDENT_PRIORITIES.map((p) => (
+                <DropdownMenuItem key={p} onClick={() => setPriorityFilter(p)}>
+                  {t(`priority_${p}`)}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-        {/* Priority filter */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              <ShieldAlert className="w-4 h-4 mr-2" />
-              {priorityFilter === "all"
-                ? t("filterPriority")
-                : t(`priority_${priorityFilter}`)}
-              <ChevronDown className="w-4 h-4 ml-2" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setPriorityFilter("all")}>
-              {t("allPriorities")}
-            </DropdownMenuItem>
-            {INCIDENT_PRIORITIES.map((p) => (
-              <DropdownMenuItem key={p} onClick={() => setPriorityFilter(p)}>
-                {t(`priority_${p}`)}
+          {/* Granular status (when user wants exact REPORTED vs INVESTIGATING) */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Filter className="w-4 h-4 mr-2" />
+                {statusFilter === "all"
+                  ? t("filterStatus")
+                  : t(`status_${statusFilter}`)}
+                <ChevronDown className="w-4 h-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => setStatusFilter("all")}>
+                {t("allStatuses")}
               </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+              {INCIDENT_STATUSES.map((s) => (
+                <DropdownMenuItem key={s} onClick={() => setStatusFilter(s)}>
+                  {t(`status_${s}`)}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Table */}

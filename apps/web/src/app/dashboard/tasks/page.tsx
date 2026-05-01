@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { tasksApi } from "@/lib/api";
 import Link from "next/link";
+import { KpiCard } from "@/components/dashboard/kpi-card";
 
 interface Task {
   id: string;
@@ -212,82 +213,66 @@ export default function TasksPage() {
     );
   }
 
+  // Inline subtitle stats (handoff: live counts as text)
+  const subtitleSegments = [
+    `${stats.total} всего`,
+    stats.pending > 0 && `${stats.pending} ожидают`,
+    stats.inProgress > 0 && `${stats.inProgress} в работе`,
+    stats.overdue > 0 && `${stats.overdue} просрочено`,
+  ].filter(Boolean) as string[];
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Header — handoff: font-display title + live subtitle + Create */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">{t("title")}</h1>
-          <p className="text-muted-foreground">{t("subtitle")}</p>
+          <h1 className="font-display text-2xl font-bold tracking-tight">
+            {t("title")}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {subtitleSegments.join(" · ")}
+          </p>
         </div>
         <Link href="/dashboard/tasks/new">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
+          <Button size="sm" className="gap-2">
+            <Plus className="h-4 w-4" />
             {t("createTask")}
           </Button>
         </Link>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  {t("statsTotal")}
-                </p>
-                <p className="text-2xl font-bold">{stats.total}</p>
-              </div>
-              <ClipboardList className="h-8 w-8 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  {t("statsPending")}
-                </p>
-                <p className="text-2xl font-bold text-muted-foreground">
-                  {stats.pending}
-                </p>
-              </div>
-              <Clock className="h-8 w-8 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  {t("statsInProgress")}
-                </p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {stats.inProgress}
-                </p>
-              </div>
-              <Play className="h-8 w-8 text-yellow-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  {t("statsOverdue")}
-                </p>
-                <p className="text-2xl font-bold text-red-600">
-                  {stats.overdue}
-                </p>
-              </div>
-              <AlertTriangle className="h-8 w-8 text-red-600" />
-            </div>
-          </CardContent>
-        </Card>
+      {/* KPI cards — handoff-aligned via shared <KpiCard> */}
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <KpiCard
+          icon={<ClipboardList className="h-5 w-5" />}
+          label={t("statsTotal")}
+          value={String(stats.total)}
+        />
+        <KpiCard
+          icon={<Clock className="h-5 w-5" />}
+          label={t("statsPending")}
+          value={String(stats.pending)}
+          iconClassName="bg-muted text-muted-foreground"
+        />
+        <KpiCard
+          icon={<Play className="h-5 w-5" />}
+          label={t("statsInProgress")}
+          value={String(stats.inProgress)}
+          iconClassName="bg-warning/10 text-warning"
+        />
+        <KpiCard
+          icon={<AlertTriangle className="h-5 w-5" />}
+          label={t("statsOverdue")}
+          value={String(stats.overdue)}
+          iconClassName="bg-destructive/10 text-destructive"
+          {...(stats.overdue > 0
+            ? {
+                trend: String(stats.overdue),
+                trendDir: "up",
+                trendKind: "bad",
+              }
+            : {})}
+        />
       </div>
 
       {/* Filters */}

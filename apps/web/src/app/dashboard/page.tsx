@@ -23,13 +23,13 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Header — handoff: font-display title + dated subtitle + Refresh action */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-espresso-dark font-display">
+          <h1 className="font-display text-2xl font-bold tracking-tight">
             {t("title")}
           </h1>
-          <p className="mt-1 text-sm text-espresso-light">
+          <p className="mt-1 text-sm text-muted-foreground">
             {formatDate(new Date(), {
               weekday: "long",
               day: "numeric",
@@ -41,32 +41,37 @@ export default function DashboardPage() {
         <Button
           variant="outline"
           size="sm"
-          className="gap-2 text-espresso-light"
+          className="gap-2 self-start sm:self-auto"
         >
           <RefreshCw className="h-4 w-4" />
           {t("refresh")}
         </Button>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 border-b border-espresso/10 pb-1 overflow-x-auto">
+      {/* Tabs — handoff: underline-indicator instead of pill-fill */}
+      <div
+        className="flex gap-1 border-b border-border/60 overflow-x-auto"
+        role="tablist"
+      >
         {TAB_IDS.map((tab) => {
           const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
           return (
-            <Button
+            <button
               key={tab.id}
-              variant="ghost"
-              size="sm"
+              type="button"
+              role="tab"
+              aria-selected={isActive}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 rounded-t-lg px-4 py-2 whitespace-nowrap ${
-                activeTab === tab.id
-                  ? "bg-espresso text-white"
-                  : "text-espresso-light hover:bg-espresso-50"
+              className={`relative flex items-center gap-2 px-4 py-2.5 text-sm whitespace-nowrap transition-colors duration-micro ${
+                isActive
+                  ? "text-foreground font-medium after:absolute after:content-[''] after:left-3 after:right-3 after:-bottom-px after:h-0.5 after:bg-hub-sand after:rounded-full"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <Icon className="h-4 w-4" />
               {t(`tabs.${tab.id}`)}
-            </Button>
+            </button>
           );
         })}
       </div>
