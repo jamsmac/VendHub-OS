@@ -479,18 +479,24 @@ export class QuestsService {
       },
     });
 
+    // Raw SQL identifiers in select/where must be snake_case — Postgres
+    // case-folds unquoted identifiers, and TypeORM only resolves
+    // alias.property in some code paths.
     const userQuestStats = await this.userQuestRepo
       .createQueryBuilder("uq")
       .leftJoin("uq.quest", "q")
       .select([
-        "COUNT(DISTINCT uq.userId) as participants",
+        "COUNT(DISTINCT uq.user_id) as participants",
         "COUNT(CASE WHEN uq.status = :claimed THEN 1 END) as completed",
-        "SUM(CASE WHEN uq.status = :claimed THEN uq.pointsClaimed ELSE 0 END) as points",
+        "SUM(CASE WHEN uq.status = :claimed THEN uq.points_claimed ELSE 0 END) as points",
       ])
-      .where("q.organizationId = :organizationId OR q.organizationId IS NULL", {
-        organizationId,
-      })
-      .andWhere("uq.startedAt BETWEEN :dateFrom AND :dateTo", {
+      .where(
+        "q.organization_id = :organizationId OR q.organization_id IS NULL",
+        { organizationId },
+      )
+      // Entity has no `startedAt` field — use BaseEntity's createdAt
+      // as the participation timestamp for stats windowing.
+      .andWhere("uq.created_at BETWEEN :dateFrom AND :dateTo", {
         dateFrom,
         dateTo,
       })
