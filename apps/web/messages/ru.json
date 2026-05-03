@@ -277,6 +277,7 @@
     "confirmDelete": "Удалить этот автомат?"
   },
   "products": {
+    "productCreated": "Товар создан",
     "title": "Продукты",
     "subtitle": "Управление каталогом продуктов, рецептами и ингредиентами",
     "addProduct": "Добавить продукт",
@@ -464,6 +465,7 @@
     "showingRange": "Показано {from} - {to} из {total} транзакций"
   },
   "settings": {
+    "search": "Поиск",
     "title": "Настройки",
     "subtitle": "Управление настройками организации",
     "organizationSettings": "Настройки организации",
@@ -971,6 +973,9 @@
     "colActions": "Действия"
   },
   "team": {
+    "createInvite": "Создать приглашение",
+    "invites": "Приглашения",
+    "invitesDescription": "Управление приглашениями в команду",
     "title": "Команда",
     "subtitle": "Управление сотрудниками, ролями и правами доступа (RBAC)",
     "invite": "Пригласить",
@@ -1113,6 +1118,8 @@
     "bulkClear": "Очистить"
   },
   "routes": {
+    "analyticsSubtitle": "Анализ маршрутов и эффективности",
+    "analyticsTitle": "Аналитика маршрутов",
     "title": "Маршруты",
     "subtitle": "Управление маршрутами обслуживания",
     "createRoute": "Создать маршрут",
@@ -2195,6 +2202,7 @@
     "details": "Подробнее"
   },
   "departments": {
+    "actionsLabel": "Действия",
     "statsTotal": "Всего отделов",
     "statsActive": "Активных",
     "statsWithManager": "С руководителем",
@@ -2404,6 +2412,7 @@
     "status_error": "Ошибка"
   },
   "achievements": {
+    "back": "Назад",
     "title": "Достижения",
     "subtitle": "Управление ачивками и бейджами",
     "seedBasic": "Создать базовые",
@@ -2528,6 +2537,7 @@
     "status_CANCELLED": "Отменено"
   },
   "quests": {
+    "back": "Назад",
     "title": "Квесты",
     "subtitle": "Ежедневные и недельные задания",
     "newQuest": "Новый квест",
@@ -2712,6 +2722,7 @@
     "notFound": "Нет данных о зарплатах за выбранный период"
   },
   "loyaltySettings": {
+    "back": "Назад",
     "title": "Настройки программы",
     "subtitle": "Текущая конфигурация программы лояльности",
     "infoBannerTitle": "Конфигурация задаётся в коде",
@@ -2741,6 +2752,7 @@
     "streakBonus": "+{bonus} баллов"
   },
   "loyaltyLevels": {
+    "back": "Назад",
     "title": "Уровни лояльности",
     "subtitle": "Информация об уровнях и привилегиях",
     "peopleBadge": "{count} чел ({percent}%)",
@@ -2842,6 +2854,7 @@
     "toastSyncError": "Ошибка синхронизации"
   },
   "promoCodes": {
+    "back": "Назад",
     "title": "Промокоды",
     "subtitle": "Создание и управление промокодами",
     "newPromoCode": "Новый промокод",
@@ -3050,6 +3063,7 @@
     "wizardCreate": "Создать акцию"
   },
   "loyaltyTransactions": {
+    "back": "Назад",
     "title": "Транзакции баллов",
     "subtitle": "История начислений и списаний",
     "adjustBtn": "Корректировка",
@@ -4434,6 +4448,8 @@
   },
   "navSections": {
     "dashboard": "Дашборд",
+    "navigation": "Навигация",
+    "openMenu": "Открыть меню",
     "operations": "Операции",
     "finance": "Финансы",
     "marketing": "Маркетинг",
@@ -4473,6 +4489,7 @@
     "possibleResponses": "Возможные ответы"
   },
   "help": {
+    "cmsArticles": "Статьи помощи",
     "title": "Помощь и поддержка",
     "subtitle": "Найдите ответы, обучайтесь, свяжитесь с поддержкой",
     "tabs": {

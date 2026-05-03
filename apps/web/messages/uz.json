@@ -276,6 +276,7 @@
     "confirmDelete": "Bu avtomatni o'chirmoqchimisiz?"
   },
   "products": {
+    "productCreated": "Mahsulot yaratildi",
     "title": "Mahsulotlar",
     "subtitle": "Mahsulotlar katalogi, retseptlar va ingredientlarni boshqarish",
     "addProduct": "Mahsulot qo'shish",
@@ -462,6 +463,7 @@
     "showingRange": "Ko'rsatilmoqda {from} - {to} / {total} tranzaksiya"
   },
   "settings": {
+    "search": "Qidirish",
     "title": "Sozlamalar",
     "subtitle": "Tashkilot sozlamalarini boshqarish",
     "organizationSettings": "Tashkilot sozlamalari",
@@ -969,6 +971,9 @@
     "colActions": "Amallar"
   },
   "team": {
+    "createInvite": "Taklif yaratish",
+    "invites": "Takliflar",
+    "invitesDescription": "Jamoa takliflarini boshqarish",
     "title": "Jamoa",
     "subtitle": "Xodimlar, rollar va kirish huquqlarini boshqarish (RBAC)",
     "invite": "Taklif qilish",
@@ -1111,6 +1116,8 @@
     "bulkClear": "Tozalash"
   },
   "routes": {
+    "analyticsSubtitle": "Marshrutlar va samaradorlik tahlili",
+    "analyticsTitle": "Marshrut tahlili",
     "title": "Yo'nalishlar",
     "subtitle": "Xizmat yo'nalishlarini boshqarish",
     "createRoute": "Yo'nalish yaratish",
@@ -2193,6 +2200,7 @@
     "details": "Batafsil"
   },
   "departments": {
+    "actionsLabel": "Amallar",
     "statsTotal": "Jami bo'limlar",
     "statsActive": "Faol",
     "statsWithManager": "Rahbari bor",
@@ -2402,6 +2410,7 @@
     "status_error": "Xatolik"
   },
   "achievements": {
+    "back": "Orqaga",
     "title": "Yutuqlar",
     "subtitle": "Yutuqlar va nishonlarni boshqarish",
     "seedBasic": "Asosiylarni yaratish",
@@ -2526,6 +2535,7 @@
     "status_CANCELLED": "Bekor qilingan"
   },
   "quests": {
+    "back": "Orqaga",
     "title": "Topshiriqlar",
     "subtitle": "Kunlik va haftalik vazifalar",
     "newQuest": "Yangi topshiriq",
@@ -2710,6 +2720,7 @@
     "notFound": "Tanlangan davr uchun maosh ma'lumotlari yo'q"
   },
   "loyaltySettings": {
+    "back": "Orqaga",
     "title": "Dastur sozlamalari",
     "subtitle": "Sodiqlik dasturining joriy konfiguratsiyasi",
     "infoBannerTitle": "Konfiguratsiya kodda belgilangan",
@@ -2739,6 +2750,7 @@
     "streakBonus": "+{bonus} ball"
   },
   "loyaltyLevels": {
+    "back": "Orqaga",
     "title": "Sodiqlik darajalari",
     "subtitle": "Darajalar va imtiyozlar haqida ma'lumot",
     "peopleBadge": "{count} kishi ({percent}%)",
@@ -2840,6 +2852,7 @@
     "toastSyncError": "Sinxronizatsiya xatosi"
   },
   "promoCodes": {
+    "back": "Orqaga",
     "title": "Promokodlar",
     "subtitle": "Promokodlarni yaratish va boshqarish",
     "newPromoCode": "Yangi promokod",
@@ -3048,6 +3061,7 @@
     "wizardCreate": "Aksiya yaratish"
   },
   "loyaltyTransactions": {
+    "back": "Orqaga",
     "title": "Ball tranzaksiyalari",
     "subtitle": "Hisoblash va sarflash tarixi",
     "adjustBtn": "Tuzatish",
@@ -4432,6 +4446,8 @@
   },
   "navSections": {
     "dashboard": "Boshqaruv paneli",
+    "navigation": "Navigatsiya",
+    "openMenu": "Menyuni ochish",
     "operations": "Operatsiyalar",
     "finance": "Moliya",
     "marketing": "Marketing",
@@ -4471,6 +4487,7 @@
     "possibleResponses": "Mumkin bo'lgan javoblar"
   },
   "help": {
+    "cmsArticles": "Yordam maqolalari",
     "title": "Yordam va qo'llab-quvvatlash",
     "subtitle": "Javoblarni toping, o'rganing, qo'llab-quvvatlash bilan bog'laning",
     "tabs": {

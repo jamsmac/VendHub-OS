@@ -118,7 +118,8 @@ const nextConfig = {
               "default-src 'self'",
               `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
               "style-src 'self' 'unsafe-inline'",
-              `img-src 'self' data: blob: ${apiHost}`,
+              // OSM tiles for /dashboard/map (Leaflet) — served from a/b/c.tile.openstreetmap.org subdomains
+              `img-src 'self' data: blob: ${apiHost} https://*.tile.openstreetmap.org`,
               "font-src 'self' https://fonts.gstatic.com",
               `connect-src 'self' ${apiHost} ${wsHost}`,
               "frame-ancestors 'none'",

@@ -277,6 +277,7 @@
     "confirmDelete": "Delete this machine?"
   },
   "products": {
+    "productCreated": "Product created",
     "title": "Products",
     "subtitle": "Manage product catalog, recipes and ingredients",
     "addProduct": "Add Product",
@@ -463,6 +464,7 @@
     "showingRange": "Showing {from} - {to} of {total} transactions"
   },
   "settings": {
+    "search": "Search",
     "title": "Settings",
     "subtitle": "Manage organization settings",
     "organizationSettings": "Organization Settings",
@@ -970,6 +972,9 @@
     "colActions": "Actions"
   },
   "team": {
+    "createInvite": "Create invite",
+    "invites": "Invites",
+    "invitesDescription": "Manage team invites",
     "title": "Team",
     "subtitle": "Manage employees, roles and access rights (RBAC)",
     "invite": "Invite",
@@ -1112,6 +1117,8 @@
     "bulkClear": "Clear"
   },
   "routes": {
+    "analyticsSubtitle": "Route and efficiency analysis",
+    "analyticsTitle": "Route analytics",
     "title": "Routes",
     "subtitle": "Manage service routes",
     "createRoute": "Create route",
@@ -2194,6 +2201,7 @@
     "details": "Details"
   },
   "departments": {
+    "actionsLabel": "Actions",
     "statsTotal": "Total departments",
     "statsActive": "Active",
     "statsWithManager": "With manager",
@@ -2403,6 +2411,7 @@
     "status_error": "Error"
   },
   "achievements": {
+    "back": "Back",
     "title": "Achievements",
     "subtitle": "Manage achievements and badges",
     "seedBasic": "Seed defaults",
@@ -2527,6 +2536,7 @@
     "status_CANCELLED": "Cancelled"
   },
   "quests": {
+    "back": "Back",
     "title": "Quests",
     "subtitle": "Daily and weekly challenges",
     "newQuest": "New quest",
@@ -2711,6 +2721,7 @@
     "notFound": "No payroll data for the selected period"
   },
   "loyaltySettings": {
+    "back": "Back",
     "title": "Program Settings",
     "subtitle": "Current loyalty program configuration",
     "infoBannerTitle": "Configuration is defined in code",
@@ -2740,6 +2751,7 @@
     "streakBonus": "+{bonus} points"
   },
   "loyaltyLevels": {
+    "back": "Back",
     "title": "Loyalty Levels",
     "subtitle": "Information about levels and privileges",
     "peopleBadge": "{count} people ({percent}%)",
@@ -2841,6 +2853,7 @@
     "toastSyncError": "Sync error"
   },
   "promoCodes": {
+    "back": "Back",
     "title": "Promo Codes",
     "subtitle": "Create and manage promo codes",
     "newPromoCode": "New promo code",
@@ -3049,6 +3062,7 @@
     "wizardCreate": "Create promotion"
   },
   "loyaltyTransactions": {
+    "back": "Back",
     "title": "Points Transactions",
     "subtitle": "Earning and spending history",
     "adjustBtn": "Adjustment",
@@ -4433,6 +4447,8 @@
   },
   "navSections": {
     "dashboard": "Dashboard",
+    "navigation": "Navigation",
+    "openMenu": "Open menu",
     "operations": "Operations",
     "finance": "Finance",
     "marketing": "Marketing",
@@ -4472,6 +4488,7 @@
     "possibleResponses": "Possible responses"
   },
   "help": {
+    "cmsArticles": "Help articles",
     "title": "Help & Support",
     "subtitle": "Find answers, learn, contact support",
     "tabs": {
