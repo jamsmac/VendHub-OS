@@ -13,7 +13,6 @@
 
 import { NestFactory, Reflector } from "@nestjs/core";
 import {
-  ValidationPipe,
   VersioningType,
   Logger,
   ClassSerializerInterceptor,
@@ -29,6 +28,7 @@ import * as Sentry from "@sentry/node";
 import { AppModule } from "./app.module";
 import { AppLoggerService } from "./common/services/logger.service";
 import { SanitizePipe } from "./common/pipes/sanitize.pipe";
+import { HybridValidationPipe } from "./common/pipes/hybrid-validation.pipe";
 import { MetricsInterceptor } from "./common/interceptors/metrics.interceptor";
 import { MetricsService } from "./modules/metrics/metrics.service";
 import { TracingInterceptor } from "./common/tracing/tracing.interceptor";
@@ -255,8 +255,9 @@ async function bootstrap() {
   app.useGlobalPipes(
     // Input sanitization (XSS protection) - runs BEFORE validation
     new SanitizePipe(),
-    // Validation and transformation
-    new ValidationPipe({
+    // Hybrid: Zod DTOs go through ZodValidationPipe, class-validator DTOs
+    // through the original ValidationPipe with unchanged options.
+    new HybridValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,

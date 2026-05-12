@@ -9,7 +9,8 @@
  *   errorCode: string,        // ErrorCode enum value
  *   message: string,
  *   details?: Record<string, unknown>,
- *   errors?: string[],        // validation error list
+ *   errors?: string[],        // class-validator messages (legacy DTOs)
+ *   issues?: ValidationIssue[], // Zod issues with field paths (new DTOs)
  *   path: string,
  *   timestamp: string,
  *   requestId?: string,
@@ -27,8 +28,21 @@ import {
 } from "@nestjs/common";
 import { Request, Response } from "express";
 import { QueryFailedError, EntityNotFoundError } from "typeorm";
+import { ZodValidationException } from "nestjs-zod";
+import type { ZodError, ZodIssue } from "zod";
 import { ErrorCode } from "../constants/error-codes";
 import { BusinessException } from "../exceptions/business.exception";
+
+/**
+ * Field-level issue emitted by Zod validation. `path` is the dotted JSON
+ * pointer to the failing field (e.g. `"items.0.amount"`); `(root)` means
+ * the entire body failed (e.g. payload was not an object).
+ */
+export interface ValidationIssue {
+  path: string;
+  message: string;
+  code: string;
+}
 
 interface ErrorResponse {
   success: false;
@@ -37,6 +51,7 @@ interface ErrorResponse {
   message: string;
   details?: Record<string, unknown>;
   errors?: string[];
+  issues?: ValidationIssue[];
   path: string;
   timestamp: string;
   requestId?: string;
@@ -59,6 +74,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let message = "Internal server error";
     let details: Record<string, unknown> | undefined;
     let errors: string[] | undefined;
+    let issues: ValidationIssue[] | undefined;
 
     // -----------------------------------------------------------------
     // 1. BusinessException  (our typed domain exceptions)
@@ -72,7 +88,23 @@ export class HttpExceptionFilter implements ExceptionFilter {
       details = exception.details;
 
       // -----------------------------------------------------------------
-      // 2. Standard HttpException  (NestJS built-in / third-party)
+      // 2. ZodValidationException — MUST come before HttpException since
+      //    it extends BadRequestException. Maps Zod issues to a
+      //    structured array the frontend can render at field level.
+      // -----------------------------------------------------------------
+    } else if (exception instanceof ZodValidationException) {
+      statusCode = HttpStatus.BAD_REQUEST;
+      errorCode = ErrorCode.VALIDATION_ERROR;
+      message = "Validation failed";
+      const zodError = exception.getZodError() as ZodError;
+      issues = zodError.issues.map((issue: ZodIssue) => ({
+        path: issue.path.length > 0 ? issue.path.join(".") : "(root)",
+        message: issue.message,
+        code: issue.code,
+      }));
+
+      // -----------------------------------------------------------------
+      // 3. Standard HttpException  (NestJS built-in / third-party)
       // -----------------------------------------------------------------
     } else if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
@@ -100,7 +132,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       }
 
       // -----------------------------------------------------------------
-      // 3. TypeORM QueryFailedError
+      // 4. TypeORM QueryFailedError
       // -----------------------------------------------------------------
     } else if (exception instanceof QueryFailedError) {
       statusCode = HttpStatus.BAD_REQUEST;
@@ -110,7 +142,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       errorCode = errorCodeRef.code;
 
       // -----------------------------------------------------------------
-      // 4. TypeORM EntityNotFoundError
+      // 5. TypeORM EntityNotFoundError
       // -----------------------------------------------------------------
     } else if (exception instanceof EntityNotFoundError) {
       statusCode = HttpStatus.NOT_FOUND;
@@ -118,7 +150,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       message = "Record not found";
 
       // -----------------------------------------------------------------
-      // 5. Generic Error / unknown
+      // 6. Generic Error / unknown
       // -----------------------------------------------------------------
     } else if (exception instanceof Error) {
       message = isProduction ? "Internal server error" : exception.message;
@@ -145,6 +177,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
     }
     if (errors) {
       errorResponse.errors = errors;
+    }
+    if (issues) {
+      errorResponse.issues = issues;
     }
     if (requestId) {
       errorResponse.requestId = requestId;

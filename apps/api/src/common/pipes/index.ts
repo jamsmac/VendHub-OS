@@ -7,3 +7,4 @@ export * from "./parse-date.pipe";
 export * from "./parse-pagination.pipe";
 export * from "./parse-phone.pipe";
 export * from "./sanitize.pipe";
+export * from "./hybrid-validation.pipe";
