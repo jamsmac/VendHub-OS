@@ -59,7 +59,7 @@
     "@types/adm-zip": "^0.5.5",
     "@vendhub/shared": "workspace:*",
     "adm-zip": "^0.5.10",
-    "axios": "^1.13.5",
+    "axios": "^1.15.2",
     "bcrypt": "^5.1.1",
     "bullmq": "^5.0.0",
     "cache-manager": "^5.4.0",
